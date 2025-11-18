@@ -1,0 +1,14 @@
+
+<h1>マッチング画面</h1>
+
+
+<table>
+    <tr>
+        <th>参加プレイヤー一覧</th>
+    </tr>   
+    <tr th:each="player : ${players}">
+        <td th:text="${player}">Player</td>
+    </tr>
+</table>
+
+<a href="/home">ホームに戻る</a>

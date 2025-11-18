@@ -24,9 +24,12 @@ public class SecurityConfig {
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     http
-        .formLogin(login -> login.permitAll())
-        .logout(logout -> logout.logoutUrl("/logout").logoutSuccessUrl("/"))
-        .authorizeHttpRequests(authz -> authz.anyRequest().permitAll());
+        .formLogin(login -> login
+            .permitAll().defaultSuccessUrl("/home", true))
+        .logout(logout -> logout
+            .logoutUrl("/logout").logoutSuccessUrl("/"))
+        .authorizeHttpRequests(authz -> authz
+            .requestMatchers("/", "/index.html").permitAll().anyRequest().authenticated());
     return http.build();
   }
 
@@ -36,10 +39,14 @@ public class SecurityConfig {
    */
   @Bean
   public InMemoryUserDetailsManager userDetailsService() {
-    UserDetails takahashi = User.withUsername("takahashi")
+    UserDetails user1 = User.withUsername("user1")
         .password("{bcrypt}$2y$10$ngxCDmuVK1TaGchiYQfJ1OAKkd64IH6skGsNw1sLabrTICOHPxC0e")
         .roles("USER")
         .build();
-    return new InMemoryUserDetailsManager(takahashi);
+    UserDetails user2 = User.withUsername("user2")
+        .password("{bcrypt}$2y$10$ngxCDmuVK1TaGchiYQfJ1OAKkd64IH6skGsNw1sLabrTICOHPxC0e")
+        .roles("USER")
+        .build();
+    return new InMemoryUserDetailsManager(user1, user2);
   }
 }
