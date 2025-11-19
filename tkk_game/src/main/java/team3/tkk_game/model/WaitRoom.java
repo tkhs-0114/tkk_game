@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class WaitRoom {
-  ArrayList<String> players;
+  ArrayList<String> players = new ArrayList<>();
 
   public WaitRoom() {
   }
@@ -15,21 +15,12 @@ public class WaitRoom {
     return players;
   }
 
-  public void setPlayers(ArrayList<String> players) {
-    this.players = players;
-  }
-
   public void addPlayer(String player) {
-    if (players == null) {
-      players = new ArrayList<>();
-    }
     players.add(player);
   }
 
   public void rmPlayer(String player) {
-    if (players != null) {
-      players.remove(player);
-    }
+    players.remove(player);
   }
 
 }
