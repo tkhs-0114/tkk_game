@@ -1,4 +1,4 @@
-package team3.tkk_game.controller.model;
+package team3.tkk_game.model;
 
 import java.util.ArrayList;
 
