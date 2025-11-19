@@ -5,9 +5,10 @@ import java.security.Principal;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.ui.Model;
 
-import team3.tkk_game.controller.model.WaitRoom;
+import team3.tkk_game.model.WaitRoom;
+
+import org.springframework.ui.Model;
 
 @Controller
 public class GameController {
