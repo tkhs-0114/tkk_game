@@ -6,6 +6,32 @@ HASH_FILE="./.log/Git_last_hash.txt"
 
 cd $REPO_PATH
 
+# 終了時の処理を定義
+cleanup() {
+    echo ""
+    echo "$(date): Stopping auto-pull service..."
+    if [ ! -z "$SPRINGBOOT_PID" ]; then
+        echo "$(date): Stopping Spring Boot application (PID: $SPRINGBOOT_PID)..."
+        kill $SPRINGBOOT_PID 2>/dev/null
+        
+        # gradlewプロセスが確実に終了するまで待機
+        sleep 3
+        
+        # まだ生きている場合は強制終了
+        if ps -p $SPRINGBOOT_PID > /dev/null 2>&1; then
+            echo "$(date): Force stopping Spring Boot application..."
+            kill -9 $SPRINGBOOT_PID 2>/dev/null
+        fi
+        
+        echo "$(date): Spring Boot application stopped"
+    fi
+    echo "$(date): Auto-pull service stopped"
+    exit 0
+}
+
+# SIGINTとSIGTERMをトラップして終了処理を実行
+trap cleanup SIGINT SIGTERM
+
 echo "Starting auto-pull service..."
 echo "Repository: $REPO_PATH"
 echo "Check interval: ${CHECK_INTERVAL}s"
