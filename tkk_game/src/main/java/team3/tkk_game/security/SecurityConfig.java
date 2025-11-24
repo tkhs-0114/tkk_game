@@ -47,6 +47,14 @@ public class SecurityConfig {
         .password("{bcrypt}$2y$10$ngxCDmuVK1TaGchiYQfJ1OAKkd64IH6skGsNw1sLabrTICOHPxC0e")
         .roles("USER")
         .build();
-    return new InMemoryUserDetailsManager(user1, user2);
+    UserDetails user3 = User.withUsername("user3")
+        .password("{bcrypt}$2y$10$ngxCDmuVK1TaGchiYQfJ1OAKkd64IH6skGsNw1sLabrTICOHPxC0e")
+        .roles("USER")
+        .build();
+    UserDetails user4 = User.withUsername("user4")
+        .password("{bcrypt}$2y$10$ngxCDmuVK1TaGchiYQfJ1OAKkd64IH6skGsNw1sLabrTICOHPxC0e")
+        .roles("USER")
+        .build();
+    return new InMemoryUserDetailsManager(user1, user2, user3, user4);
   }
 }

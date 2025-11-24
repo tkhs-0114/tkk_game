@@ -1,10 +1,41 @@
-<script>
+<script th:inline="javascript">
+  let matchTmp = 'none';
+  const playerName = /*[[${playerName}]]*/ 'defaultPlayer';
   window.onload = function () {
+    console.log('Player Name:', playerName);
     const sse = new EventSource('/waitRoom');
     sse.onmessage = function (event) {
-      console.log(event.data);
+      const players = JSON.parse(event.data);
+      console.log(players);
+      // 誰かに対戦リクエストを送られた場合
+      if (!players.some(p => p === playerName)) {
+        window.location.href = '/gameStart';
+        return;
+      }
+      // 自分から対戦リクエストを送信する
+      if (matchTmp !== 'none' && players.some(p => p === matchTmp)) {
+        window.location.href = `/gameStart?player2Name=${matchTmp}`;
+        return;
+      }
+      updatePlayerTable(players);
     };
   };
+
+  function updatePlayerTable(players) {
+    const tbody = document.getElementById('playerTableBody');
+    let html = '';
+    players.forEach(function (player) {
+      if (player === playerName) {
+        return; // 自分自身は表示しない
+      }
+      html += `<tr>`;
+      html += `<td>${player}</td>`;
+      html += `<td><a onClick="matchTmp='${player}'">対戦</a></td>`;
+      html += `</tr>`;
+    });
+    tbody.innerHTML = html;
+  }
+
 </script>
 
 <h1>マッチング画面</h1>
@@ -12,9 +43,7 @@
   <tr>
     <th>参加プレイヤー一覧</th>
   </tr>
-  <tr th:each="player : ${players}">
-    <td th:text="${player}">Player</td>
-  </tr>
+  <tbody id="playerTableBody">
 </table>
 
 <a href="/home">ホームに戻る</a>
