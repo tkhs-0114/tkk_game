@@ -63,4 +63,11 @@ public class GameController {
 
     return "game.html";
   }
+
+  @GetMapping("/debug")
+  public String debug(Model model) {
+    model.addAttribute("games", gameRoom.getGames());
+    model.addAttribute("waitPlayers", waitRoom.getWaitRoom());
+    return "debug.html";
+  }
 }
