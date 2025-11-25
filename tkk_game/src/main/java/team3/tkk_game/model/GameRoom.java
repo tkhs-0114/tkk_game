@@ -15,7 +15,7 @@ public class GameRoom {
 
   public String inGamePlayer2(String playerName) {
     for (Game game : games) {
-      if (game.getPlayer2().equals(playerName)) {
+      if (game.getPlayer2().equals(playerName) && game.getPlayer2Status() == PlayerStatus.WAITING) {
         game.setPlayer2Status(PlayerStatus.IN_GAME);
         return game.getId();
       }
