@@ -26,7 +26,7 @@ public class GameController {
 
   @GetMapping("/home")
   public String home(Principal principal, Model model) {
-    waitRoom.addPlayer(principal.getName());
+    waitRoom.rmPlayer(principal.getName());
     return "home.html";
   }
 

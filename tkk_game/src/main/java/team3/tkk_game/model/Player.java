@@ -16,4 +16,8 @@ public class Player {
   public void setStatus(PlayerStatus status) {
     this.status = status;
   }
+
+  public PlayerStatus getStatus() {
+    return status;
+  }
 }

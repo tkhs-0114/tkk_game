@@ -26,4 +26,8 @@ public class Game {
   public void setPlayer2Status(PlayerStatus status) {
     this.player2.setStatus(status);
   }
+
+  public PlayerStatus getPlayer2Status() {
+    return player2.getStatus();
+  }
 }
