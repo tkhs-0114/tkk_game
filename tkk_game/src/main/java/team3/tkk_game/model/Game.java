@@ -11,11 +11,8 @@ public class Game {
 
   public Game(String id, String player1Name, String player2Name) {
     this.id = id;
-    PlayerList playerList = PlayerList.getInstance();
-    this.player1 = playerList.getOrCreate(player1Name);
-    this.player2 = playerList.getOrCreate(player2Name);
-    this.player1.setStatus(PlayerStatus.IN_GAME);
-    this.player2.setStatus(PlayerStatus.WAITING);
+    this.player1 = new Player(player1Name, PlayerStatus.IN_GAME);
+    this.player2 = new Player(player2Name, PlayerStatus.WAITING);
     this.lastActivity = new Date();
   }
 
