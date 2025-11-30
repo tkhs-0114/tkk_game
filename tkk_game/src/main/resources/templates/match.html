@@ -1,5 +1,6 @@
 <script th:inline="javascript">
   let matchTmp = 'none';
+  let isInWaitRoom = false; // 自分が待機室に入っているかどうか
   const playerName = /*[[${playerName}]]*/ 'defaultPlayer';
   window.onload = function () {
     console.log('Player Name:', playerName);
@@ -9,17 +10,24 @@
       console.log(players);
       console.log('matchTmp:', matchTmp);
       console.log('Player Name:', playerName);
-      // 誰かに対戦リクエストを送られた場合
-      /*
-      if (!players.some(p => p === playerName)) {
+      console.log('isInWaitRoom:', isInWaitRoom);
+
+      const isCurrentlyInRoom = players.some(p => p.name === playerName);
+
+      // 誰かに対戦リクエストを送られた場合（以前は待機室にいたが、今はいない）
+      if (isInWaitRoom && !isCurrentlyInRoom) {
         window.location.href = '/gameStart';
         return;
       }
+
+      // 待機室の状態を更新
+      isInWaitRoom = isCurrentlyInRoom;
+
       // 自分から対戦リクエストを送信する
-      if (matchTmp !== 'none' && players.some(p => p === matchTmp)) {
+      if (matchTmp !== 'none' && players.some(p => p.name === matchTmp)) {
         window.location.href = `/gameStart?player2Name=${matchTmp}`;
         return;
-      }*/
+      }
       updatePlayerTable(players);
     };
   };
@@ -33,7 +41,7 @@
       }
       html += `<tr>`;
       html += `<td>${player.name}</td>`;
-      html += `<td><a onClick="matchTmp='${player}'">対戦</a></td>`;
+      html += `<td><a href="#" onClick="matchTmp='${player.name}'; return false;">対戦</a></td>`;
       html += `</tr>`;
     });
     tbody.innerHTML = html;
@@ -46,7 +54,7 @@
   <tr>
     <th>参加プレイヤー一覧</th>
   </tr>
-  <tbody id="playerTableBody">
+  <tbody id="playerTableBody"></tbody>
 </table>
 <a href="/makeRoom">ルーム作成</a>
 <br>

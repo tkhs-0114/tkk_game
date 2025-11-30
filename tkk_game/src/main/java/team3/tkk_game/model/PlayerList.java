@@ -3,19 +3,38 @@ package team3.tkk_game.model;
 import java.util.ArrayList;
 import org.springframework.stereotype.Component;
 
+import jakarta.annotation.PostConstruct;
+
 /**
  * プレイヤーオブジェクトを一元管理するリポジトリ
  * 同じ名前のプレイヤーに対して常に同じインスタンスを返す
  */
 @Component
 public class PlayerList {
-  
+
+  private static PlayerList instance;
+
   private ArrayList<Player> players = new ArrayList<>();
 
+  @PostConstruct
+  public void init() {
+    instance = this;
+  }
+
+  /**
+   * 静的インスタンスを取得
+   * @return PlayerListのインスタンス
+   */
+  public static PlayerList getInstance() {
+    return instance;
+  }
+
   public Player getPlayerbyName(String playerName) {
-    for (Player player : players) {
-      if (player.getName().equals(playerName)) {
-        return player;
+    if (!players.isEmpty()) {
+      for (Player player : players) {
+        if (player.getName().equals(playerName)) {
+          return player;
+        }
       }
     }
     return null;
