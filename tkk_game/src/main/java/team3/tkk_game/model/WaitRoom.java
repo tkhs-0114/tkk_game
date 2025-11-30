@@ -2,11 +2,15 @@ package team3.tkk_game.model;
 
 import java.util.ArrayList;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class WaitRoom {
   ArrayList<Player> waitRoom = new ArrayList<>();
+
+  @Autowired
+  PlayerList players;
 
   public WaitRoom() {
   }
@@ -26,11 +30,12 @@ public class WaitRoom {
 
   public void addPlayer(String playerName) {
     if (!isInRoom(playerName)) {
-      
-      waitRoom.add(new Player(playerName, PlayerStatus.WAITING));
+      Player player = players.getOrCreate(playerName);
+      player.setStatus(PlayerStatus.WAITING);
+      waitRoom.add(player);
     }
   }
-
+  
   public void rmRoom(String playerName) {
     waitRoom.removeIf(player -> player.getName().equals(playerName));
   }

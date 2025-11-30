@@ -2,6 +2,8 @@ package team3.tkk_game.model;
 
 import java.util.Date;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
 public class Game {
   // デバッグ用にpublicに変更
   public String id;
@@ -9,10 +11,13 @@ public class Game {
   Player player1;
   Player player2;
 
+  @Autowired
+  PlayerList players;
+
   public Game(String id, String player1Name, String player2Name) {
     this.id = id;
-    this.player1 = new Player(player1Name, PlayerStatus.IN_GAME);
-    this.player2 = new Player(player2Name, PlayerStatus.WAITING);
+    this.player1 = players.getOrCreate(player1Name);
+    this.player2 = players.getOrCreate(player2Name);
     this.lastActivity = new Date();
   }
 
