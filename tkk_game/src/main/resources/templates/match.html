@@ -53,12 +53,44 @@
         }
         html += `<tr>`;
         html += `<td>${player.name}</td>`;
-        html += `<td><a href="#" onClick="matchTmp='${player.name}'; return false;">対戦</a></td>`;
+        html += `<td><a href="#" onClick="confirmJoinRoom('${player.name}'); return false;">対戦</a></td>`;
         html += `</tr>`;
       });
       tbody.innerHTML = html;
     }
 
+
+    /////////////////
+    /* ルーム選択側 */
+    /////////////////
+
+    // 対戦確認ポップアップを表示
+    function confirmJoinRoom(targetPlayerName) {
+      document.getElementById('targetPlayerName').textContent = targetPlayerName;
+      document.getElementById('confirmOverlay').dataset.target = targetPlayerName;
+      document.getElementById('confirmOverlay').classList.add('show');
+    }
+
+    // 対戦を確定
+    function confirmJoin() {
+      const targetPlayerName = document.getElementById('confirmOverlay').dataset.target;
+      matchTmp = targetPlayerName;
+      hideConfirmOverlay();
+    }
+
+    // 確認をキャンセル
+    function cancelJoin() {
+      hideConfirmOverlay();
+    }
+
+    function hideConfirmOverlay() {
+      document.getElementById('confirmOverlay').classList.remove('show');
+    }
+
+
+    /////////////////
+    /* ルーム作成側 */
+    /////////////////
 
     // ルーム作成して待機画面を表示
     function createRoom() {
@@ -101,7 +133,7 @@
 
   <style>
     /* 待機オーバーレイのスタイル */
-    .waiting-overlay {
+    .popup-overlay {
       display: none;
       position: fixed;
       top: 0;
@@ -113,11 +145,11 @@
       align-items: center;
       z-index: 1000;
     }
-    .waiting-overlay.show {
+    .popup-overlay.show {
       display: flex;
     }
 
-    .waiting-content {
+    .popup-content {
       background: white;
       padding: 40px;
       text-align: center;
@@ -138,10 +170,22 @@
   <br>
   <a href="/home">ホームに戻る</a>
 
-  <div id="waitingOverlay" class="waiting-overlay" >
-    <div class="waiting-content">
+  <!-- 待機オーバーレイ -->
+  <div id="waitingOverlay" class="popup-overlay" >
+    <div>
       <h2>対戦相手を待っています...</h2>
-      <button class="cancel-btn" onclick="cancelWaiting()">キャンセル</button>
+      <button onclick="cancelWaiting()">キャンセル</button>
+    </div>
+  </div>
+
+  <!-- 対戦確認オーバーレイ -->
+  <div id="confirmOverlay" class="popup-overlay">
+    <div class="popup-content">
+      <h2><span id="targetPlayerName"></span> さんのルームに入りますか？</h2>
+      <div>
+        <button onclick="confirmJoin()">はい</button>
+        <button onclick="cancelJoin()">いいえ</button>
+      </div>
     </div>
   </div>
 </body>
