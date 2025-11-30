@@ -26,17 +26,25 @@ public class GameController {
 
   @GetMapping("/home")
   public String home(Principal principal, Model model) {
-    waitRoom.rmPlayer(principal.getName());
+    waitRoom.rmRoom(principal.getName());
     return "home.html";
   }
 
   @GetMapping("/match")
   public String match(Principal principal, Model model) {
-    waitRoom.addPlayer(principal.getName());
+    waitRoom.rmRoom(principal.getName());
     model.addAttribute("playerName", principal.getName());
 
     return "match.html";
   }
+
+  @GetMapping("/makeRoom")
+  public String makeRoom(Principal principal, Model model) {
+    waitRoom.addPlayer(principal.getName());
+    model.addAttribute("playerName", principal.getName());
+    return "match.html";
+  }
+  
 
   @GetMapping("/waitRoom")
   public SseEmitter waitRoom() {
@@ -52,8 +60,7 @@ public class GameController {
 
     if (player2Name != null && !player2Name.isEmpty()) {
       // 自分から対戦リクエストを送信する
-      waitRoom.rmPlayer(loginPlayerName);
-      waitRoom.rmPlayer(player2Name);
+      waitRoom.rmRoom(player2Name);
       gameId = gameRoom.addGame(loginPlayerName, player2Name);
     } else {
       // 誰かに対戦リクエストを送られた場合

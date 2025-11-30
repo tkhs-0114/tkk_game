@@ -6,18 +6,18 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class WaitRoom {
-  ArrayList<String> waitRoom = new ArrayList<>();
+  ArrayList<Player> waitRoom = new ArrayList<>();
 
   public WaitRoom() {
   }
 
-  public ArrayList<String> getWaitRoom() {
+  public ArrayList<Player> getWaitRoom() {
     return waitRoom;
   }
 
   public Boolean isInRoom(String playerName) {
-    for (String name : waitRoom) {
-      if (name.equals(playerName)) {
+    for (Player player : waitRoom) {
+      if (player.getName().equals(playerName)) {
         return true;
       }
     }
@@ -26,12 +26,13 @@ public class WaitRoom {
 
   public void addPlayer(String playerName) {
     if (!isInRoom(playerName)) {
-      waitRoom.add(playerName);
+      
+      waitRoom.add(new Player(playerName, PlayerStatus.WAITING));
     }
   }
 
-  public void rmPlayer(String playerName) {
-    waitRoom.removeIf(name -> name.equals(playerName));
+  public void rmRoom(String playerName) {
+    waitRoom.removeIf(player -> player.getName().equals(playerName));
   }
 
 }

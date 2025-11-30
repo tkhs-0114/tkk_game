@@ -7,7 +7,10 @@
     sse.onmessage = function (event) {
       const players = JSON.parse(event.data);
       console.log(players);
+      console.log('matchTmp:', matchTmp);
+      console.log('Player Name:', playerName);
       // 誰かに対戦リクエストを送られた場合
+      /*
       if (!players.some(p => p === playerName)) {
         window.location.href = '/gameStart';
         return;
@@ -16,7 +19,7 @@
       if (matchTmp !== 'none' && players.some(p => p === matchTmp)) {
         window.location.href = `/gameStart?player2Name=${matchTmp}`;
         return;
-      }
+      }*/
       updatePlayerTable(players);
     };
   };
@@ -25,11 +28,11 @@
     const tbody = document.getElementById('playerTableBody');
     let html = '';
     players.forEach(function (player) {
-      if (player === playerName) {
+      if (player.name === playerName) {
         return; // 自分自身は表示しない
       }
       html += `<tr>`;
-      html += `<td>${player}</td>`;
+      html += `<td>${player.name}</td>`;
       html += `<td><a onClick="matchTmp='${player}'">対戦</a></td>`;
       html += `</tr>`;
     });
@@ -45,5 +48,6 @@
   </tr>
   <tbody id="playerTableBody">
 </table>
-
+<a href="/makeRoom">ルーム作成</a>
+<br>
 <a href="/home">ホームに戻る</a>
