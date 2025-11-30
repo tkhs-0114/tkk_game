@@ -1,61 +1,149 @@
-<script th:inline="javascript">
-  let matchTmp = 'none';
-  let isInWaitRoom = false; // 自分が待機室に入っているかどうか
-  const playerName = /*[[${playerName}]]*/ 'defaultPlayer';
-  window.onload = function () {
-    console.log('Player Name:', playerName);
-    const sse = new EventSource('/waitRoom');
-    sse.onmessage = function (event) {
-      const players = JSON.parse(event.data);
-      console.log(players);
-      console.log('matchTmp:', matchTmp);
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>マッチング画面</title>
+  <script th:inline="javascript">
+    let matchTmp = 'none';
+    let isInWaitRoom = false; // 自分が待機室に入っているかどうか
+    let isCancelling = false; // キャンセル中かどうか
+    const playerName = /*[[${playerName}]]*/ 'defaultPlayer';
+    window.onload = function () {
       console.log('Player Name:', playerName);
-      console.log('isInWaitRoom:', isInWaitRoom);
+      const sse = new EventSource('/waitRoom');
+      sse.onmessage = function (event) {
+        const players = JSON.parse(event.data);
+        console.log(players);
+        console.log('isInWaitRoom:', isInWaitRoom);
 
-      const isCurrentlyInRoom = players.some(p => p.name === playerName);
+        const isCurrentlyInRoom = players.some(p => p.name === playerName);
 
-      // 誰かに対戦リクエストを送られた場合（以前は待機室にいたが、今はいない）
-      if (isInWaitRoom && !isCurrentlyInRoom) {
-        window.location.href = '/gameStart';
-        return;
-      }
+        // キャンセル中は/gameStartへのリダイレクトをスキップ
+        if (isCancelling) {
+          isInWaitRoom = isCurrentlyInRoom;
+          isCancelling = false;
+          return;
+        }
 
-      // 待機室の状態を更新
-      isInWaitRoom = isCurrentlyInRoom;
+        // 誰かに対戦リクエストを送られた場合
+        if (isInWaitRoom && !isCurrentlyInRoom) {
+          window.location.href = '/gameStart';
+          return;
+        }
 
-      // 自分から対戦リクエストを送信する
-      if (matchTmp !== 'none' && players.some(p => p.name === matchTmp)) {
-        window.location.href = `/gameStart?player2Name=${matchTmp}`;
-        return;
-      }
-      updatePlayerTable(players);
+        // 待機室の状態を更新
+        isInWaitRoom = isCurrentlyInRoom;
+
+        // 自分から対戦リクエストを送信する
+        if (matchTmp !== 'none' && players.some(p => p.name === matchTmp)) {
+          window.location.href = `/gameStart?player2Name=${matchTmp}`;
+          return;
+        }
+        updatePlayerTable(players);
+      };
     };
-  };
 
-  function updatePlayerTable(players) {
-    const tbody = document.getElementById('playerTableBody');
-    let html = '';
-    players.forEach(function (player) {
-      if (player.name === playerName) {
-        return; // 自分自身は表示しない
-      }
-      html += `<tr>`;
-      html += `<td>${player.name}</td>`;
-      html += `<td><a href="#" onClick="matchTmp='${player.name}'; return false;">対戦</a></td>`;
-      html += `</tr>`;
-    });
-    tbody.innerHTML = html;
-  }
+    function updatePlayerTable(players) {
+      const tbody = document.getElementById('playerTableBody');
+      let html = '';
+      players.forEach(function (player) {
+        if (player.name === playerName) {
+          return; // 自分自身は表示しない
+        }
+        html += `<tr>`;
+        html += `<td>${player.name}</td>`;
+        html += `<td><a href="#" onClick="matchTmp='${player.name}'; return false;">対戦</a></td>`;
+        html += `</tr>`;
+      });
+      tbody.innerHTML = html;
+    }
 
-</script>
 
-<h1>マッチング画面</h1>
-<table>
-  <tr>
-    <th>参加プレイヤー一覧</th>
-  </tr>
-  <tbody id="playerTableBody"></tbody>
-</table>
-<a href="/makeRoom">ルーム作成</a>
-<br>
-<a href="/home">ホームに戻る</a>
+    // ルーム作成して待機画面を表示
+    function createRoom() {
+      // 待機ポップアップを表示
+      document.getElementById('waitingOverlay').classList.add('show');
+
+      // サーバーにルーム作成リクエストを送信
+      fetch('/makeRoom')
+        .then(response => {
+          if (response.ok) {
+            console.log('ルーム作成成功、対戦相手を待機中...');
+          }
+        })
+        .catch(error => {
+          console.error('ルーム作成エラー:', error);
+          hideWaitingOverlay();
+        });
+    }
+
+    // 待機をキャンセル
+    function cancelWaiting() {
+      isCancelling = true; // キャンセルフラグをON
+      fetch('/match')
+        .then(response => {
+          if (response.ok) {
+            hideWaitingOverlay();
+            console.log('待機をキャンセルしました');
+          }
+        })
+        .catch(error => {
+          console.error('キャンセルエラー:', error);
+          isCancelling = false;
+        });
+    }
+
+    function hideWaitingOverlay() {
+      document.getElementById('waitingOverlay').classList.remove('show');
+    }
+  </script>
+
+  <style>
+    /* 待機オーバーレイのスタイル */
+    .waiting-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .waiting-overlay.show {
+      display: flex;
+    }
+
+    .waiting-content {
+      background: white;
+      padding: 40px;
+      text-align: center;
+    }
+   
+  </style>
+</head>
+
+<body>
+  <h1>マッチング画面</h1>
+  <table>
+    <tr>
+      <th>ルーム一覧</th>
+    </tr>
+    <tbody id="playerTableBody"></tbody>
+  </table>
+  <a href="#" onclick="createRoom(); return false;">ルーム作成</a>
+  <br>
+  <a href="/home">ホームに戻る</a>
+
+  <div id="waitingOverlay" class="waiting-overlay" >
+    <div class="waiting-content">
+      <h2>対戦相手を待っています...</h2>
+      <button class="cancel-btn" onclick="cancelWaiting()">キャンセル</button>
+    </div>
+  </div>
+</body>
+
+</html>
