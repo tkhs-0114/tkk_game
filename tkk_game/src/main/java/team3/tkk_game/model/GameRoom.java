@@ -8,21 +8,44 @@ import java.util.ArrayList;
 public class GameRoom {
   ArrayList<Game> games = new ArrayList<>();
 
-  public String addGame(String player1Name, String player2Name) {
+  public Game addGame(String player1Name, String player2Name) {
     String id = String.valueOf(System.currentTimeMillis());
-    games.add(new Game(id, player1Name, player2Name));
-    return id;
+    Game newGame = new Game(id, player1Name, player2Name);
+    games.add(newGame);
+    return newGame;
+  }
+
+  public Game getGameById(String id) {
+    for (Game game : games) {
+      if (game.getId().equals(id)) {
+        return game;
+      }
+    }
+    return null;
+  }
+
+  public Game getGameByPlayerName(String playerName) {
+    for (Game game : games) {
+      String player1Name = game.getPlayer1().getName();
+      String player2Name = game.getPlayer2().getName();
+      if (player1Name.equals(playerName) || player2Name.equals(playerName)) {
+        return game;
+      }
+    }
+    return null;
   }
 
   public ArrayList<Game> getGames() {
     return games;
   }
 
-  public String inGamePlayer2(String playerName) {
+  public Game inGamePlayer2(String playerName) {
     for (Game game : games) {
-      if (game.getPlayer2().equals(playerName) && game.getPlayer2Status() == PlayerStatus.WAITING) {
-        game.setPlayer2Status(PlayerStatus.IN_GAME);
-        return game.getId();
+      Player player2 = game.getPlayer2();
+      if (player2.getName().equals(playerName) && player2.getStatus() == PlayerStatus.MATCHED) {
+        player2.setStatus(PlayerStatus.GAME_WAITING);
+        game.getPlayer1().setStatus(PlayerStatus.GAME_THINKING);
+        return game;
       }
     }
     return null;
