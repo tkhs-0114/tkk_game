@@ -59,6 +59,11 @@ public class GameController {
     return "game.html";
   }
 
+  private String returnGame(Model model, Game game, String playerName, String errMessage) {
+    model.addAttribute("errMessage", errMessage);
+    return returnGame(model, game, playerName);
+  }
+
   @GetMapping("/game/start")
   public String gameStart(Principal principal, Model model, @RequestParam(required = false) String player2Name) {
     String loginPlayerName = principal.getName();
@@ -93,13 +98,13 @@ public class GameController {
     Boolean canMove = game.getBan().getKomaAt(fromX, fromY).canMove(fromX, fromY, toX, toY);
     System.out.println("canMove:" + canMove);
     if (!isMyTurn || !canMove) {
-      return returnGame(model, game, loginPlayerName);
+      return returnGame(model, game, loginPlayerName, "不正な手です");
     }
 
     Boolean isSuccess = game.getBan().moveKoma(fromX, fromY, toX, toY);
     System.out.println("isSuccess:" + isSuccess);
     if (!isSuccess) {
-      return returnGame(model, game, loginPlayerName);
+      return returnGame(model, game, loginPlayerName, "移動に失敗しました");
     }
     game.switchTurn();
     return returnGame(model, game, loginPlayerName);

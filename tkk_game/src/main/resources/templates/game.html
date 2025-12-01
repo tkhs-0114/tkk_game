@@ -2,6 +2,7 @@
   const ban = /*[[${ban}]]*/ null;
   const gameId = /*[[${gameId}]]*/ 'defaultGameId';
   const playerStatus = /*[[${playerStatus}]]*/ 'defaultStatus';
+  const errMessage = /*[[${errMessage}]]*/ null;
   const game = /*[[${game}]]*/ null;
   console.log(game);
   console.log(ban);
@@ -51,6 +52,12 @@
   window.onload = function () {
     // 盤面を描画
     drawBoard();
+
+    // エラーメッセージがあれば表示
+    if (errMessage) {
+      alert(errMessage);
+    }
+
     console.log('Player Status:', playerStatus);
 
     if (playerStatus === 'GAME_WAITING') {
