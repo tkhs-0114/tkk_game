@@ -1,45 +1,18 @@
 <!DOCTYPE html>
-<html>
+<html xmlns:th="http://www.thymeleaf.org">
 
 <head>
   <meta charset="utf-8">
   <title>マッチング画面</title>
   <script th:inline="javascript">
-    let matchTmp = 'none';
-    let isInWaitRoom = false; // 自分が待機室に入っているかどうか
-    let isCancelling = false; // キャンセル中かどうか
     const playerName = /*[[${playerName}]]*/ 'defaultPlayer';
+    
     window.onload = function () {
       console.log('Player Name:', playerName);
       const sse = new EventSource('/waitRoom');
       sse.onmessage = function (event) {
         const players = JSON.parse(event.data);
-        console.log(players);
-        console.log('isInWaitRoom:', isInWaitRoom);
-
-        const isCurrentlyInRoom = players.some(p => p.name === playerName);
-
-        // キャンセル中は/gameStartへのリダイレクトをスキップ
-        if (isCancelling) {
-          isInWaitRoom = isCurrentlyInRoom;
-          isCancelling = false;
-          return;
-        }
-
-        // 誰かに対戦リクエストを送られた場合
-        if (isInWaitRoom && !isCurrentlyInRoom) {
-          window.location.href = '/gameStart';
-          return;
-        }
-
-        // 待機室の状態を更新
-        isInWaitRoom = isCurrentlyInRoom;
-
-        // 自分から対戦リクエストを送信する
-        if (matchTmp !== 'none' && players.some(p => p.name === matchTmp)) {
-          window.location.href = `/gameStart?player2Name=${matchTmp}`;
-          return;
-        }
+        console.log('待機中プレイヤー:', players);
         updatePlayerTable(players);
       };
     };
@@ -53,109 +26,12 @@
         }
         html += `<tr>`;
         html += `<td>${player.name}</td>`;
-        html += `<td><a href="#" onClick="confirmJoinRoom('${player.name}'); return false;">対戦</a></td>`;
+        html += `<td><a href="/gameStart?player2Name=${player.name}">対戦</a></td>`;
         html += `</tr>`;
       });
       tbody.innerHTML = html;
     }
-
-
-    /////////////////
-    /* ルーム選択側 */
-    /////////////////
-
-    // 対戦確認ポップアップを表示
-    function confirmJoinRoom(targetPlayerName) {
-      document.getElementById('targetPlayerName').textContent = targetPlayerName;
-      document.getElementById('confirmOverlay').dataset.target = targetPlayerName;
-      document.getElementById('confirmOverlay').classList.add('show');
-    }
-
-    // 対戦を確定
-    function confirmJoin() {
-      const targetPlayerName = document.getElementById('confirmOverlay').dataset.target;
-      matchTmp = targetPlayerName;
-      hideConfirmOverlay();
-    }
-
-    // 確認をキャンセル
-    function cancelJoin() {
-      hideConfirmOverlay();
-    }
-
-    function hideConfirmOverlay() {
-      document.getElementById('confirmOverlay').classList.remove('show');
-    }
-
-
-    /////////////////
-    /* ルーム作成側 */
-    /////////////////
-
-    // ルーム作成して待機画面を表示
-    function createRoom() {
-      // 待機ポップアップを表示
-      document.getElementById('waitingOverlay').classList.add('show');
-
-      // サーバーにルーム作成リクエストを送信
-      fetch('/makeRoom')
-        .then(response => {
-          if (response.ok) {
-            console.log('ルーム作成成功、対戦相手を待機中...');
-          }
-        })
-        .catch(error => {
-          console.error('ルーム作成エラー:', error);
-          hideWaitingOverlay();
-        });
-    }
-
-    // 待機をキャンセル
-    function cancelWaiting() {
-      isCancelling = true; // キャンセルフラグをON
-      fetch('/match')
-        .then(response => {
-          if (response.ok) {
-            hideWaitingOverlay();
-            console.log('待機をキャンセルしました');
-          }
-        })
-        .catch(error => {
-          console.error('キャンセルエラー:', error);
-          isCancelling = false;
-        });
-    }
-
-    function hideWaitingOverlay() {
-      document.getElementById('waitingOverlay').classList.remove('show');
-    }
   </script>
-
-  <style>
-    /* 待機オーバーレイのスタイル */
-    .popup-overlay {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.7);
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-    .popup-overlay.show {
-      display: flex;
-    }
-
-    .popup-content {
-      background: white;
-      padding: 40px;
-      text-align: center;
-    }
-   
-  </style>
 </head>
 
 <body>
@@ -166,28 +42,15 @@
     </tr>
     <tbody id="playerTableBody"></tbody>
   </table>
-  <a href="#" onclick="createRoom(); return false;">ルーム作成</a>
+  
+  <br>
+  <!-- ルーム作成フォーム（POSTでwaiting.htmlへ遷移） -->
+  <form th:action="@{/makeRoom}" method="post">
+    <button type="submit">ルーム作成</button>
+  </form>
+  
   <br>
   <a href="/home">ホームに戻る</a>
-
-  <!-- 待機オーバーレイ -->
-  <div id="waitingOverlay" class="popup-overlay" >
-    <div>
-      <h2>対戦相手を待っています...</h2>
-      <button onclick="cancelWaiting()">キャンセル</button>
-    </div>
-  </div>
-
-  <!-- 対戦確認オーバーレイ -->
-  <div id="confirmOverlay" class="popup-overlay">
-    <div class="popup-content">
-      <h2><span id="targetPlayerName"></span> さんのルームに入りますか？</h2>
-      <div>
-        <button onclick="confirmJoin()">はい</button>
-        <button onclick="cancelJoin()">いいえ</button>
-      </div>
-    </div>
-  </div>
 </body>
 
 </html>

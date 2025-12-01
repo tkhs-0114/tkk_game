@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="utf-8">
+  <title>対戦相手待機中</title>
+  <script th:inline="javascript">
+    const playerName = /*[[${playerName}]]*/ 'defaultPlayer';
+
+    window.onload = function () {
+      console.log('待機中... Player Name:', playerName);
+      
+      // SSE接続を開始
+      const sse = new EventSource('/waitRoom');
+      sse.onmessage = function (event) {
+        const players = JSON.parse(event.data);
+        console.log('待機室プレイヤー:', players);
+
+        // 自分が待機室にいるか確認
+        const isInRoom = players.some(p => p.name === playerName);
+        
+        // 待機室から消えた = 誰かに対戦リクエストを送られた
+        if (!isInRoom) {
+          console.log('対戦相手が見つかりました！');
+          sse.close();
+          window.location.href = '/gameStart';
+        }
+      };
+    };
+  </script>
+</head>
+
+<body>
+  <h1>対戦相手を待っています...</h1>
+  <p>プレイヤー名: <span th:text="${playerName}"></span></p>
+  <br>
+  <a href="/match">キャンセル</a>
+</body>
+
+</html>
