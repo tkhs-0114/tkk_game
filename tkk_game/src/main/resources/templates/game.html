@@ -40,9 +40,9 @@
     let html = '<table border="1">';
 
     // 盤面の各行を処理
-    for (let x = 0; x < ban.board.length; x++) {
+    for (let y = 0; y < ban.board.length; y++) {
       html += '<tr>';
-      for (let y = 0; y < ban.board[x].length; y++) {
+      for (let x = 0; x < ban.board[y].length; x++) {
         const cell = ban.board[x][y];
         const cellContent = (cell && cell.name) ?
           `<div onClick="setSelectdCell(${Xa2b(x)}, ${Ya2b(y)})">${cell.name}</div>`
