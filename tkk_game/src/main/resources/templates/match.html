@@ -26,7 +26,7 @@
         }
         html += `<tr>`;
         html += `<td>${player.name}</td>`;
-        html += `<td><a href="/gameStart?player2Name=${player.name}">対戦</a></td>`;
+        html += `<td><a href="/game/start?player2Name=${player.name}">対戦</a></td>`;
         html += `</tr>`;
       });
       tbody.innerHTML = html;
