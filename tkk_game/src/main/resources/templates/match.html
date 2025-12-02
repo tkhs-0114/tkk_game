@@ -9,12 +9,12 @@
       console.log(players);
       // 誰かに対戦リクエストを送られた場合
       if (!players.some(p => p === playerName)) {
-        window.location.href = '/gameStart';
+        window.location.href = '/game/start';
         return;
       }
       // 自分から対戦リクエストを送信する
       if (matchTmp !== 'none' && players.some(p => p === matchTmp)) {
-        window.location.href = `/gameStart?player2Name=${matchTmp}`;
+        window.location.href = `/game/start?player2Name=${matchTmp}`;
         return;
       }
       updatePlayerTable(players);

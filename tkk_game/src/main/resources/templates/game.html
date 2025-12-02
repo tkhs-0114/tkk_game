@@ -1,2 +1,86 @@
+<script th:inline="javascript">
+  const ban = /*[[${ban}]]*/ null;
+  const gameId = /*[[${gameId}]]*/ 'defaultGameId';
+  const playerStatus = /*[[${playerStatus}]]*/ 'defaultStatus';
+  const errMessage = /*[[${errMessage}]]*/ null;
+  const game = /*[[${game}]]*/ null;
+  console.log(game);
+  console.log(ban);
+
+  let selectedX = null;
+  let selectedY = null;
+
+  function setSelectdCell(x, y) {
+    selectedX = x;
+    selectedY = y;
+    console.log(`Selected cell: (${x}, ${y})`);
+  }
+  function sendMove(x, y) {
+    if (selectedX === null || selectedY === null) {
+      alert('セルが選択されていません');
+      return;
+    }
+    window.location.href = `/game/move?fromX=${selectedX}&fromY=${selectedY}&toX=${x}&toY=${y}`;
+  }
+  function drawBoard() {
+    const boardContainer = document.getElementById('board-container');
+    if (!ban || !ban.board) {
+      boardContainer.innerHTML = '<p>盤面データがありません</p>';
+      return;
+    }
+
+    let html = '<table border="1">';
+
+    // 盤面の各行を処理
+    for (let x = 0; x < ban.board.length; x++) {
+      html += '<tr>';
+      for (let y = 0; y < ban.board[x].length; y++) {
+        const cell = ban.board[x][y];
+        const cellContent = (cell && cell.name) ?
+          `<div onClick="setSelectdCell(${x}, ${y})">${cell.name}</div>`
+          : `<div onClick="sendMove(${x}, ${y})">　</div>`;
+        html += `<td>${cellContent}</td>`;
+      }
+      html += '</tr>';
+    }
+
+    html += '</table>';
+    boardContainer.innerHTML = html;
+  }
+
+
+  window.onload = function () {
+    // 盤面を描画
+    drawBoard();
+
+    // エラーメッセージがあれば表示
+    if (errMessage) {
+      alert(errMessage);
+    }
+
+    console.log('Player Status:', playerStatus);
+
+    if (playerStatus === 'GAME_WAITING') {
+      // SSE接続でターン情報を受信
+      const sse = new EventSource(`/game/turn?gameId=${gameId}`);
+      sse.onmessage = function (event) {
+        const isNextTurn = JSON.parse(event.data);
+        console.log('Is next turn:', isNextTurn);
+        if (isNextTurn) {
+          window.location.href = `/game`;
+        }
+      };
+    } else {
+
+    }
+
+  };
+</script>
+
 <h1>ゲーム画面</h1>
 <p>ゲームID:[[${gameId}]]</p>
+<p> プレイヤーステータス: [[${playerStatus}]]</p>
+
+<div id="board-container">
+  <!-- 盤面がここに表示されます -->
+</div>
