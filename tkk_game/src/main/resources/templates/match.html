@@ -6,7 +6,7 @@
   <title>マッチング画面</title>
   <script th:inline="javascript">
     const playerName = /*[[${playerName}]]*/ 'defaultPlayer';
-    
+
     window.onload = function () {
       console.log('Player Name:', playerName);
       const sse = new EventSource('/waitRoom');
@@ -42,13 +42,11 @@
     </tr>
     <tbody id="playerTableBody"></tbody>
   </table>
-  
+
   <br>
-  <!-- ルーム作成フォーム（POSTでwaiting.htmlへ遷移） -->
-  <form th:action="@{/makeRoom}" method="post">
-    <button type="submit">ルーム作成</button>
-  </form>
-  
+
+  <a href="/makeRoom">ルーム作成</a>
+
   <br>
   <a href="/home">ホームに戻る</a>
 </body>

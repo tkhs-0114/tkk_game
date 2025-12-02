@@ -40,7 +40,7 @@ public class GameController {
     return "match.html";
   }
 
-  @PostMapping("/makeRoom")
+  @GetMapping("/makeRoom")
   public String makeRoom(Principal principal, Model model) {
     waitRoom.addPlayer(principal.getName());
     model.addAttribute("playerName", principal.getName());
