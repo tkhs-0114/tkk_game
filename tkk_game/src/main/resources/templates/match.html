@@ -1,49 +1,54 @@
-<script th:inline="javascript">
-  let matchTmp = 'none';
-  const playerName = /*[[${playerName}]]*/ 'defaultPlayer';
-  window.onload = function () {
-    console.log('Player Name:', playerName);
-    const sse = new EventSource('/waitRoom');
-    sse.onmessage = function (event) {
-      const players = JSON.parse(event.data);
-      console.log(players);
-      // 誰かに対戦リクエストを送られた場合
-      if (!players.some(p => p === playerName)) {
-        window.location.href = '/game/start';
-        return;
-      }
-      // 自分から対戦リクエストを送信する
-      if (matchTmp !== 'none' && players.some(p => p === matchTmp)) {
-        window.location.href = `/game/start?player2Name=${matchTmp}`;
-        return;
-      }
-      updatePlayerTable(players);
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="utf-8">
+  <title>マッチング画面</title>
+  <script th:inline="javascript">
+    const playerName = /*[[${playerName}]]*/ 'defaultPlayer';
+
+    window.onload = function () {
+      console.log('Player Name:', playerName);
+      const sse = new EventSource('/waitRoom');
+      sse.onmessage = function (event) {
+        const players = JSON.parse(event.data);
+        console.log('待機中プレイヤー:', players);
+        updatePlayerTable(players);
+      };
     };
-  };
 
-  function updatePlayerTable(players) {
-    const tbody = document.getElementById('playerTableBody');
-    let html = '';
-    players.forEach(function (player) {
-      if (player === playerName) {
-        return; // 自分自身は表示しない
-      }
-      html += `<tr>`;
-      html += `<td>${player}</td>`;
-      html += `<td><a onClick="matchTmp='${player}'">対戦</a></td>`;
-      html += `</tr>`;
-    });
-    tbody.innerHTML = html;
-  }
+    function updatePlayerTable(players) {
+      const tbody = document.getElementById('playerTableBody');
+      let html = '';
+      players.forEach(function (player) {
+        if (player.name === playerName) {
+          return; // 自分自身は表示しない
+        }
+        html += `<tr>`;
+        html += `<td>${player.name}</td>`;
+        html += `<td><a href="/game/start?player2Name=${player.name}">対戦</a></td>`;
+        html += `</tr>`;
+      });
+      tbody.innerHTML = html;
+    }
+  </script>
+</head>
 
-</script>
+<body>
+  <h1>マッチング画面</h1>
+  <table>
+    <tr>
+      <th>ルーム一覧</th>
+    </tr>
+    <tbody id="playerTableBody"></tbody>
+  </table>
 
-<h1>マッチング画面</h1>
-<table>
-  <tr>
-    <th>参加プレイヤー一覧</th>
-  </tr>
-  <tbody id="playerTableBody">
-</table>
+  <br>
 
-<a href="/home">ホームに戻る</a>
+  <a href="/makeRoom">ルーム作成</a>
+
+  <br>
+  <a href="/home">ホームに戻る</a>
+</body>
+
+</html>
