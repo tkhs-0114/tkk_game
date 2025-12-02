@@ -1,73 +1,83 @@
-# システム仕様書 (最新版)
+# システム仕様書（全体）
 
-## 最終更新日
-2025-11-11
+## 1. 基本情報
+- プロジェクト名: tkk_game
+- 最終更新日: 2025-12-02
+- 開発言語/実行環境: Java 21 (Gradle)、Spring Boot 3.5.x
+- 目的: Web ベースの簡易対戦ゲーム基盤。認証付き画面、駒/デッキ管理、簡易マッチングを提供する開発試作。
 
-## システム概要
-Spring Boot を用いた最小構成の Web アプリケーション。トップページ(`/`)表示と Spring Security のデフォルトログインフォーム(`/login`)による認証確認のみを目的とする初期段階。業務機能や保護対象ページは未実装。
+## 2. アーキテクチャ概要
+- レイヤ構成: Controller (Spring MVC) / Service / Mapper(MyBatis) / Model / Templates(Thymeleaf)
+- DB: H2（開発用、schema.sql/data.sql による初期化）
+- ビルド: Gradle（`./gradlew bootRun` で起動）
 
-## 使用技術 / バージョン
-- Java 21 (Gradle Toolchain)
-- Spring Boot 3.5.7
-- Spring Security
-- Spring Web
-- Thymeleaf
-- Thymeleaf Extras SpringSecurity6
-- MyBatis (現段階で未使用 / 今後拡張余地)
-- H2 Database (現段階で未使用 / 今後拡張余地)
+## 3. 主要コンポーネント
+- Web: Spring MVC + Thymeleaf テンプレート
+- 認証: Spring Security（フォームログイン、InMemoryUserDetailsManager、開発用ユーザ）
+- 永続化: MyBatis mapper（`KomaMapper`, `DeckMapper`）、H2
+- ビジネスロジック: `DeckService`（5×5 用 SFEN 生成/解析）
 
-## ビルド/起動方法
-- 起動: `./gradlew bootRun`
-- ポート: デフォルト 8080
+## 4. 実装済みエンドポイント（概要）
+- 画面（HTML）
+  - GET / (static/index.html) : トップページ（未ログイン向け）
+  - GET /login : Spring 標準ログインフォーム
+  - GET /home : ホーム画面（ログイン後）
+  - GET /deckmake : デッキ作成画面（簡易UI、クライアント側で盤面編集）
+  - GET /deckchoose : サーバ上のデッキ一覧から選ぶ画面
+  - GET /match, /gameStart, /waitRoom : マッチング・ゲーム開始関連ページ
 
-## 現在のエンドポイント一覧
-| パス | メソッド | 認可 | 説明 |
-|------|----------|------|------|
-| `/` | GET | 認証不要 | TOPページ: Hello World + ログインリンク |
-| `/login` | GET/POST | 認証不要(フォーム) | Spring Security 標準ログインフォーム |
-| `/logout` | POST/GET | 認証済み時 | ログアウト後 `/` リダイレクト |
+- REST API (JSON)
+  - GET /api/koma : 駒一覧を返す（{id,name,type} リスト）
+  - GET /api/decks : デッキ一覧を返す（{id,name,sfen} リスト）
+  - GET /api/decks/{id} : 単一デッキを返す
+  - POST /api/decks : placements を受け取り SFEN を生成して Deck を保存（戻り値に生成 id を含む Deck）
 
-現段階では `SecurityConfig` により全て `permitAll()` のため保護対象なし。
+注: これらは開発向けに実装されています。認可・CSRF 設定は現状開発用の扱いがあります。
 
-## 認証仕様
-- 認証方式: フォームログイン (Spring Security デフォルト)
-- ユーザー保管: インメモリ (`InMemoryUserDetailsManager`)
-- ユーザー一覧:
-  - `takahashi` / パスワード `p@ss` (BCryptハッシュ保存) / ロール `ROLE_USER`
-- パスワードハッシュ: `{bcrypt}$2y$10$ngxCDmuVK1TaGchiYQfJ1OAKkd64IH6skGsNw1sLabrTICOHPxC0e`
+## 5. データモデル（簡易）
+- テーブル: koma
+  - id INT PRIMARY KEY AUTO_INCREMENT
+  - name VARCHAR(50)
+  - type VARCHAR(1)  // 例: P,L,N,S,G,B,R,K
 
-## セキュリティ設定概要 (`tkk_game/src/main/java/team3/tkk_game/security/SecurityConfig.java`)
-- `formLogin().permitAll()` 有効化
-- `logout().logoutUrl("/logout").logoutSuccessUrl("/")`
-- 全リクエスト `anyRequest().permitAll()`
-- 目的が「ログイン動作確認」のみのため認可制御は未適用
+- テーブル: Deck
+  - id INT PRIMARY KEY AUTO_INCREMENT
+  - name VARCHAR(255)
+  - sfen VARCHAR(255)  // 5×5 の簡易 SFEN（例 `5/5/5/5/5`）
 
-## 画面仕様
-### TOPページ `tkk_game/src/main/resources/static/index.html`
-- 内容: `Hello World` 見出し
-- 追加要素: `/login` へのリンク、利用可能な認証情報（ユーザー名/パスワード）表示
-- テンプレートエンジン未使用 (静的HTML)
+- サーバ内部モデル
+  - team3.tkk_game.model.Placement: file:int, rank:int, type:String, owner:String
+  - team3.tkk_game.model.Deck: id,Integer name,String sfen,String
 
-## 現状の制約
-- ログイン後の視覚的変化がない（ユーザー名表示なし）
-- 業務用コントローラー/DB利用機能未実装
-- 認証保護パス未設定
+## 6. 文字エンコーディング・起動注意
+- 開発時に日本語が化ける原因として JVM 環境変数 `_JAVA_OPTIONS=-Dfile.encoding=SHIFT-JIS` に注意（Windows 環境）。起動時に `-Dfile.encoding=UTF-8` を指定するか環境変数を解除すること。
+- `application.properties` に HTTP/Thymeleaf のエンコーディング（UTF-8）を設定している。
 
-## 今後の拡張予定（案）
-1. `/game` など認証必須ページ追加と `requestMatchers` による認可設定
-2. Thymeleaf テンプレート導入しログインユーザー名表示 (`sec:authentication` 利用)
-3. ロール追加とロール別表示制御 (`hasRole`) の適用
-4. H2/MyBatis によるユーザー永続化 + 独自 `UserDetailsService` 実装
-5. CSRF設定の適正化（必要時に例外パス限定）
+## 7. セキュリティ
+- デフォルト: フォームログイン + InMemoryUserDetailsManager
+- CSRF: デフォルトでは有効。POST API をフロントから呼ぶ場合は CSRF トークンを送る必要がある。
+- 開発で一時的に CSRF/認証を緩めた履歴あり。本番移行前に必ず確認・固定化すること。
 
-## ディレクトリ構成要点
-| パス | 役割 |
-|------|------|
-| `tkk_game/src/main/java/team3/tkk_game/TkkGameApplication.java` | Spring Boot 起動クラス |
-| `tkk_game/src/main/java/team3/tkk_game/security/SecurityConfig.java` | セキュリティ設定クラス (最小構成) |
-| `tkk_game/src/main/resources/static/index.html` | トップページ (静的) |
-| `docs/tasks.md` | 現在の作業計画 (最小ログイン) |
-| `docs/reports/done/done_2025-11-11_ログイン機能最小実装.md` | 完了レポート |
+## 8. デプロイ・運用（開発向けメモ）
+- 開発: `spring.sql.init.mode=always` により起動時に schema/data を再初期化している（ローカル検証用）。本番では無効化すること。
+- 本番DB移行: Flyway 等でマイグレーション管理を導入すること。
 
-## 状態サマリ
-最小ログイン機能が稼働し、ユーザー `takahashi` による認証確認が可能な初期状態。保護対象ページや業務ロジックは未実装のため、次フェーズで機能拡張を行う。
+## 9. テスト戦略
+- 単体テスト
+  - `DeckService.generateSfen` と `parseSfen` の正逆変換テストを必須。
+- 結合テスト
+  - REST API の認可・CSRF を含むエンドツーエンドテスト（MockMvc）を整備する。
+
+## 10. 保守・リファクタリング提案（優先度付き）
+1. REST API と画面コントローラを責務で分離（`KomaController` 等を作成）。
+2. Deck バリデーションと重複チェックを追加（POST /api/decks）。
+3. `sfen` 型は将来拡張のため TEXT に変更検討。
+4. Flyway で DB マイグレーション導入。
+5. CI でユニット・統合テストを実行するパイプライン構築。
+
+## 11. 変更履歴（簡易）
+- 2025-12-02: デッキ作成・保存・一覧・選択 UI を実装。DeckService, DeckMapper, KomaMapper を追加。application.properties に開発用エンコーディング/初期化設定を追加。
+
+---
+
+必要ならこの仕様書から実装チケット（JIRA / GitHub Issues 形式）を生成します。どれを作成しますか？（例: `DeckService unit tests`, `API 認可設定`）

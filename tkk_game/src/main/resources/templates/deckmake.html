@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="utf-8">
+  <!-- CSRF token (Thymeleaf will populate when available) -->
+  <meta name="_csrf" th:content="${_csrf.token}" />
+  <meta name="_csrf_header" th:content="${_csrf.headerName}" />
+  <title>Deck 作成（簡易）</title>
+  <style>
+    table {
+      border-collapse: collapse;
+    }
+
+    td {
+      width: 50px;
+      height: 50px;
+      text-align: center;
+      vertical-align: middle;
+      border: 1px solid #666;
+      cursor: pointer;
+    }
+
+    .controls {
+      margin: 8px 0;
+    }
+  </style>
+</head>
+
+<div>
+  <a href="/home">戻る</a>
+</div>
+
+<body>
+  <h1>デッキ作成（自分側 縦2行表示）</h1>
+  <p>表示は内部 5×5 モデルのうち自分側の2行（rank 4〜5）を編集します。保存するとサーバで 5×5 に組み込み SFEN を生成して保存します。</p>
+
+  <div class="controls">
+    <label>駒を選択:
+      <select id="pieceSelect"></select>
+    </label>
+    <button id="clearBtn">選択セルをクリア</button>
+  </div>
+
+  <table id="grid">
+    <caption>表示: rank 5（上段）、rank 4（下段）</caption>
+    <tbody>
+      <!-- JS で生成 -->
+    </tbody>
+  </table>
+
+  <div class="controls">
+    <p>※この簡易UIは配置の確認のみ行います。保存／読み込みは行われません。</p>
+  </div>
+
+  <div class="controls">
+    <label>デッキ名: <input type="text" id="deckName" value="名前を付けてください"></label>
+    <button id="saveBtn">保存 (サーバへ)</button>
+  </div>
+
+  <div id="status"></div>
+
+  <script>
+    // CSRF ヘッダ取得（Thymeleaf が無ければ既定値を使う）
+    const csrfToken = document.querySelector('meta[name="_csrf"]')?.content || '';
+    const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content || 'X-CSRF-TOKEN';
+
+    const pieceSelect = document.getElementById('pieceSelect');
+    // 先手/後攻選択を廃止したため常に先手(B) とする
+    const DEFAULT_OWNER = 'B';
+    const gridBody = document.querySelector('#grid tbody');
+    const status = document.getElementById('status');
+
+    // internal representation: map key = rank-file, value = {type, owner}
+    const cells = {}; // e.g. cells['5-3'] = {type:'P', owner:'B'}
+
+    function populatePieceList(list) {
+      pieceSelect.innerHTML = '';
+      list.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.type;
+        opt.textContent = `${p.name} (${p.type})`;
+        pieceSelect.appendChild(opt);
+      });
+    }
+
+    async function fetchPieces() {
+      try {
+        const res = await fetch('/api/koma');
+        if (!res.ok) throw new Error('no api');
+        const arr = await res.json();
+        // expect objects with {id,name,type}
+        populatePieceList(arr);
+      } catch (e) {
+        populatePieceList(defaultPieces);
+      }
+    }
+
+    function renderGrid() {
+      gridBody.innerHTML = '';
+      // display ranks 5 (top) then 4 (bottom)
+      [5, 4].forEach(rank => {
+        const tr = document.createElement('tr');
+        for (let file = 1; file <= 5; file++) {
+          const td = document.createElement('td');
+          td.dataset.rank = rank; td.dataset.file = file;
+          const key = `${rank}-${file}`;
+          td.textContent = cells[key] ? (cells[key].owner === 'B' ? cells[key].type : cells[key].type.toLowerCase()) : '';
+          td.addEventListener('click', () => {
+            const type = pieceSelect.value;
+            const owner = DEFAULT_OWNER;
+            // toggle: if same piece placed, clear
+            if (cells[key] && cells[key].type === type && cells[key].owner === owner) {
+              delete cells[key];
+            } else {
+              cells[key] = { type, owner };
+            }
+            renderGrid();
+          });
+          tr.appendChild(td);
+        }
+        gridBody.appendChild(tr);
+      });
+    }
+
+    document.getElementById('clearBtn').addEventListener('click', () => {
+      // clear selected piece from all displayed cells
+      // simple behavior: clear all
+      Object.keys(cells).forEach(k => delete cells[k]);
+      renderGrid();
+    });
+
+    // 保存/読み込み機能は無効化しています（配置のみ利用可）。
+
+    // parse SFEN (client-side, similar to server)
+    function parseSfen(sfen) {
+      const res = [];
+      if (!sfen) return res;
+      const rows = sfen.split('/');
+      for (let r = 0; r < rows.length && r < 5; r++) {
+        const row = rows[r];
+        let file = 1;
+        for (let i = 0; i < row.length; i++) {
+          const c = row.charAt(i);
+          if (/[0-9]/.test(c)) {
+            file += Number(c);
+          } else {
+            const rank = 5 - r;
+            const type = c.toUpperCase();
+            const owner = (c === c.toLowerCase()) ? 'W' : 'B';
+            res.push({ file, rank, type, owner });
+            file++;
+          }
+        }
+      }
+      return res;
+    }
+
+    // init
+    fetchPieces().then(() => renderGrid());
+
+    // サーバへ保存
+    document.getElementById('saveBtn').addEventListener('click', async () => {
+      const name = document.getElementById('deckName').value || 'unnamed';
+      const placements = Object.keys(cells).map(k => {
+        const [rank, file] = k.split('-').map(Number);
+        return { file: file, rank: rank, type: cells[k].type, owner: cells[k].owner };
+      });
+      try {
+        const res = await fetch('/api/decks', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(csrfToken ? { [csrfHeader]: csrfToken } : {})
+          },
+          body: JSON.stringify({ name, placements })
+        });
+        if (!res.ok) {
+          const text = await res.text();
+          status.textContent = '保存に失敗: ' + res.status + ' ' + text;
+          return;
+        }
+        const deck = await res.json();
+        status.textContent = '保存しました: id=' + deck.id + ', sfen=' + deck.sfen;
+      } catch (e) {
+        status.textContent = '保存エラー: ' + e.message;
+      }
+    });
+  </script>
+</body>
+
+</html>

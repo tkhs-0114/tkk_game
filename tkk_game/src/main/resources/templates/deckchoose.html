@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>デッキ選択</title>
+  <style>
+    .deck-list { list-style:none; padding:0; }
+    .deck-item { padding:8px; border:1px solid #ccc; margin:4px 0; cursor:pointer; }
+    .selected { background:#def; }
+  </style>
+</head>
+<body>
+  <h1>デッキ選択</h1>
+  <div>
+    <a href="/home">戻る</a>
+  </div>
+  <p>サーバ上のデッキ一覧から1つ選択してください。</p>
+  <ul id="deckList" class="deck-list"></ul>
+  <div>
+    <button id="chooseBtn" disabled>選択して進む</button>
+  </div>
+  <div id="status"></div>
+
+  <script>
+    const deckListEl = document.getElementById('deckList');
+    const chooseBtn = document.getElementById('chooseBtn');
+    const status = document.getElementById('status');
+    let selectedId = null;
+
+    async function loadDecks() {
+      try {
+        const res = await fetch('/api/decks');
+        if (!res.ok) throw new Error('failed');
+        const arr = await res.json();
+        deckListEl.innerHTML = '';
+        arr.forEach(d => {
+          const li = document.createElement('li');
+          li.className = 'deck-item';
+          li.textContent = d.id + ': ' + d.name + ' [' + d.sfen + ']';
+          li.dataset.id = d.id;
+          li.addEventListener('click', () => {
+            document.querySelectorAll('.deck-item').forEach(el => el.classList.remove('selected'));
+            li.classList.add('selected');
+            selectedId = d.id;
+            chooseBtn.disabled = false;
+          });
+          deckListEl.appendChild(li);
+        });
+      } catch (e) {
+        status.textContent = '読み込み失敗: ' + e.message;
+      }
+    }
+
+    chooseBtn.addEventListener('click', () => {
+      if (!selectedId) return;
+      // 選択後の遷移先は今は /match とする（query param で deck id を渡す）
+      window.location.href = '/gameStart?player2Name=&deckId=' + encodeURIComponent(selectedId);
+    });
+
+    loadDecks();
+  </script>
+</body>
+</html>
