@@ -46,17 +46,23 @@ public class Ban {
     return board;
   }
 
+  // board配列のインデックスに変換する
+  private int b2a(int boardIndex) {
+    return boardIndex + (BAN_LENGTH - 1) / 2;
+  }
+
   public boolean moveKoma(int fromX, int fromY, int toX, int toY) {
     System.out.println("x:" + fromX + "  y:" + fromY + "  toX:" + toX + "  toY:" + toY);
-    if (board[fromX][fromY] == null || board[toX][toY] != null) {
+    if (board[b2a(fromX)][b2a(fromY)] == null ||
+        board[b2a(toX)][b2a(toY)] != null) {
       return false; // 移動元に駒がないor移動先に駒がある場合は失敗
     }
-    board[toX][toY] = board[fromX][fromY];
-    board[fromX][fromY] = null;
+    board[b2a(toX)][b2a(toY)] = board[b2a(fromX)][b2a(fromY)];
+    board[b2a(fromX)][b2a(fromY)] = null;
     return true;
   }
 
   public Koma getKomaAt(int x, int y) {
-    return board[x][y];
+    return board[b2a(x)][b2a(y)];
   }
 }

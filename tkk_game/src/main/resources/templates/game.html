@@ -10,6 +10,14 @@
   let selectedX = null;
   let selectedY = null;
 
+  // 配列のインデックスを盤面の座標に変換
+  function Xa2b(arrayIndex) {
+    return arrayIndex - (ban.board.length - 1) / 2;
+  }
+  function Ya2b(arrayIndex) {
+    return arrayIndex - (ban.board[0].length - 1) / 2;
+  }
+
   function setSelectdCell(x, y) {
     selectedX = x;
     selectedY = y;
@@ -37,8 +45,8 @@
       for (let y = 0; y < ban.board[x].length; y++) {
         const cell = ban.board[x][y];
         const cellContent = (cell && cell.name) ?
-          `<div onClick="setSelectdCell(${x}, ${y})">${cell.name}</div>`
-          : `<div onClick="sendMove(${x}, ${y})">　</div>`;
+          `<div onClick="setSelectdCell(${Xa2b(x)}, ${Ya2b(y)})">${cell.name}</div>`
+          : `<div onClick="sendMove(${Xa2b(x)}, ${Ya2b(y)})">　</div>`;
         html += `<td>${cellContent}</td>`;
       }
       html += '</tr>';
