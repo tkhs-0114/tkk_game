@@ -43,7 +43,7 @@
   </div>
 
   <table id="grid">
-    <caption>表示: rank 5（上段）、rank 4（下段）</caption>
+    <caption>表示: rank 4（上段）、rank 5（下段）</caption>
     <tbody>
       <!-- JS で生成 -->
     </tbody>
@@ -66,8 +66,7 @@
     const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content || 'X-CSRF-TOKEN';
 
     const pieceSelect = document.getElementById('pieceSelect');
-    // 先手/後攻選択を廃止したため常に先手(B) とする
-    const DEFAULT_OWNER = 'B';
+    const DEFAULT_OWNER = 'B';//kari
     const gridBody = document.querySelector('#grid tbody');
     const status = document.getElementById('status');
 
@@ -98,8 +97,8 @@
 
     function renderGrid() {
       gridBody.innerHTML = '';
-      // display ranks 5 (top) then 4 (bottom)
-      [5, 4].forEach(rank => {
+      // display ranks 4 (top) then 5 (bottom)
+      [4, 5].forEach(rank => {
         const tr = document.createElement('tr');
         for (let file = 1; file <= 5; file++) {
           const td = document.createElement('td');

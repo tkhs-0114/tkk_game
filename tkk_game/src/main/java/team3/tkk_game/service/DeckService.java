@@ -25,7 +25,8 @@ public class DeckService {
       board[r][f] = piece;
     }
     StringBuilder sfenBoard = new StringBuilder();
-    for (int r = 0; r < 5; r++) {
+    // 変更: 保存するSFENは上位2行(内部では r=0 が rank5, r=1 が rank4)のみ出力する
+    for (int r = 0; r < 2; r++) {
       int empty = 0;
       for (int f = 0; f < 5; f++) {
         char c = board[r][f];
@@ -36,7 +37,7 @@ public class DeckService {
         }
       }
       if (empty > 0) sfenBoard.append(empty);
-      if (r < 4) sfenBoard.append('/');
+      if (r < 1) sfenBoard.append('/');
     }
     return sfenBoard.toString();
   }

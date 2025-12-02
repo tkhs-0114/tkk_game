@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
 import team3.tkk_game.model.GameRoom;
@@ -97,7 +98,8 @@ public class GameController {
 
   @GetMapping("/deckchoose")
   public String deckchoose(Principal principal, Model model) {
-    if (principal != null) model.addAttribute("playerName", principal.getName());
+    if (principal != null)
+      model.addAttribute("playerName", principal.getName());
     return "deckchoose.html";
   }
 
@@ -114,22 +116,30 @@ public class GameController {
     public List<Placement> placements;
   }
 
-  @PostMapping("/api/decks")
+  @PostMapping(value = "/api/decks", produces = MediaType.APPLICATION_JSON_VALUE)
   @ResponseBody
-  public ResponseEntity<Integer> saveDeck(@RequestBody SaveRequest req) {
-    String sfen = deckService.generateSfen(req.placements == null ? List.of() : req.placements);
-    Deck deck = new Deck();
-    deck.setName(req.name == null ? "unnamed" : req.name);
+  public ResponseEntity<team3.tkk_game.model.Deck> saveDeck(@RequestBody SaveRequest req) {
+    // SFEN 生成
+    String sfen = deckService.generateSfen(req.placements);
+
+    // Deck を作成して保存（DeckMapper が自動採番で id をセットする想定）
+    team3.tkk_game.model.Deck deck = new team3.tkk_game.model.Deck();
+    deck.setName(req.name);
     deck.setSfen(sfen);
-    deckMapper.insertDeck(deck);
-    return ResponseEntity.ok(deck.getId());
+
+    deckMapper.insertDeck(deck); // insert 後に deck.getId() がセットされることを想定
+
+    // 保存結果を取得して返す（確実に id/sfen を含める）
+    team3.tkk_game.model.Deck saved = deckMapper.selectDeckById(deck.getId());
+    return ResponseEntity.ok(saved);
   }
 
   @GetMapping("/api/decks/{id}")
   @ResponseBody
   public ResponseEntity<Deck> getDeck(@PathVariable int id) {
     Deck deck = deckMapper.selectDeckById(id);
-    if (deck == null) return ResponseEntity.notFound().build();
+    if (deck == null)
+      return ResponseEntity.notFound().build();
     return ResponseEntity.ok(deck);
   }
 
@@ -138,6 +148,4 @@ public class GameController {
   public List<Deck> listDecks() {
     return deckMapper.selectAllDecks();
   }
-
-  // 保存APIと取得APIは一時削除しました。配置はクライアント側でのみ扱います。
 }

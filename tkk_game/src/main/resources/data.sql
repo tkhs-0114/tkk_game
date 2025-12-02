@@ -7,4 +7,4 @@ INSERT INTO koma VALUES (6,'角','B');
 INSERT INTO koma VALUES (7,'飛','R');
 INSERT INTO koma VALUES (8,'玉','K');
 -- sample deck for development
-INSERT INTO Deck (name, sfen) VALUES ('sample1', '5/5/5/5/5');
+INSERT INTO Deck (name, sfen) VALUES ('sample', '5/5');
