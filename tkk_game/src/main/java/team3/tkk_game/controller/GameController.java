@@ -5,21 +5,20 @@ import java.security.Principal;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import team3.tkk_game.model.GameRoom;
 import team3.tkk_game.model.PlayerStatus;
 import team3.tkk_game.model.Game;
 import team3.tkk_game.model.WaitRoom;
-import team3.tkk_game.services.MatchChecker;
 import team3.tkk_game.services.TurnChecker;
 
 import org.springframework.ui.Model;
 
 @Controller
+@RequestMapping("/game")
 public class GameController {
 
   @Autowired
@@ -27,37 +26,7 @@ public class GameController {
   @Autowired
   WaitRoom waitRoom;
   @Autowired
-  MatchChecker matchChecker;
-  @Autowired
   TurnChecker turnChecker;
-
-  @GetMapping("/home")
-  public String home(Principal principal, Model model) {
-    waitRoom.rmRoom(principal.getName());
-    return "home.html";
-  }
-
-  @GetMapping("/match")
-  public String match(Principal principal, Model model) {
-    waitRoom.rmRoom(principal.getName());
-    model.addAttribute("playerName", principal.getName());
-
-    return "match.html";
-  }
-
-  @GetMapping("/makeRoom")
-  public String makeRoom(Principal principal, Model model) {
-    waitRoom.addPlayer(principal.getName());
-    model.addAttribute("playerName", principal.getName());
-    return "waiting.html";
-  }
-
-  @GetMapping("/waitRoom")
-  public SseEmitter waitRoom() {
-    SseEmitter emitter = new SseEmitter();
-    matchChecker.checkMatch(emitter, waitRoom);
-    return emitter;
-  }
 
   private String returnGame(Model model, Game game, String playerName) {
     model.addAttribute("gameId", game.getId());
@@ -73,7 +42,7 @@ public class GameController {
     return returnGame(model, game, playerName);
   }
 
-  @GetMapping("/game/start")
+  @GetMapping("/start")
   public String gameStart(Principal principal, Model model, @RequestParam(required = false) String player2Name) {
     String loginPlayerName = principal.getName();
     Game game;
@@ -89,14 +58,14 @@ public class GameController {
     return returnGame(model, game, loginPlayerName);
   }
 
-  @GetMapping("/game")
+  @GetMapping
   public String gamePage(Principal principal, Model model) {
     String loginPlayerName = principal.getName();
     Game game = gameRoom.getGameByPlayerName(loginPlayerName);
     return returnGame(model, game, loginPlayerName);
   }
 
-  @GetMapping("/game/move")
+  @GetMapping("/move")
   public String gameMove(Principal principal, Model model, @RequestParam int fromX, @RequestParam int fromY,
       @RequestParam int toX, @RequestParam int toY) {
     String loginPlayerName = principal.getName();
@@ -118,17 +87,11 @@ public class GameController {
     return returnGame(model, game, loginPlayerName);
   }
 
-  @GetMapping("/game/turn")
+  @GetMapping("/turn")
   public SseEmitter game(Principal principal, @RequestParam String gameId) {
     SseEmitter emitter = new SseEmitter();
     turnChecker.checkTurn(emitter, gameRoom.getGameById(gameId), principal.getName());
     return emitter;
   }
 
-  @GetMapping("/debug")
-  public String debug(Model model) {
-    model.addAttribute("games", gameRoom.getGames());
-    model.addAttribute("waitPlayers", waitRoom.getWaitRoom());
-    return "debug.html";
-  }
 }
