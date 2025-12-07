@@ -18,6 +18,13 @@ public class Game {
     this.lastActivity = new Date();
   }
 
+  public Game(String id, String player1Name) {
+    this.id = id;
+    this.player1 = new Player(player1Name, PlayerStatus.GAME_WAITING);
+    this.ban = new Ban();
+    this.lastActivity = new Date();
+  }
+
   public String getId() {
     return id;
   }
@@ -28,6 +35,10 @@ public class Game {
 
   public Player getPlayer2() {
     return player2;
+  }
+
+  public void setPlayer2(String player2Name) {
+    this.player2 = new Player(player2Name, PlayerStatus.GAME_THINKING);
   }
 
   public Player getPlayerByName(String playerName) {

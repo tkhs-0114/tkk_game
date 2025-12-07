@@ -21,12 +21,12 @@
       const tbody = document.getElementById('playerTableBody');
       let html = '';
       players.forEach(function (player) {
-        if (player.name === playerName) {
+        if (player.player1.name === playerName) {
           return; // 自分自身は表示しない
         }
         html += `<tr>`;
-        html += `<td>${player.name}</td>`;
-        html += `<td><a href="/game/start?player2Name=${player.name}">対戦</a></td>`;
+        html += `<td>${player.player1.name}</td>`;
+        html += `<td><a href="/game/start?player2Name=${player.player1.name}">対戦</a></td>`;
         html += `</tr>`;
       });
       tbody.innerHTML = html;

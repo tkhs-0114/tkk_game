@@ -43,7 +43,7 @@ public class MainController {
 
   @GetMapping("/makeRoom")
   public String makeRoom(Principal principal, Model model) {
-    waitRoom.addPlayer(principal.getName());
+    waitRoom.addWaitRoom(principal.getName());
     model.addAttribute("playerName", principal.getName());
     return "waiting.html";
   }

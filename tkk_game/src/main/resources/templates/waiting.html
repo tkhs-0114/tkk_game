@@ -17,7 +17,7 @@
         console.log('待機室プレイヤー:', players);
 
         // 自分が待機室にいるか確認
-        const isInRoom = players.some(p => p.name === playerName);
+        const isInRoom = players.some(p => p.player1.name === playerName);
         
         // 待機室から消えた = 誰かに対戦リクエストを送られた
         if (!isInRoom) {

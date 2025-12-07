@@ -15,6 +15,12 @@ public class GameRoom {
     return newGame;
   }
 
+  public Game addGame(Game wait, String player2Name) {
+    wait.setPlayer2(player2Name);
+    games.add(wait);
+    return wait;
+  }
+
   public Game getGameById(String id) {
     for (Game game : games) {
       if (game.getId().equals(id)) {

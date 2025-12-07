@@ -49,11 +49,11 @@ public class GameController {
 
     if (player2Name != null && !player2Name.isEmpty()) {
       // 自分から対戦リクエストを送信する
+      game = gameRoom.addGame(waitRoom.getRoomByName(player2Name), loginPlayerName);
       waitRoom.rmRoom(player2Name);
-      game = gameRoom.addGame(loginPlayerName, player2Name);
     } else {
       // 誰かに対戦リクエストを送られた場合
-      game = gameRoom.inGamePlayer2(loginPlayerName);
+      game = gameRoom.getGameByPlayerName(loginPlayerName);
     }
     return returnGame(model, game, loginPlayerName);
   }

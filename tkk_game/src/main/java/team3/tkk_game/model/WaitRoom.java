@@ -6,33 +6,43 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class WaitRoom {
-  ArrayList<Player> waitRoom = new ArrayList<>();
+  ArrayList<Game> waitRoom = new ArrayList<>();
   
   public WaitRoom() {
   }
 
-  public ArrayList<Player> getWaitRoom() {
+  public ArrayList<Game> getWaitRoom() {
     return waitRoom;
   }
 
   public Boolean isInRoom(String playerName) {
-    for (Player player : waitRoom) {
-      if (player.getName().equals(playerName)) {
+    for (Game game : waitRoom) {
+      if (game.getPlayer1().getName().equals(playerName)) {
         return true;
       }
     }
     return false;
   }
 
-  public void addPlayer(String playerName) {
+  public void addWaitRoom(String playerName) {
     if (!isInRoom(playerName)) {
-      Player player = new Player(playerName, PlayerStatus.WAITING);
-      waitRoom.add(player);
+      String id = String.valueOf(System.currentTimeMillis());
+      Game game = new Game(id, playerName);
+      waitRoom.add(game);
     }
   }
-  
+
+  public Game getRoomByName(String playerName) {
+    for (Game game : waitRoom) {
+      if (game.getPlayer1().getName().equals(playerName)) {
+        return game;
+      }
+    }
+    return null;
+  }
+
   public void rmRoom(String playerName) {
-    waitRoom.removeIf(player -> player.getName().equals(playerName));
+    waitRoom.removeIf(game -> game.getPlayer1().getName().equals(playerName));
   }
 
 }
