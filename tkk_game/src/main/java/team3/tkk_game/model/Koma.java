@@ -8,8 +8,10 @@ public class Koma {
   Integer id;
   Set<KomaPattern> movePatterns = new HashSet<KomaPattern>();
 
-  public Koma() {
-  }
+  public Koma(Integer id, String name) {
+    this.id = id;
+    this.name = name;
+  }// 下のkomaとのちにあわせる
 
   public Koma(String name, KomaPattern[] movePatterns) {
     this.name = name;
