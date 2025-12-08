@@ -6,14 +6,41 @@
   <title>マッチング画面</title>
   <script th:inline="javascript">
     const playerName = /*[[${playerName}]]*/ 'defaultPlayer';
+    const csrfToken = /*[[${_csrf.token}]]*/ '';
+    const csrfParameterName = /*[[${_csrf.parameterName}]]*/ '_csrf';
+    
+    // 自分がリクエストを送ったルームのオーナー名を記憶
+    let myRequestTo = null;
 
     window.onload = function () {
       console.log('Player Name:', playerName);
       const sse = new EventSource('/waitRoom');
       sse.onmessage = function (event) {
-        const players = JSON.parse(event.data);
-        console.log('待機中プレイヤー:', players);
-        updatePlayerTable(players);
+        const rooms = JSON.parse(event.data);
+        console.log('待機中ルーム:', rooms);
+
+        // 自分がリクエストを送ったルームを探す
+        const myRequestedRoom = rooms.find(r => r.player2?.name === playerName);
+        if (myRequestedRoom) {
+          myRequestTo = myRequestedRoom.player1.name;
+        }
+        
+        // 自分がリクエストを送っていた場合
+        if (myRequestTo) {
+          const targetRoom = rooms.find(r => r.player1.name === myRequestTo);
+          if (!targetRoom) {
+            // ルームが消えた時
+            console.log('対戦リクエストが承認されました！');
+            sse.close();
+            window.location.href = `/game/start`;
+            return;
+          } else if (targetRoom.player2?.name !== playerName) {
+            // ルームはあるが自分のリクエストが無い時
+            console.log('対戦リクエストが拒否されました');
+            myRequestTo = null;
+          }
+        }
+        updatePlayerTable(rooms);
       };
     };
 
@@ -26,7 +53,21 @@
         }
         html += `<tr>`;
         html += `<td>${player.player1.name}</td>`;
-        html += `<td><a href="/game/start?player2Name=${player.player1.name}">対戦</a></td>`;
+        html += `<td>`;
+        if (player.player2?.name === playerName) {
+          html += `[リクエスト送信済み]`;
+        } else if (player.player2 !== null) {
+          html += `[他のプレイヤーがリクエスト中]`;
+        }
+          else if (myRequestTo !== null) {
+          html += `[他のプレイヤーにリクエスト中]`;
+        } else {
+          html += `<form action="/sendRequest?Player1Name=${player.player1.name}" method="post">`;
+          html += `<input type="hidden" name="${csrfParameterName}" value="${csrfToken}">`;
+          html += `<button type="submit">対戦リクエスト</button>`;
+          html += `</form>`;
+        }
+        html += `</td>`;
         html += `</tr>`;
       });
       tbody.innerHTML = html;

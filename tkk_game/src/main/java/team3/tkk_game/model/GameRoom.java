@@ -45,16 +45,8 @@ public class GameRoom {
     return games;
   }
 
-  public Game inGamePlayer2(String playerName) {
-    for (Game game : games) {
-      Player player2 = game.getPlayer2();
-      if (player2.getName().equals(playerName) && player2.getStatus() == PlayerStatus.MATCHED) {
-        player2.setStatus(PlayerStatus.GAME_WAITING);
-        game.getPlayer1().setStatus(PlayerStatus.GAME_THINKING);
-        return game;
-      }
-    }
-    return null;
+  public boolean rmGameByName(String playerName) {
+    return games.removeIf(game -> game.getPlayer1().getName().equals(playerName) || game.getPlayer2().getName().equals(playerName));
   }
 
   @Scheduled(fixedRate = 600000)

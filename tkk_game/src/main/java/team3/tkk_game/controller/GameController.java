@@ -41,19 +41,18 @@ public class GameController {
     model.addAttribute("errMessage", errMessage);
     return returnGame(model, game, playerName);
   }
-
   @GetMapping("/start")
   public String gameStart(Principal principal, Model model, @RequestParam(required = false) String player2Name) {
     String loginPlayerName = principal.getName();
-    Game game;
+    Game game = gameRoom.getGameByPlayerName(loginPlayerName);
 
-    if (player2Name != null && !player2Name.isEmpty()) {
-      // 自分から対戦リクエストを送信する
-      game = gameRoom.addGame(waitRoom.getRoomByName(player2Name), loginPlayerName);
-      waitRoom.rmRoom(player2Name);
-    } else {
-      // 誰かに対戦リクエストを送られた場合
-      game = gameRoom.getGameByPlayerName(loginPlayerName);
+    /*
+    ここにデッキ設定等のゲームの初期設定を記入
+    */
+
+    // ゲームが見つからない場合はマッチング画面に戻る
+    if (game == null) {
+      return "redirect:/match";
     }
     return returnGame(model, game, loginPlayerName);
   }
@@ -62,6 +61,10 @@ public class GameController {
   public String gamePage(Principal principal, Model model) {
     String loginPlayerName = principal.getName();
     Game game = gameRoom.getGameByPlayerName(loginPlayerName);
+    // ゲームが見つからない場合はマッチング画面に戻る
+    if (game == null) {
+      return "redirect:/match";
+    }
     return returnGame(model, game, loginPlayerName);
   }
 

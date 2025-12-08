@@ -13,17 +13,26 @@
       // SSE接続を開始
       const sse = new EventSource('/waitRoom');
       sse.onmessage = function (event) {
-        const players = JSON.parse(event.data);
-        console.log('待機室プレイヤー:', players);
+        const rooms = JSON.parse(event.data);
+        console.log('待機室:', rooms);
 
-        // 自分が待機室にいるか確認
-        const isInRoom = players.some(p => p.player1.name === playerName);
-        
-        // 待機室から消えた = 誰かに対戦リクエストを送られた
-        if (!isInRoom) {
-          console.log('対戦相手が見つかりました！');
-          sse.close();
-          window.location.href = '/game/start';
+        // 自分のルームを取得
+        const myRoom = rooms.find(r => r.player1.name === playerName);
+
+        // リクエストがあるかチェック
+        const haveRequest = document.getElementById('haveRequest');
+        const waitingMessage = document.getElementById('waitingMessage');
+        const P2NameSpan = document.getElementById('P2Name');
+
+        if (myRoom.player2) {
+          // リクエストがある場合
+          P2NameSpan.textContent = myRoom.player2.name;
+          haveRequest.style.display = 'block';
+          waitingMessage.style.display = 'none';
+        } else {
+          // リクエストがない場合
+          haveRequest.style.display = 'none';
+          waitingMessage.style.display = 'block';
         }
       };
     };
@@ -33,6 +42,24 @@
 <body>
   <h1>対戦相手を待っています...</h1>
   <p>プレイヤー名: <span th:text="${playerName}"></span></p>
+  
+  <!-- 待機中メッセージ -->
+  <div id="waitingMessage">
+    <p>対戦リクエストを待っています...</p>
+  </div>
+
+  <!-- リクエストがある場合の表示 -->
+  <div id="haveRequest" style="display: none;">
+    <h2>対戦リクエストが届いています！</h2>
+    <p><span id="P2Name"></span> さんから対戦リクエストがあります。</p>
+    <form th:action="@{/acceptMatch}" method="post" style="display: inline;">
+      <button type="submit">承認する</button>
+    </form>
+    <form th:action="@{/rejectMatch}" method="post" style="display: inline;">
+      <button type="submit">拒否する</button>
+    </form>
+  </div>
+  
   <br>
   <a href="/match">キャンセル</a>
 </body>

@@ -34,7 +34,7 @@ public class WaitRoom {
 
   public Game getRoomByName(String playerName) {
     for (Game game : waitRoom) {
-      if (game.getPlayer1().getName().equals(playerName)) {
+      if (game.getPlayer1().getName().equals(playerName) || (game.getPlayer2() != null && game.getPlayer2().getName().equals(playerName))  ) {
         return game;
       }
     }
@@ -43,6 +43,23 @@ public class WaitRoom {
 
   public void rmRoom(String playerName) {
     waitRoom.removeIf(game -> game.getPlayer1().getName().equals(playerName));
+  }
+
+
+  public boolean sendRequest(String Player2Name, String Player1Name) {
+    Game room = getRoomByName(Player1Name);
+    if (room != null && room.getPlayer2() == null) {
+      room.setPlayer2(Player2Name);
+      return true;
+    }
+    return false;
+  }
+  
+  public void clearRequest(String playerName) {
+    Game room = getRoomByName(playerName);
+    if (room != null) {
+      room.clearPlayer2();
+    }
   }
 
 }

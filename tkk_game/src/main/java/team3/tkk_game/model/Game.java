@@ -41,6 +41,10 @@ public class Game {
     this.player2 = new Player(player2Name, PlayerStatus.GAME_THINKING);
   }
 
+  public void clearPlayer2() {
+    this.player2 = null;
+  }
+
   public Player getPlayerByName(String playerName) {
     if (player1.getName().equals(playerName)) {
       return player1;
