@@ -19,18 +19,19 @@ import team3.tkk_game.service.KomaService;
 @RequestMapping("/debug")
 public class DebugController {
 
-    @Autowired
-    KomaService komaService;
+  @Autowired
+  KomaService komaService;
 
-    /**
-     * 駒とルールの一覧を表示するデバッグ画面
-     * @param model Thymeleafに渡すモデル
-     * @return debug.html
-     */
-    @GetMapping("/koma")
-    public String showKomaWithRules(ModelMap model) {
-        List<Koma> komaList = komaService.getAllKomaWithRules();
-        model.addAttribute("komaList", komaList);
-        return "debug.html";
-    }
+  /**
+   * 駒とルールの一覧を表示するデバッグ画面
+   * 
+   * @param model Thymeleafに渡すモデル
+   * @return debug.html
+   */
+  @GetMapping("/koma")
+  public String showKomaWithRules(ModelMap model) {
+    List<Koma> komaList = komaService.getAllKomaWithRules();
+    model.addAttribute("komaList", komaList);
+    return "debug.html";
+  }
 }

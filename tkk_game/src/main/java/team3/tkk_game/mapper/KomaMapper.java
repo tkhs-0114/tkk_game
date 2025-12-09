@@ -16,6 +16,7 @@ public interface KomaMapper {
 
   /**
    * 全ての駒を取得する
+   * 
    * @return 駒エンティティのリスト
    */
   @Select("SELECT id, name FROM koma")
@@ -24,13 +25,14 @@ public interface KomaMapper {
   /**
    * 駒とルールの組み合わせを全て取得する
    * KOMARULE、KOMA、RULEテーブルをJOINし、駒ID、駒名、ルールIDを取得する
+   * 
    * @return 駒とルールの組み合わせリスト（1駒1ルールで1行）
    */
   @Select("SELECT KOMARULE.koma_id AS komaId, KOMA.name AS name, KOMARULE.rule_id AS ruleId " +
-          "FROM KOMARULE " +
-          "JOIN KOMA ON KOMARULE.koma_id = KOMA.id " +
-          "JOIN RULE ON KOMARULE.rule_id = RULE.id " +
-          "ORDER BY KOMARULE.koma_id")
+      "FROM KOMARULE " +
+      "JOIN KOMA ON KOMARULE.koma_id = KOMA.id " +
+      "JOIN RULE ON KOMARULE.rule_id = RULE.id " +
+      "ORDER BY KOMARULE.koma_id")
   List<KomaRuleRow> selectAllKomaWithRules();
 
 }
