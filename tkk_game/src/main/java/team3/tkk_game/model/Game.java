@@ -10,10 +10,9 @@ public class Game {
   Player player2;
   Ban ban = new Ban();
 
-  public Game(String id, String player1Name, String player2Name) {
+  public Game(String id, String player1Name) {
     this.id = id;
     this.player1 = new Player(player1Name, PlayerStatus.GAME_WAITING);
-    this.player2 = new Player(player2Name, PlayerStatus.MATCHED);
     this.ban = new Ban();
     this.lastActivity = new Date();
   }
@@ -28,6 +27,14 @@ public class Game {
 
   public Player getPlayer2() {
     return player2;
+  }
+
+  public void setPlayer2(String player2Name) {
+    this.player2 = new Player(player2Name, PlayerStatus.GAME_THINKING);
+  }
+
+  public void clearPlayer2() {
+    this.player2 = null;
   }
 
   public Player getPlayerByName(String playerName) {
