@@ -1,75 +1,248 @@
-# ログイン機能最小実装計画
+# KomaRule JOINクエリによる駒データ取得機能の実装計画
 
 ## 計画作成日
-2025年11月11日
+2025年12月9日
 
 ## 目的
-TOPページ（`/`）からSpring Securityのデフォルトログインフォーム（`/login`）へ遷移し、ユーザー名「takahashi」、パスワード「p@ss」、ロール「USER」でログインできる最小限の仕組みのみを提供する。
+データベースのKOMA、RULE、KOMAROULEテーブルをJOINし、各駒のルール情報（`List<Integer>`）を含むゲーム用`Koma`オブジェクトを構築できるようにする。DB用のエンティティクラスとゲーム用のクラスを分離し、責務を明確化する。
 
 ## 前提条件
-- `build.gradle`にSpring Security関連依存関係が追加済み
-- 現在のTOPページ: `tkk_game/src/main/resources/static/index.html`
-- 追加のコントローラーやテンプレートは不要（デフォルトログインフォームを使用）
+- H2データベースが設定済み（`application.properties`）
+- `schema.sql`でKOMA、RULE、KOMAROULEテーブルが定義済み
+- `data.sql`で初期データが投入済み
+- MyBatisが依存関係に設定済み
+- 現在の`Koma.java`はゲームロジック用として使用されている
 
 ## スコープ（含む）
-- セキュリティ設定クラスの作成
-- TOPページにログインフォームへのリンク追加
+- DB用エンティティクラス（`KomaEntity`、`KomaRuleRow`）の作成
+- `KomaMapper`へのJOINクエリメソッド追加
+- `KomaService`サービスクラスの作成（データ集約ロジック）
+- ゲーム用`Koma`クラスへのgetter/setter追加
+- 動作確認用のデバッグ用コントローラー追加
 
 ## スコープ（含まない）
-- 業務用コントローラーの作成
-- 独自ログイン画面の作成
-- ロール別画面表示
-- ゲーム画面等の機能
+- ゲームロジックの変更
+- 画面への組み込み
+- 他のエンティティ（Rule、Deck等）の拡張
+
+## 関連ファイル一覧
+
+### 既存ファイル（参照）
+| ファイルパス | 役割 |
+|------------|------|
+| `tkk_game/src/main/resources/schema.sql` | テーブル定義 |
+| `tkk_game/src/main/resources/data.sql` | 初期データ |
+| `tkk_game/src/main/resources/application.properties` | DB設定 |
+
+### 既存ファイル（修正対象）
+| ファイルパス | 役割 |
+|------------|------|
+| `tkk_game/src/main/java/team3/tkk_game/model/Koma.java` | ゲーム用駒クラス |
+| `tkk_game/src/main/java/team3/tkk_game/mapper/KomaMapper.java` | 駒Mapperインターフェース |
+
+### 新規作成ファイル
+| ファイルパス | 役割 |
+|------------|------|
+| `tkk_game/src/main/java/team3/tkk_game/model/KomaEntity.java` | DB用駒エンティティ |
+| `tkk_game/src/main/java/team3/tkk_game/model/KomaRuleRow.java` | JOINクエリ結果格納用 |
+| `tkk_game/src/main/java/team3/tkk_game/service/KomaService.java` | 駒サービスクラス |
 
 ---
-### タスク1: セキュリティ設定クラスの作成
-**関連ファイル**: 新規作成 `tkk_game/src/main/java/team3/tkk_game/security/SecurityConfig.java`
 
-**作業内容**:
-1. `security`パッケージを作成
-2. `SecurityConfig`クラスを作成し`@Configuration` `@EnableWebSecurity`を付与
-3. `SecurityFilterChain` Bean を定義
-   - `formLogin().permitAll()` を設定
-   - `logout()` を設定（`/logout` → 成功時 `/` リダイレクト）
-   - ひとまず全パス `permitAll()`（ログイン導線確認が目的のため）
-4. `InMemoryUserDetailsManager` Bean を定義
-   - ユーザー: `takahashi`
-   - パスワード (BCrypt): `{bcrypt}$2y$10$ngxCDmuVK1TaGchiYQfJ1OAKkd64IH6skGsNw1sLabrTICOHPxC0e`
-   - ロール: `USER`
+## タスク1: KomaEntityクラスの作成（DB用駒エンティティ）
 
-**確認手順**:
-- `./gradlew bootRun` で起動
-- ブラウザで `http://localhost:8080/login` にアクセスしログインフォーム表示を確認
-- `takahashi / p@ss` でログイン → エラーなしで認証成功（直前アクセスが`/login`のみの場合 TOP `/`へ遷移）
+### 関連ファイル
+- 新規作成: `tkk_game/src/main/java/team3/tkk_game/model/KomaEntity.java`
 
-**期待結果**:
-- デフォルトログインフォームが表示され、指定ユーザーでログイン成功する
+### 作業内容
+1. `model`パッケージに`KomaEntity.java`を作成
+2. フィールド定義:
+   - `Integer id` - 駒ID（主キー）
+   - `String name` - 駒名
+3. デフォルトコンストラクタを定義（MyBatisで必須）
+4. getter/setterを定義
+
+### 確認手順
+- コンパイルエラーがないことを確認
+- `./gradlew compileJava` が成功すること
+
+### 期待結果
+- `KomaEntity.java`が作成され、コンパイルが通る
 
 ---
-### タスク2: TOPページにログイン導線追加
-**関連ファイル**: 編集 `tkk_game/src/main/resources/static/index.html`
 
-**作業内容**:
-1. `/login` へのリンクを追加: 例 `<a href="/login">ログイン</a>`
-2. 簡単な説明文を追加（「ユーザー: takahashi / パスワード: p@ss」）
+## タスク2: KomaRuleRowクラスの作成（JOINクエリ結果格納用）
 
-**確認手順**:
-- ブラウザで `http://localhost:8080/` を表示
-- 追加したリンクをクリック → `/login` に遷移しフォーム表示
-- 認証成功後 `/` に戻る（もしくはデフォルトの遷移）
+### 関連ファイル
+- 新規作成: `tkk_game/src/main/java/team3/tkk_game/model/KomaRuleRow.java`
 
-**期待結果**:
-- TOPページからログインフォームへ遷移でき、ログイン後再びTOPページが閲覧可能
+### 作業内容
+1. `model`パッケージに`KomaRuleRow.java`を作成
+2. フィールド定義:
+   - `Integer komaId` - 駒ID
+   - `String name` - 駒名
+   - `Integer ruleId` - ルールID
+3. デフォルトコンストラクタを定義
+4. getter/setterを定義
+
+### 確認手順
+- コンパイルエラーがないことを確認
+- `./gradlew compileJava` が成功すること
+
+### 期待結果
+- `KomaRuleRow.java`が作成され、コンパイルが通る
 
 ---
+
+## タスク3: KomaMapperへのJOINクエリメソッド追加
+
+### 関連ファイル
+- 修正: `tkk_game/src/main/java/team3/tkk_game/mapper/KomaMapper.java`
+- 参照: `tkk_game/src/main/java/team3/tkk_game/model/KomaEntity.java`
+- 参照: `tkk_game/src/main/java/team3/tkk_game/model/KomaRuleRow.java`
+
+### 作業内容
+1. `KomaEntity`のimportを追加
+2. `KomaRuleRow`のimportを追加
+3. 既存の`selectAllKoma`メソッドの戻り値を`List<KomaEntity>`に変更
+4. 新しいメソッド`selectAllKomaWithRules`を追加:
+   ```java
+   @Select("SELECT KOMARULE.koma_id AS komaId, KOMA.name AS name, KOMARULE.rule_id AS ruleId " +
+           "FROM KOMARULE " +
+           "JOIN KOMA ON KOMARULE.koma_id = KOMA.id " +
+           "JOIN RULE ON KOMARULE.rule_id = RULE.id " +
+           "ORDER BY KOMARULE.koma_id")
+   List<KomaRuleRow> selectAllKomaWithRules();
+   ```
+
+### 確認手順
+- コンパイルエラーがないことを確認
+- `./gradlew compileJava` が成功すること
+
+### 期待結果
+- `KomaMapper`に2つのメソッドが定義される
+  - `selectAllKoma()` - 全駒を取得（`List<KomaEntity>`）
+  - `selectAllKomaWithRules()` - 駒とルールの組み合わせを取得（`List<KomaRuleRow>`）
+
+---
+
+## タスク4: Komaクラスへのgetter/setter追加
+
+### 関連ファイル
+- 修正: `tkk_game/src/main/java/team3/tkk_game/model/Koma.java`
+
+### 作業内容
+1. デフォルトコンストラクタを追加
+2. `rules`フィールドのgetterを追加: `getRules()`
+3. `rules`フィールドのsetterを追加: `setRules(List<Integer> rules)`
+
+### 確認手順
+- コンパイルエラーがないことを確認
+- `./gradlew compileJava` が成功すること
+
+### 期待結果
+- `Koma`クラスに`getRules()`と`setRules()`が追加される
+- 既存のゲームロジックに影響がない
+
+---
+
+## タスク5: KomaServiceクラスの作成
+
+### 関連ファイル
+- 新規作成: `tkk_game/src/main/java/team3/tkk_game/service/KomaService.java`
+- 参照: `tkk_game/src/main/java/team3/tkk_game/mapper/KomaMapper.java`
+- 参照: `tkk_game/src/main/java/team3/tkk_game/model/Koma.java`
+- 参照: `tkk_game/src/main/java/team3/tkk_game/model/KomaRuleRow.java`
+
+### 作業内容
+1. `service`パッケージに`KomaService.java`を作成
+2. `@Service`アノテーションを付与
+3. `KomaMapper`を`@Autowired`で注入
+4. `getAllKomaWithRules()`メソッドを実装:
+   - `komaMapper.selectAllKomaWithRules()`でJOINデータを取得
+   - `LinkedHashMap<Integer, Koma>`を使って`komaId`ごとに集約
+   - 各駒の`rules`リストにルールIDを追加
+   - `List<Koma>`として返却
+
+### 確認手順
+- コンパイルエラーがないことを確認
+- `./gradlew compileJava` が成功すること
+
+### 期待結果
+- `KomaService`が作成され、`getAllKomaWithRules()`メソッドが定義される
+
+---
+
+## タスク6: 動作確認用コントローラーの作成
+
+### 関連ファイル
+- 修正: `tkk_game/src/main/java/team3/tkk_game/controller/DebugController.java`（存在しない場合は新規作成）
+- 参照: `tkk_game/src/main/java/team3/tkk_game/service/KomaService.java`
+
+### 作業内容
+1. `DebugController`クラスを作成（または既存を修正）
+2. `@Controller`アノテーションを付与
+3. `KomaService`を`@Autowired`で注入
+4. `/debug/koma`エンドポイントを追加:
+   - `KomaService.getAllKomaWithRules()`を呼び出し
+   - 結果をモデルに追加
+   - `debug.html`に遷移
+
+### 確認手順
+- `./gradlew bootRun` でアプリを起動
+- ブラウザで `http://localhost/login` にアクセスし、`user1 / p@ss` でログイン
+- `http://localhost/debug/koma` にアクセス
+
+### 期待結果
+- 駒の一覧とそれぞれのルールIDリストが表示される
+
+---
+
+## タスク7: デバッグ画面の更新
+
+### 関連ファイル
+- 修正: `tkk_game/src/main/resources/templates/debug.html`
+
+### 作業内容
+1. 駒一覧表示用のHTMLを追加
+2. 各駒の`id`、`name`、`rules`を表示
+
+### 確認手順
+- `./gradlew bootRun` でアプリを起動
+- ブラウザで `http://localhost/login` にアクセスし、`user1 / p@ss` でログイン
+- `http://localhost/debug/koma` にアクセス
+- 以下の情報が表示されることを確認:
+  - 歩 (id=1): rules=[1]
+  - 銀 (id=4): rules=[1, 9, 11, 13, 15]
+
+### 期待結果
+- 駒とルールの関連が正しく表示される
+
+---
+
 ## Definition of Done (DoD)
+
 1. `./gradlew bootRun` でアプリが正常起動する
-2. `http://localhost:8080/` にアクセスしログインリンクが表示される
-3. リンククリックでデフォルトログインフォーム表示
-4. `takahashi / p@ss` でログイン成功し画面遷移が完了する
-5. `/logout` 実行後再度 `/login` からログイン可能
+2. ブラウザで `http://localhost/login` にアクセスし、`user1 / p@ss` でログインできる
+3. `http://localhost/debug/koma` にアクセスすると駒一覧が表示される
+4. 駒「歩」のルールリストに `[1]` が表示される
+5. 駒「銀」のルールリストに `[1, 9, 11, 13, 15]` が表示される
+6. 既存のゲーム機能（マッチング、ゲーム画面）が正常に動作する
+
+---
+
+## 実装の流れ
+
+```
+タスク1 → タスク2 → タスク3 → タスク4 → タスク5 → タスク6 → タスク7
+   ↓          ↓          ↓          ↓          ↓          ↓          ↓
+KomaEntity  KomaRuleRow  Mapper    Koma修正   Service   Controller  画面
+  作成        作成       修正                  作成       修正      修正
+```
 
 ## 注意事項
-- 追加の業務機能や画面を実装しないこと
-- ログイン成功のみを最小確認対象とする
-- 今後拡張する場合は別途計画を再作成すること
+
+- 各タスクは順番に実施すること（依存関係があるため）
+- タスク完了ごとにコンパイルエラーがないことを確認すること
+- 既存のゲームロジックに影響を与えないこと
+- DB用クラス（`KomaEntity`、`KomaRuleRow`）とゲーム用クラス（`Koma`）の役割を混同しないこと

@@ -12,34 +12,6 @@ public class Ban {
         this.board[x][y] = null;
       }
     }
-    this.board[b2a(0)][b2a(-2)] = new Koma("王", new KomaPattern[] {
-        new KomaPattern(1, 0),
-        new KomaPattern(0, 1),
-        new KomaPattern(-1, 0),
-        new KomaPattern(0, -1),
-        new KomaPattern(1, 1),
-        new KomaPattern(1, -1),
-        new KomaPattern(-1, 1),
-        new KomaPattern(-1, -1)
-    });
-    this.board[b2a(2)][b2a(2)] = new Koma("飛", new KomaPattern[] {
-        new KomaPattern(1, 0),
-        new KomaPattern(2, 0),
-        new KomaPattern(3, 0),
-        new KomaPattern(4, 0),
-        new KomaPattern(0, 1),
-        new KomaPattern(0, 2),
-        new KomaPattern(0, 3),
-        new KomaPattern(0, 4),
-        new KomaPattern(-1, 0),
-        new KomaPattern(-2, 0),
-        new KomaPattern(-3, 0),
-        new KomaPattern(-4, 0),
-        new KomaPattern(0, -1),
-        new KomaPattern(0, -2),
-        new KomaPattern(0, -3),
-        new KomaPattern(0, -4),
-    });
   }
 
   public Koma[][] getBoard() {
