@@ -14,7 +14,7 @@
 
     window.onload = function () {
       console.log('Player Name:', playerName);
-      const sse = new EventSource('/waitRoom');
+      const sse = new EventSource('/match/waitRoom');
       sse.onmessage = function (event) {
         const rooms = JSON.parse(event.data);
         console.log('待機中ルーム:', rooms);
@@ -62,7 +62,7 @@
           else if (myRequestTo !== null) {
           html += `[他のプレイヤーにリクエスト中]`;
         } else {
-          html += `<form action="/sendRequest?Player1Name=${player.player1.name}" method="post">`;
+          html += `<form action="/match/sendRequest?Player1Name=${player.player1.name}" method="post">`;
           html += `<input type="hidden" name="${csrfParameterName}" value="${csrfToken}">`;
           html += `<button type="submit">対戦リクエスト</button>`;
           html += `</form>`;
@@ -86,7 +86,7 @@
 
   <br>
 
-  <a href="/makeRoom">ルーム作成</a>
+  <a href="/match/makeRoom">ルーム作成</a>
 
   <br>
   <a href="/home">ホームに戻る</a>
