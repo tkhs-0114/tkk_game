@@ -8,13 +8,6 @@ import java.util.ArrayList;
 public class GameRoom {
   ArrayList<Game> games = new ArrayList<>();
 
-  public Game addGame(String player1Name, String player2Name) {
-    String id = String.valueOf(System.currentTimeMillis());
-    Game newGame = new Game(id, player1Name, player2Name);
-    games.add(newGame);
-    return newGame;
-  }
-
   public Game addGame(Game wait, String player2Name) {
     wait.setPlayer2(player2Name);
     games.add(wait);

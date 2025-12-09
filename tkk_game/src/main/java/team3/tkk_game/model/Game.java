@@ -10,14 +10,6 @@ public class Game {
   Player player2;
   Ban ban = new Ban();
 
-  public Game(String id, String player1Name, String player2Name) {
-    this.id = id;
-    this.player1 = new Player(player1Name, PlayerStatus.GAME_WAITING);
-    this.player2 = new Player(player2Name, PlayerStatus.MATCHED);
-    this.ban = new Ban();
-    this.lastActivity = new Date();
-  }
-
   public Game(String id, String player1Name) {
     this.id = id;
     this.player1 = new Player(player1Name, PlayerStatus.GAME_WAITING);
