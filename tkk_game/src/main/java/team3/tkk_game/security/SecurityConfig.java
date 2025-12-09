@@ -28,8 +28,12 @@ public class SecurityConfig {
             .permitAll().defaultSuccessUrl("/home", true))
         .logout(logout -> logout
             .logoutUrl("/logout").logoutSuccessUrl("/"))
+        .csrf(csrf -> csrf
+            .ignoringRequestMatchers("/h2-console/**"))
+        .headers(headers -> headers.frameOptions(frame -> frame.disable()))
         .authorizeHttpRequests(authz -> authz
-            .requestMatchers("/", "/index.html").permitAll().anyRequest().authenticated());
+            .requestMatchers("/h2-console/**", "/", "/index.html").permitAll()
+            .anyRequest().authenticated());
     return http.build();
   }
 
