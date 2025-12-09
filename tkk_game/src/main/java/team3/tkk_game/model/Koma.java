@@ -4,14 +4,17 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class Koma {
+  int id;
   String name;
   Set<KomaPattern> movePatterns = new HashSet<KomaPattern>();
+  Player owner;
 
-  public Koma(String name, KomaPattern[] movePatterns) {
+  public Koma(String name, KomaPattern[] movePatterns, Player owner) {
     this.name = name;
     for (KomaPattern pattern : movePatterns) {
       this.movePatterns.add(pattern);
     }
+    this.owner = owner;
   }
 
   public String getName() {

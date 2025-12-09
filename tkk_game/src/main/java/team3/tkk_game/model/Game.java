@@ -2,19 +2,26 @@ package team3.tkk_game.model;
 
 import java.util.Date;
 
+import team3.tkk_game.model.Ban.LocalBan;
+import team3.tkk_game.model.Ban.DisplayBan;
+
 public class Game {
   // デバッグ用にpublicに変更
   public String id;
   public Date lastActivity;
   Player player1;
   Player player2;
-  Ban ban = new Ban();
+  LocalBan player1Ban;
+  LocalBan player2Ban;
+  DisplayBan displayBan;
 
   public Game(String id, String player1Name, String player2Name) {
     this.id = id;
     this.player1 = new Player(player1Name, PlayerStatus.GAME_WAITING);
     this.player2 = new Player(player2Name, PlayerStatus.MATCHED);
-    this.ban = new Ban();
+    this.player1Ban = new LocalBan(this.player1);
+    this.player2Ban = new LocalBan(this.player2);
+    this.displayBan = new DisplayBan();
     this.lastActivity = new Date();
   }
 
@@ -40,11 +47,32 @@ public class Game {
     }
   }
 
-  public Ban getBan() {
-    return ban;
+  public DisplayBan getBan() {
+    return displayBan;
   }
 
-  public void switchTurn() {
+  public void moveKomaByPlayer(String playerName, int fromX, int fromY, int toX, int toY) {
+    Player loginPlayer = getPlayerByName(playerName);
+    if (loginPlayer == null) {
+      throw new IllegalArgumentException("その名前のプレイヤーは存在しません");
+    }
+    if (loginPlayer.getStatus() != PlayerStatus.GAME_THINKING) {
+      throw new IllegalStateException("現在のターンではありません");
+    }
+    boolean isSuccess;
+    if (player1.getName().equals(playerName)) {
+      isSuccess = player1Ban.moveKoma(fromX, fromY, toX, toY);
+    } else {
+      isSuccess = player2Ban.moveKoma(fromX, fromY, toX, toY);
+    }
+    if (!isSuccess) {
+      throw new IllegalStateException("移動に失敗しました");
+    }
+    // 表示盤面も更新
+    switchTurn();
+  }
+
+  private void switchTurn() {
     updateLastActivity();
     if (player1.getStatus() == PlayerStatus.GAME_THINKING) {
       player1.setStatus(PlayerStatus.GAME_WAITING);
@@ -56,7 +84,7 @@ public class Game {
   }
 
   // 用修正、SSE時に更新処理として動作させるようにすることを検討中
-  public void updateLastActivity() {
+  private void updateLastActivity() {
     this.lastActivity = new Date();
   }
 

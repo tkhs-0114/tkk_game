@@ -72,19 +72,23 @@ public class GameController {
     String loginPlayerName = principal.getName();
     Game game = gameRoom.getGameByPlayerName(loginPlayerName);
 
-    Boolean isMyTurn = game.getPlayerByName(loginPlayerName).getStatus() == PlayerStatus.GAME_THINKING;
-    Boolean canMove = game.getBan().getKomaAt(fromX, fromY).canMove(fromX, fromY, toX, toY);
-    System.out.println("canMove:" + canMove);
-    if (!isMyTurn || !canMove) {
-      return returnGame(model, game, loginPlayerName, "不正な手です");
-    }
+    game.moveKomaByPlayer(loginPlayerName, fromX, fromY, toX, toY);
 
-    Boolean isSuccess = game.getBan().moveKoma(fromX, fromY, toX, toY);
-    System.out.println("isSuccess:" + isSuccess);
-    if (!isSuccess) {
-      return returnGame(model, game, loginPlayerName, "移動に失敗しました");
-    }
-    game.switchTurn();
+    // Boolean isMyTurn = game.getPlayerByName(loginPlayerName).getStatus() ==
+    // PlayerStatus.GAME_THINKING;
+    // Boolean canMove = game.getBan().getKomaAt(fromX, fromY).canMove(fromX, fromY,
+    // toX, toY);
+    // System.out.println("canMove:" + canMove);
+    // if (!isMyTurn || !canMove) {
+    // return returnGame(model, game, loginPlayerName, "不正な手です");
+    // }
+
+    // Boolean isSuccess = game.getBan().moveKoma(fromX, fromY, toX, toY);
+    // System.out.println("isSuccess:" + isSuccess);
+    // if (!isSuccess) {
+    // return returnGame(model, game, loginPlayerName, "移動に失敗しました");
+    // }
+    // game.switchTurn();
     return returnGame(model, game, loginPlayerName);
   }
 
