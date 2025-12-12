@@ -7,7 +7,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import team3.tkk_game.model.GameRoom;
 import team3.tkk_game.model.WaitRoom;
-
 import org.springframework.ui.Model;
 
 @Controller

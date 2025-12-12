@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import team3.tkk_game.mapper.DeckMapper;
 import team3.tkk_game.mapper.KomaMapper;
 import team3.tkk_game.model.Deck;
-import team3.tkk_game.model.Koma;
+import team3.tkk_game.model.Koma.KomaDB;
 
 @Controller
 @RequestMapping("/deck")
@@ -29,7 +29,7 @@ public class DeckController {
   @GetMapping("/make")
   public String deckmake(Principal principal, Model model) {
     model.addAttribute("playerName", principal.getName());
-    List<Koma> komas = komaMapper.selectAllKoma();
+    List<KomaDB> komas = komaMapper.selectAllKoma();
     model.addAttribute("komas", komas);
     return "deckmake.html";
   }
