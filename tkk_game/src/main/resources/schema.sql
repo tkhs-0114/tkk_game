@@ -1,19 +1,14 @@
 CREATE TABLE koma(
   id INT PRIMARY KEY AUTO_INCREMENT,
-  name VARCHAR(50) NOT NULL
-);
-
-CREATE TABLE Rule(
-  id INT PRIMARY KEY AUTO_INCREMENT,
-  text VARCHAR(50) NOT NULL
+  name VARCHAR(50) NOT NULL,
+  update_koma INT DEFAULT -1
 );
 
 CREATE TABLE KomaRule(
   id INT PRIMARY KEY AUTO_INCREMENT,
   koma_id INT,
-  rule_id INT,
-  FOREIGN KEY (koma_id) REFERENCES koma(id),
-  FOREIGN KEY (rule_id) REFERENCES Rule(id)
+  rule VARCHAR(50),
+  FOREIGN KEY (koma_id) REFERENCES koma(id)
 );
 
 CREATE TABLE Deck(
