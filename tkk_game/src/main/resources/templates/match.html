@@ -1,49 +1,95 @@
-<script th:inline="javascript">
-  let matchTmp = 'none';
-  const playerName = /*[[${playerName}]]*/ 'defaultPlayer';
-  window.onload = function () {
-    console.log('Player Name:', playerName);
-    const sse = new EventSource('/waitRoom');
-    sse.onmessage = function (event) {
-      const players = JSON.parse(event.data);
-      console.log(players);
-      // 誰かに対戦リクエストを送られた場合
-      if (!players.some(p => p === playerName)) {
-        window.location.href = '/game/start';
-        return;
-      }
-      // 自分から対戦リクエストを送信する
-      if (matchTmp !== 'none' && players.some(p => p === matchTmp)) {
-        window.location.href = `/game/start?player2Name=${matchTmp}`;
-        return;
-      }
-      updatePlayerTable(players);
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="utf-8">
+  <title>マッチング画面</title>
+  <script th:inline="javascript">
+    const playerName = /*[[${playerName}]]*/ 'defaultPlayer';
+    const csrfToken = /*[[${_csrf.token}]]*/ '';
+    const csrfParameterName = /*[[${_csrf.parameterName}]]*/ '_csrf';
+    
+    // 自分がリクエストを送ったルームのオーナー名を記憶
+    let myRequestTo = null;
+
+    window.onload = function () {
+      console.log('Player Name:', playerName);
+      const sse = new EventSource('/match/waitRoom');
+      sse.onmessage = function (event) {
+        const rooms = JSON.parse(event.data);
+        console.log('待機中ルーム:', rooms);
+
+        // 自分がリクエストを送ったルームを探す
+        const myRequestedRoom = rooms.find(r => r.player2?.name === playerName);
+        if (myRequestedRoom) {
+          myRequestTo = myRequestedRoom.player1.name;
+        }
+        
+        // 自分がリクエストを送っていた場合
+        if (myRequestTo) {
+          const targetRoom = rooms.find(r => r.player1.name === myRequestTo);
+          if (!targetRoom) {
+            // ルームが消えた時
+            console.log('対戦リクエストが承認されました！');
+            sse.close();
+            window.location.href = `/game/start`;
+            return;
+          } else if (targetRoom.player2?.name !== playerName) {
+            // ルームはあるが自分のリクエストが無い時
+            console.log('対戦リクエストが拒否されました');
+            myRequestTo = null;
+          }
+        }
+        updatePlayerTable(rooms);
+      };
     };
-  };
 
-  function updatePlayerTable(players) {
-    const tbody = document.getElementById('playerTableBody');
-    let html = '';
-    players.forEach(function (player) {
-      if (player === playerName) {
-        return; // 自分自身は表示しない
-      }
-      html += `<tr>`;
-      html += `<td>${player}</td>`;
-      html += `<td><a onClick="matchTmp='${player}'">対戦</a></td>`;
-      html += `</tr>`;
-    });
-    tbody.innerHTML = html;
-  }
+    function updatePlayerTable(players) {
+      const tbody = document.getElementById('playerTableBody');
+      let html = '';
+      players.forEach(function (player) {
+        if (player.player1.name === playerName) {
+          return; // 自分自身は表示しない
+        }
+        html += `<tr>`;
+        html += `<td>${player.player1.name}</td>`;
+        html += `<td>`;
+        if (player.player2?.name === playerName) {
+          html += `[リクエスト送信済み]`;
+        } else if (player.player2 !== null) {
+          html += `[他のプレイヤーがリクエスト中]`;
+        }
+          else if (myRequestTo !== null) {
+          html += `[他のプレイヤーにリクエスト中]`;
+        } else {
+          html += `<form action="/match/sendRequest?Player1Name=${player.player1.name}" method="post">`;
+          html += `<input type="hidden" name="${csrfParameterName}" value="${csrfToken}">`;
+          html += `<button type="submit">対戦リクエスト</button>`;
+          html += `</form>`;
+        }
+        html += `</td>`;
+        html += `</tr>`;
+      });
+      tbody.innerHTML = html;
+    }
+  </script>
+</head>
 
-</script>
+<body>
+  <h1>マッチング画面</h1>
+  <table>
+    <tr>
+      <th>ルーム一覧</th>
+    </tr>
+    <tbody id="playerTableBody"></tbody>
+  </table>
 
-<h1>マッチング画面</h1>
-<table>
-  <tr>
-    <th>参加プレイヤー一覧</th>
-  </tr>
-  <tbody id="playerTableBody">
-</table>
+  <br>
 
-<a href="/home">ホームに戻る</a>
+  <a href="/match/makeRoom">ルーム作成</a>
+
+  <br>
+  <a href="/home">ホームに戻る</a>
+</body>
+
+</html>

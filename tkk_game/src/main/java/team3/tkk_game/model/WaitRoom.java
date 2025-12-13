@@ -6,32 +6,60 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class WaitRoom {
-  ArrayList<String> waitRoom = new ArrayList<>();
-
+  ArrayList<Game> waitRoom = new ArrayList<>();
+  
   public WaitRoom() {
   }
 
-  public ArrayList<String> getWaitRoom() {
+  public ArrayList<Game> getWaitRoom() {
     return waitRoom;
   }
 
   public Boolean isInRoom(String playerName) {
-    for (String name : waitRoom) {
-      if (name.equals(playerName)) {
+    for (Game game : waitRoom) {
+      if (game.getPlayer1().getName().equals(playerName)) {
         return true;
       }
     }
     return false;
   }
 
-  public void addPlayer(String playerName) {
+  public void addWaitRoom(String playerName) {
     if (!isInRoom(playerName)) {
-      waitRoom.add(playerName);
+      String id = String.valueOf(System.currentTimeMillis());
+      Game game = new Game(id, playerName);
+      waitRoom.add(game);
     }
   }
 
-  public void rmPlayer(String playerName) {
-    waitRoom.removeIf(name -> name.equals(playerName));
+  public Game getRoomByName(String playerName) {
+    for (Game game : waitRoom) {
+      if (game.getPlayer1().getName().equals(playerName) || (game.getPlayer2() != null && game.getPlayer2().getName().equals(playerName))  ) {
+        return game;
+      }
+    }
+    return null;
+  }
+
+  public void rmRoom(String playerName) {
+    waitRoom.removeIf(game -> game.getPlayer1().getName().equals(playerName));
+  }
+
+
+  public boolean sendRequest(String Player2Name, String Player1Name) {
+    Game room = getRoomByName(Player1Name);
+    if (room != null && room.getPlayer2() == null) {
+      room.setPlayer2(Player2Name);
+      return true;
+    }
+    return false;
+  }
+  
+  public void clearRequest(String playerName) {
+    Game room = getRoomByName(playerName);
+    if (room != null) {
+      room.clearPlayer2();
+    }
   }
 
 }

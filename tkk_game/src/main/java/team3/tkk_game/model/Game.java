@@ -15,13 +15,16 @@ public class Game {
   LocalBan player2Ban;
   DisplayBan displayBan;
 
-  public Game(String id, String player1Name, String player2Name) {
+  public Game(String id, String player1Name) {
     this.id = id;
     this.player1 = new Player(player1Name, PlayerStatus.GAME_WAITING);
+    /*
     this.player2 = new Player(player2Name, PlayerStatus.MATCHED);
     this.player1Ban = new LocalBan(this.player1);
     this.player2Ban = new LocalBan(this.player2);
     this.displayBan = new DisplayBan();
+    this.ban = new Ban();
+    */
     this.lastActivity = new Date();
   }
 
@@ -35,6 +38,14 @@ public class Game {
 
   public Player getPlayer2() {
     return player2;
+  }
+
+  public void setPlayer2(String player2Name) {
+    this.player2 = new Player(player2Name, PlayerStatus.GAME_THINKING);
+  }
+
+  public void clearPlayer2() {
+    this.player2 = null;
   }
 
   public Player getPlayerByName(String playerName) {

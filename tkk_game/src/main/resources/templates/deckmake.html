@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>デッキ作成</title>
+  <style>
+    .board {
+      display: grid;
+      grid-template-columns: repeat(5, 100px);
+      grid-auto-rows: 80px;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .cell {
+      border: 1px solid #333;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      user-select: none;
+      background: #fafafa;
+      font-weight: 600;
+    }
+
+    .cell.empty {
+      color: #999;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>デッキ作成</h1>
+
+  <form th:action="@{/deck/save}" method="post" id="deck-form">
+    <label for="deck-name">デッキ名：</label>
+    <input id="deck-name" name="deckName" type="text" required />
+
+    <label for="koma-select">駒を選択：</label>
+    <!-- komas を受け取り、value に id、表示は name にする -->
+    <select id="koma-select" name="komaId">
+      <option value="" disabled selected>選んでください</option>
+      <option th:each="k : ${komas}" th:value="${k.id}" th:text="${k.name}">駒名</option>
+    </select>
+
+    <!-- SFEN を入れる hidden -->
+    <input type="hidden" id="sfen-input" name="sfen" />
+
+    <button type="submit">保存</button>
+  </form>
+
+  <!-- 5x2 マス目 -->
+  <div class="board" id="board">
+    <div class="cell empty" data-x="0" data-y="0">空</div>
+    <div class="cell empty" data-x="1" data-y="0">空</div>
+    <div class="cell empty" data-x="2" data-y="0">空</div>
+    <div class="cell empty" data-x="3" data-y="0">空</div>
+    <div class="cell empty" data-x="4" data-y="0">空</div>
+
+    <div class="cell empty" data-x="0" data-y="1">空</div>
+    <div class="cell empty" data-x="1" data-y="1">空</div>
+    <div class="cell empty" data-x="2" data-y="1">空</div>
+    <div class="cell empty" data-x="3" data-y="1">空</div>
+    <div class="cell empty" data-x="4" data-y="1">空</div>
+  </div>
+
+  <script>
+    // セルに駒を配置：value=id を dataset.komaId に、表示は選択肢のテキスト（駒名）
+    document.querySelectorAll('.cell').forEach(cell => {
+      cell.addEventListener('click', () => {
+        const sel = document.getElementById('koma-select');
+        const id = sel.value;
+        if (!id) { alert('先に駒を選んでください'); return; }
+        const name = sel.options[sel.selectedIndex].text;
+        cell.textContent = name;
+        cell.classList.remove('empty');
+        cell.dataset.komaId = id;
+      });
+    });
+
+    // SFEN 生成: 連続空マスは数字、駒は [id] で表現。行は '/' 区切り。
+    function buildSfen() {
+      const rows = [];
+      const width = 5, height = 2;
+      for (let y = 0; y < height; y++) {
+        let row = '';
+        let emptyCount = 0;
+        for (let x = 0; x < width; x++) {
+          const cell = document.querySelector('.cell[data-x="' + x + '"][data-y="' + y + '"]');
+          const id = cell.dataset.komaId;
+          if (!id) {
+            emptyCount++;
+          } else {
+            if (emptyCount > 0) { row += String(emptyCount); emptyCount = 0; }
+            row += '[' + id + ']'; // 駒は [id]
+          }
+        }
+        if (emptyCount > 0) row += String(emptyCount);
+        rows.push(row);
+      }
+      return rows.join('/');
+    }
+
+    // フォーム送信時に sfen をセットして送る
+    document.getElementById('deck-form').addEventListener('submit', (e) => {
+      const deckName = document.getElementById('deck-name').value.trim();
+      if (!deckName) { e.preventDefault(); alert('デッキ名を入力してください'); return; }
+      document.getElementById('sfen-input').value = buildSfen();
+      // 例: console.log(document.getElementById('sfen-input').value);
+    });
+  </script>
+</body>
+
+</html>
