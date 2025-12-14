@@ -18,14 +18,46 @@ public class Game {
   public Game(String id, String player1Name) {
     this.id = id;
     this.player1 = new Player(player1Name, PlayerStatus.GAME_WAITING);
-    /*
-    this.player2 = new Player(player2Name, PlayerStatus.MATCHED);
+    this.lastActivity = new Date();
+  }
+
+  public void init_game() {
+    this.displayBan = new DisplayBan();
     this.player1Ban = new LocalBan(this.player1);
     this.player2Ban = new LocalBan(this.player2);
-    this.displayBan = new DisplayBan();
-    this.ban = new Ban();
-    */
-    this.lastActivity = new Date();
+    
+    // 初期配置の駒を設定
+    initKoma();
+  }
+
+  private void initKoma() {
+    // player1の王を配置
+    Koma player1King = new Koma("王", new KomaPattern[] {
+        new KomaPattern(1, 0),
+        new KomaPattern(0, 1),
+        new KomaPattern(-1, 0),
+        new KomaPattern(0, -1),
+        new KomaPattern(1, 1),
+        new KomaPattern(1, -1),
+        new KomaPattern(-1, 1),
+        new KomaPattern(-1, -1)
+    }, player1);
+    player1Ban.setKoma(0, 2, player1King);
+    displayBan.setKoma(0, 2, player1King);
+    
+    // player2の王を配置
+    Koma player2King = new Koma("玉", new KomaPattern[] {
+        new KomaPattern(1, 0),
+        new KomaPattern(0, 1),
+        new KomaPattern(-1, 0),
+        new KomaPattern(0, -1),
+        new KomaPattern(1, 1),
+        new KomaPattern(1, -1),
+        new KomaPattern(-1, 1),
+        new KomaPattern(-1, -1)
+    }, player2);
+    player2Ban.setKoma(0, -2, player2King);
+    displayBan.setKoma(0, -2, player2King);
   }
 
   public String getId() {
@@ -58,32 +90,20 @@ public class Game {
     }
   }
 
-  public DisplayBan getBan() {
+  public LocalBan getLocalBan(String playerName) {
+    if (player1Ban.getOwner().getName().equals(playerName)) {
+      return player1Ban;
+    } else if (player2Ban.getOwner().getName().equals(playerName)) {
+      return player2Ban;
+    }
+    return null;
+  }
+
+  public DisplayBan getDisplayBan() {
     return displayBan;
   }
 
-  public void moveKomaByPlayer(String playerName, int fromX, int fromY, int toX, int toY) {
-    Player loginPlayer = getPlayerByName(playerName);
-    if (loginPlayer == null) {
-      throw new IllegalArgumentException("その名前のプレイヤーは存在しません");
-    }
-    if (loginPlayer.getStatus() != PlayerStatus.GAME_THINKING) {
-      throw new IllegalStateException("現在のターンではありません");
-    }
-    boolean isSuccess;
-    if (player1.getName().equals(playerName)) {
-      isSuccess = player1Ban.moveKoma(fromX, fromY, toX, toY);
-    } else {
-      isSuccess = player2Ban.moveKoma(fromX, fromY, toX, toY);
-    }
-    if (!isSuccess) {
-      throw new IllegalStateException("移動に失敗しました");
-    }
-    // 表示盤面も更新
-    switchTurn();
-  }
-
-  private void switchTurn() {
+  public void switchTurn() {
     updateLastActivity();
     if (player1.getStatus() == PlayerStatus.GAME_THINKING) {
       player1.setStatus(PlayerStatus.GAME_WAITING);

@@ -1,6 +1,7 @@
 package team3.tkk_game.model.Ban;
 
 import team3.tkk_game.model.Koma;
+import team3.tkk_game.model.KomaPattern;
 
 public class Ban {
   static final int BAN_LENGTH = 5;
@@ -14,41 +15,6 @@ public class Ban {
         this.board[x][y] = null;
       }
     }
-    // this.board[b2a(0)][b2a(-2)] = new Koma("王", new KomaPattern[] {
-    // new KomaPattern(1, 0),
-    // new KomaPattern(0, 1),
-    // new KomaPattern(-1, 0),
-    // new KomaPattern(0, -1),
-    // new KomaPattern(1, 1),
-    // new KomaPattern(1, -1),
-    // new KomaPattern(-1, 1),
-    // new KomaPattern(-1, -1)
-    // });
-    // this.board[b2a(2)][b2a(2)] = new Koma("飛", new KomaPattern[] {
-    // new KomaPattern(1, 0),
-    // new KomaPattern(2, 0),
-    // new KomaPattern(3, 0),
-    // new KomaPattern(4, 0),
-    // new KomaPattern(0, 1),
-    // new KomaPattern(0, 2),
-    // new KomaPattern(0, 3),
-    // new KomaPattern(0, 4),
-    // new KomaPattern(-1, 0),
-    // new KomaPattern(-2, 0),
-    // new KomaPattern(-3, 0),
-    // new KomaPattern(-4, 0),
-    // new KomaPattern(0, -1),
-    // new KomaPattern(0, -2),
-    // new KomaPattern(0, -3),
-    // new KomaPattern(0, -4),
-    // });
-  }
-
-  public void putKoma(int x, int y, Koma koma) {
-    if (board[b2a(x)][b2a(y)] != null) {
-      throw new IllegalArgumentException("その位置には既に駒が存在します");
-    }
-    board[b2a(x)][b2a(y)] = koma;
   }
 
   public Koma[][] getBoard() {
@@ -62,5 +28,12 @@ public class Ban {
 
   public Koma getKomaAt(int x, int y) {
     return board[b2a(x)][b2a(y)];
+  }
+
+  public void setKoma(int x, int y, Koma koma) {
+    if (board[b2a(x)][b2a(y)] != null && koma != null) {
+      throw new IllegalArgumentException("その位置には既に駒が存在します");
+    }
+    board[b2a(x)][b2a(y)] = koma;
   }
 }

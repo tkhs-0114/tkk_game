@@ -13,6 +13,7 @@ import team3.tkk_game.model.GameRoom;
 import team3.tkk_game.model.PlayerStatus;
 import team3.tkk_game.model.Game;
 import team3.tkk_game.model.WaitRoom;
+import team3.tkk_game.model.Koma;
 import team3.tkk_game.services.TurnChecker;
 
 import org.springframework.ui.Model;
@@ -30,7 +31,7 @@ public class GameController {
 
   private String returnGame(Model model, Game game, String playerName) {
     model.addAttribute("gameId", game.getId());
-    model.addAttribute("ban", game.getBan());
+    model.addAttribute("ban", game.getDisplayBan());
     model.addAttribute("playerStatus", game.getPlayerByName(playerName).getStatus());
     // デバッグ用
     model.addAttribute("game", game);
@@ -41,19 +42,21 @@ public class GameController {
     model.addAttribute("errMessage", errMessage);
     return returnGame(model, game, playerName);
   }
+
   @GetMapping("/start")
-  public String gameStart(Principal principal, Model model, @RequestParam(required = false) String player2Name) {
+  public String gameStart(Principal principal, Model model) {
     String loginPlayerName = principal.getName();
     Game game = gameRoom.getGameByPlayerName(loginPlayerName);
-
-    /*
-    ここにデッキ設定等のゲームの初期設定を記入
-    */
-
     // ゲームが見つからない場合はマッチング画面に戻る
     if (game == null) {
       return "redirect:/match";
     }
+
+    /*
+     * ここにデッキ設定等のゲームの初期設定を記入
+     */
+    game.init_game();
+
     return returnGame(model, game, loginPlayerName);
   }
 
@@ -69,34 +72,44 @@ public class GameController {
   }
 
   @GetMapping("/move")
-  public String gameMove(Principal principal, Model model, @RequestParam int fromX, @RequestParam int fromY,
-      @RequestParam int toX, @RequestParam int toY) {
+  public String gameMove(Principal principal, Model model, @RequestParam int fromX, @RequestParam int fromY, @RequestParam int toX, @RequestParam int toY) {
     String loginPlayerName = principal.getName();
     Game game = gameRoom.getGameByPlayerName(loginPlayerName);
 
-    game.moveKomaByPlayer(loginPlayerName, fromX, fromY, toX, toY);
+    // 自分のターンか確認
+    Boolean isMyTurn = game.getPlayerByName(loginPlayerName).getStatus() == PlayerStatus.GAME_THINKING;
+    if (!isMyTurn) {
+      return returnGame(model, game, loginPlayerName, "自分のターンではありません");
+    }
+    
+    // 自分の駒か確認（LocalBanには自分の駒しかない）
+    Koma koma = game.getLocalBan(loginPlayerName).getKomaAt(fromX, fromY);
+    if (koma == null) {
+      return returnGame(model, game, loginPlayerName, "自分の駒ではありません");
+    }
+    
+    // 移動可能か確認
+    Boolean canMove = koma.canMove(fromX, fromY, toX, toY);
+    System.out.println("canMove:" + canMove);
+    if (!canMove) {
+      return returnGame(model, game, loginPlayerName, "不正な手です");
+    }
 
-    // Boolean isMyTurn = game.getPlayerByName(loginPlayerName).getStatus() ==
-    // PlayerStatus.GAME_THINKING;
-    // Boolean canMove = game.getBan().getKomaAt(fromX, fromY).canMove(fromX, fromY,
-    // toX, toY);
-    // System.out.println("canMove:" + canMove);
-    // if (!isMyTurn || !canMove) {
-    // return returnGame(model, game, loginPlayerName, "不正な手です");
-    // }
-
-    // Boolean isSuccess = game.getBan().moveKoma(fromX, fromY, toX, toY);
-    // System.out.println("isSuccess:" + isSuccess);
-    // if (!isSuccess) {
-    // return returnGame(model, game, loginPlayerName, "移動に失敗しました");
-    // }
-    // game.switchTurn();
+    // 駒を移動
+    Boolean isSuccess = game.getDisplayBan().moveKoma(fromX, fromY, toX, toY);
+    System.out.println("isSuccess:" + isSuccess);
+    if (!isSuccess) {
+      return returnGame(model, game, loginPlayerName, "移動に失敗しました");
+    }
+    game.getLocalBan(loginPlayerName).setKoma(toX, toY, game.getLocalBan(loginPlayerName).getKomaAt(fromX, fromY));
+    game.getLocalBan(loginPlayerName).setKoma(fromX, fromY, null);
+    game.switchTurn();
     return returnGame(model, game, loginPlayerName);
   }
 
   @GetMapping("/turn")
   public SseEmitter game(Principal principal, @RequestParam String gameId) {
-    SseEmitter emitter = new SseEmitter();
+    SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
     turnChecker.checkTurn(emitter, gameRoom.getGameById(gameId), principal.getName());
     return emitter;
   }
