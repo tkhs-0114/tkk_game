@@ -1,7 +1,6 @@
 package team3.tkk_game.model.Ban;
 
-import team3.tkk_game.model.Koma;
-import team3.tkk_game.model.KomaPattern;
+import team3.tkk_game.model.Koma.Koma;
 
 public class Ban {
   static final int BAN_LENGTH = 5;
@@ -30,7 +29,7 @@ public class Ban {
     return board[b2a(x)][b2a(y)];
   }
 
-  public void setKoma(int x, int y, Koma koma) {
+  public void setKomaAt(int x, int y, Koma koma) {
     if (board[b2a(x)][b2a(y)] != null && koma != null) {
       throw new IllegalArgumentException("その位置には既に駒が存在します");
     }

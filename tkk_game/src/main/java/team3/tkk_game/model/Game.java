@@ -31,33 +31,8 @@ public class Game {
   }
 
   private void initKoma() {
-    // player1の王を配置
-    Koma player1King = new Koma("王", new KomaPattern[] {
-        new KomaPattern(1, 0),
-        new KomaPattern(0, 1),
-        new KomaPattern(-1, 0),
-        new KomaPattern(0, -1),
-        new KomaPattern(1, 1),
-        new KomaPattern(1, -1),
-        new KomaPattern(-1, 1),
-        new KomaPattern(-1, -1)
-    }, player1);
-    player1Ban.setKoma(0, 2, player1King);
-    displayBan.setKoma(0, 2, player1King);
-    
-    // player2の王を配置
-    Koma player2King = new Koma("玉", new KomaPattern[] {
-        new KomaPattern(1, 0),
-        new KomaPattern(0, 1),
-        new KomaPattern(-1, 0),
-        new KomaPattern(0, -1),
-        new KomaPattern(1, 1),
-        new KomaPattern(1, -1),
-        new KomaPattern(-1, 1),
-        new KomaPattern(-1, -1)
-    }, player2);
-    player2Ban.setKoma(0, -2, player2King);
-    displayBan.setKoma(0, -2, player2King);
+    // ここに初期配置の駒を設定するコードを追加
+    // 例: player1の駒を(0, -2)に配置、player2の駒を(0, 2)に配置など
   }
 
   public String getId() {

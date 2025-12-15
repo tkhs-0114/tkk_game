@@ -1,6 +1,7 @@
 package team3.tkk_game.controller;
 
 import java.security.Principal;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -13,8 +14,12 @@ import team3.tkk_game.model.GameRoom;
 import team3.tkk_game.model.PlayerStatus;
 import team3.tkk_game.model.Game;
 import team3.tkk_game.model.WaitRoom;
-import team3.tkk_game.model.Koma;
 import team3.tkk_game.services.TurnChecker;
+
+import team3.tkk_game.mapper.KomaMapper;
+import team3.tkk_game.model.Koma.Koma;
+import team3.tkk_game.model.Koma.KomaDB;
+import team3.tkk_game.model.Koma.KomaRule;
 
 import org.springframework.ui.Model;
 
@@ -28,6 +33,8 @@ public class GameController {
   WaitRoom waitRoom;
   @Autowired
   TurnChecker turnChecker;
+  @Autowired
+  KomaMapper KomaMapper;
 
   private String returnGame(Model model, Game game, String playerName) {
     model.addAttribute("gameId", game.getId());
@@ -56,6 +63,10 @@ public class GameController {
      * ここにデッキ設定等のゲームの初期設定を記入
      */
     game.init_game();
+    KomaDB koma1 = KomaMapper.selectKomaById(1); // 例: 駒ID1を選択
+    List<KomaRule> koma1Rules = KomaMapper.selectKomaRuleById(1);
+    Koma koma1Koma = new Koma(koma1, koma1Rules);
+    game.getDisplayBan().setKomaAt(0, -2, koma1Koma);
 
     return returnGame(model, game, loginPlayerName);
   }
@@ -101,8 +112,8 @@ public class GameController {
     if (!isSuccess) {
       return returnGame(model, game, loginPlayerName, "移動に失敗しました");
     }
-    game.getLocalBan(loginPlayerName).setKoma(toX, toY, game.getLocalBan(loginPlayerName).getKomaAt(fromX, fromY));
-    game.getLocalBan(loginPlayerName).setKoma(fromX, fromY, null);
+    game.getLocalBan(loginPlayerName).setKomaAt(toX, toY, game.getLocalBan(loginPlayerName).getKomaAt(fromX, fromY));
+    game.getLocalBan(loginPlayerName).setKomaAt(fromX, fromY, null);
     game.switchTurn();
     return returnGame(model, game, loginPlayerName);
   }

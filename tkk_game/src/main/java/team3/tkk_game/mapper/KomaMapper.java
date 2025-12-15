@@ -5,16 +5,17 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 
-import team3.tkk_game.model.Koma;
+import team3.tkk_game.model.Koma.KomaDB;
+import team3.tkk_game.model.Koma.KomaRule;
 
 @Mapper
 public interface KomaMapper {
-  @Select("SELECT id FROM koma")
-  List<Integer> selectIDKoma();
+  @Select("SELECT id,name,update_koma FROM koma")
+  List<KomaDB> selectAllKoma();
 
-  @Select("SELECT name FROM koma")
-  List<String> selectNameKoma();
+  @Select("SELECT id,name,update_koma FROM koma WHERE id = #{komaId}")
+  KomaDB selectKomaById(Integer komaId);
 
-  @Select("SELECT id,name FROM koma")
-  List<Koma> selectAllKoma();
+  @Select("SELECT rule FROM komarule WHERE koma_id = #{komaId}")
+  List<KomaRule> selectKomaRuleById(Integer komaId);
 }
