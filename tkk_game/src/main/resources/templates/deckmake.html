@@ -34,6 +34,8 @@
 <body>
   <h1>デッキ作成</h1>
 
+  <p><a href="/home">ホームに戻る</a></p>
+
   <form th:action="@{/deck/save}" method="post" id="deck-form">
     <label for="deck-name">デッキ名：</label>
     <input id="deck-name" name="deckName" type="text" required />
