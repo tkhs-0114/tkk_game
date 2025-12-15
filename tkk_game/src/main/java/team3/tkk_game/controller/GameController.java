@@ -1,6 +1,7 @@
 package team3.tkk_game.controller;
 
 import java.security.Principal;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -15,6 +16,11 @@ import team3.tkk_game.model.Game;
 import team3.tkk_game.model.WaitRoom;
 import team3.tkk_game.services.TurnChecker;
 
+import team3.tkk_game.mapper.KomaMapper;
+import team3.tkk_game.model.Koma.Koma;
+import team3.tkk_game.model.Koma.KomaDB;
+import team3.tkk_game.model.Koma.KomaRule;
+
 import org.springframework.ui.Model;
 
 @Controller
@@ -27,6 +33,8 @@ public class GameController {
   WaitRoom waitRoom;
   @Autowired
   TurnChecker turnChecker;
+  @Autowired
+  KomaMapper KomaMapper;
 
   private String returnGame(Model model, Game game, String playerName) {
     model.addAttribute("gameId", game.getId());
@@ -41,19 +49,25 @@ public class GameController {
     model.addAttribute("errMessage", errMessage);
     return returnGame(model, game, playerName);
   }
+
   @GetMapping("/start")
   public String gameStart(Principal principal, Model model, @RequestParam(required = false) String player2Name) {
     String loginPlayerName = principal.getName();
     Game game = gameRoom.getGameByPlayerName(loginPlayerName);
 
-    /*
-    ここにデッキ設定等のゲームの初期設定を記入
-    */
-
     // ゲームが見つからない場合はマッチング画面に戻る
     if (game == null) {
       return "redirect:/match";
     }
+
+    /*
+     * ここにデッキ設定等のゲームの初期設定を記入
+     */
+    KomaDB koma1 = KomaMapper.selectKomaById(1); // 例: 駒ID1を選択
+    List<KomaRule> koma1Rules = KomaMapper.selectKomaRuleById(1);
+    Koma koma1Koma = new Koma(koma1, koma1Rules);
+    game.getBan().setKomaAt(0, -2, koma1Koma);
+
     return returnGame(model, game, loginPlayerName);
   }
 
