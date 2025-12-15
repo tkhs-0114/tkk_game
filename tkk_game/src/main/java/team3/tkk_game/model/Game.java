@@ -25,14 +25,6 @@ public class Game {
     this.displayBan = new DisplayBan();
     this.player1Ban = new LocalBan(this.player1);
     this.player2Ban = new LocalBan(this.player2);
-    
-    // 初期配置の駒を設定
-    initKoma();
-  }
-
-  private void initKoma() {
-    // ここに初期配置の駒を設定するコードを追加
-    // 例: player1の駒を(0, -2)に配置、player2の駒を(0, 2)に配置など
   }
 
   public String getId() {
@@ -53,6 +45,13 @@ public class Game {
 
   public void clearPlayer2() {
     this.player2 = null;
+  }
+  public LocalBan getPlayer1Ban() {
+    return player1Ban;
+  } 
+  
+  public LocalBan getPlayer2Ban() {
+    return player2Ban;
   }
 
   public Player getPlayerByName(String playerName) {

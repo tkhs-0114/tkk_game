@@ -40,6 +40,11 @@ public class GameController {
     model.addAttribute("gameId", game.getId());
     model.addAttribute("ban", game.getDisplayBan());
     model.addAttribute("playerStatus", game.getPlayerByName(playerName).getStatus());
+    if (game.getPlayer2().getName().equals(playerName)) {
+      model.addAttribute("isPlayer2",true);
+    } else {
+      model.addAttribute("isPlayer2", false);
+    }
     // デバッグ用
     model.addAttribute("game", game);
     return "game.html";
@@ -66,6 +71,11 @@ public class GameController {
     KomaDB koma1 = KomaMapper.selectKomaById(1); // 例: 駒ID1を選択
     List<KomaRule> koma1Rules = KomaMapper.selectKomaRuleById(1);
     Koma koma1Koma = new Koma(koma1, koma1Rules);
+    
+    //応急処置
+    game.getPlayer1Ban().setKomaAt(0, 2, koma1Koma);
+    game.getPlayer2Ban().setKomaAt(0, -2, koma1Koma);
+    game.getDisplayBan().setKomaAt(0, 2, koma1Koma);
     game.getDisplayBan().setKomaAt(0, -2, koma1Koma);
 
     return returnGame(model, game, loginPlayerName);
