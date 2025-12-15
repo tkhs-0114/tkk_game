@@ -10,7 +10,7 @@ import team3.tkk_game.model.Koma.KomaRule;
 
 @Mapper
 public interface KomaMapper {
-  @Select("SELECT id,name FROM koma")
+  @Select("SELECT id,name,update_koma FROM koma")
   List<KomaDB> selectAllKoma();
 
   @Select("SELECT id,name,update_koma FROM koma WHERE id = #{komaId}")
