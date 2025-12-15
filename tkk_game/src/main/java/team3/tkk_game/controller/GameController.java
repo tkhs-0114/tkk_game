@@ -117,11 +117,17 @@ public class GameController {
     }
 
     // 駒を移動
-    Boolean isSuccess = game.getDisplayBan().moveKoma(fromX, fromY, toX, toY);
+    Boolean isSuccess;
+    if (game.getDisplayBan().getKomaAt(fromX, fromY) != null) {
+      isSuccess = game.getDisplayBan().setKomaAt(toX, toY, game.getDisplayBan().getKomaAt(fromX, fromY));
+    }else {
+      isSuccess = false;
+    }
     System.out.println("isSuccess:" + isSuccess);
     if (!isSuccess) {
       return returnGame(model, game, loginPlayerName, "移動に失敗しました");
     }
+    game.getDisplayBan().setKomaAt(fromX, fromY, null);
     game.getLocalBan(loginPlayerName).setKomaAt(toX, toY, game.getLocalBan(loginPlayerName).getKomaAt(fromX, fromY));
     game.getLocalBan(loginPlayerName).setKomaAt(fromX, fromY, null);
     game.switchTurn();

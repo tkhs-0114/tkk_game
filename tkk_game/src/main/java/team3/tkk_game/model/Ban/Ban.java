@@ -29,10 +29,11 @@ public class Ban {
     return board[b2a(x)][b2a(y)];
   }
 
-  public void setKomaAt(int x, int y, Koma koma) {
+  public boolean setKomaAt(int x, int y, Koma koma) {
     if (board[b2a(x)][b2a(y)] != null && koma != null) {
-      throw new IllegalArgumentException("その位置には既に駒が存在します");
+      return false;
     }
     board[b2a(x)][b2a(y)] = koma;
+    return true;
   }
 }
