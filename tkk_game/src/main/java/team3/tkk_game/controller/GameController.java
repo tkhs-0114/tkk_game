@@ -14,6 +14,7 @@ import team3.tkk_game.model.GameRoom;
 import team3.tkk_game.model.PlayerStatus;
 import team3.tkk_game.model.Game;
 import team3.tkk_game.model.WaitRoom;
+import team3.tkk_game.model.Ban.Ban;
 import team3.tkk_game.services.TurnChecker;
 
 import team3.tkk_game.mapper.KomaMapper;
@@ -36,23 +37,26 @@ public class GameController {
   @Autowired
   KomaMapper KomaMapper;
 
-  private String returnGame(Model model, Game game, String playerName) {
+  private boolean isMyTurn(Game game, String playerName) {
+    return game.getPlayerByName(playerName).getStatus() == PlayerStatus.GAME_THINKING;
+  }
+
+  private String returnGame(Model model, Game game, String playerName, Ban ban) {
     model.addAttribute("gameId", game.getId());
-    model.addAttribute("ban", game.getDisplayBan());
-    model.addAttribute("playerStatus", game.getPlayerByName(playerName).getStatus());
-    if (game.getPlayer2().getName().equals(playerName)) {
-      model.addAttribute("isPlayer2",true);
+    if (ban != null) {
+      model.addAttribute("ban", ban);
     } else {
-      model.addAttribute("isPlayer2", false);
+      model.addAttribute("ban", game.getDisplayBan());
     }
+    model.addAttribute("playerStatus", game.getPlayerByName(playerName).getStatus());
     // デバッグ用
     model.addAttribute("game", game);
     return "game.html";
   }
 
-  private String returnGame(Model model, Game game, String playerName, String errMessage) {
+  private String returnGame(Model model, Game game, String playerName, Ban ban, String errMessage) {
     model.addAttribute("errMessage", errMessage);
-    return returnGame(model, game, playerName);
+    return returnGame(model, game, playerName, ban);
   }
 
   @GetMapping("/start")
@@ -67,18 +71,20 @@ public class GameController {
     /*
      * ここにデッキ設定等のゲームの初期設定を記入
      */
-    game.init_game();
     KomaDB koma1 = KomaMapper.selectKomaById(1); // 例: 駒ID1を選択
     List<KomaRule> koma1Rules = KomaMapper.selectKomaRuleById(1);
-    Koma koma1Koma = new Koma(koma1, koma1Rules);
-    
-    //応急処置
-    game.getPlayer1Ban().setKomaAt(0, 2, koma1Koma);
-    game.getPlayer2Ban().setKomaAt(0, -2, koma1Koma);
-    game.getDisplayBan().setKomaAt(0, 2, koma1Koma);
-    game.getDisplayBan().setKomaAt(0, -2, koma1Koma);
+    Koma koma1Koma = new Koma(koma1, koma1Rules, game.getPlayer1());
 
-    return returnGame(model, game, loginPlayerName);
+    KomaDB koma2 = KomaMapper.selectKomaById(2); // 例: 駒ID2を選択
+    List<KomaRule> koma2Rules = KomaMapper.selectKomaRuleById(2);
+    Koma koma2Koma = new Koma(koma2, koma2Rules, game.getPlayer2());
+
+    // 応急処置
+    game.getBan().setKomaAt(0, -2, koma1Koma);
+    game.getBan().setKomaAt(0, 2, koma2Koma);
+
+    game.getDisplayBan().setBoard(game.getBan().getBoard());
+    return returnGame(model, game, loginPlayerName, null);
   }
 
   @GetMapping
@@ -89,49 +95,50 @@ public class GameController {
     if (game == null) {
       return "redirect:/match";
     }
-    return returnGame(model, game, loginPlayerName);
+    return returnGame(model, game, loginPlayerName, null);
   }
 
   @GetMapping("/move")
-  public String gameMove(Principal principal, Model model, @RequestParam int fromX, @RequestParam int fromY, @RequestParam int toX, @RequestParam int toY) {
+  public String gameMove(Principal principal, Model model, @RequestParam int fromX, @RequestParam int fromY,
+      @RequestParam int toX, @RequestParam int toY) {
     String loginPlayerName = principal.getName();
     Game game = gameRoom.getGameByPlayerName(loginPlayerName);
 
     // 自分のターンか確認
-    Boolean isMyTurn = game.getPlayerByName(loginPlayerName).getStatus() == PlayerStatus.GAME_THINKING;
-    if (!isMyTurn) {
-      return returnGame(model, game, loginPlayerName, "自分のターンではありません");
+    if (!isMyTurn(game, loginPlayerName)) {
+      return returnGame(model, game, loginPlayerName, null, "自分のターンではありません");
     }
-    
+
     // 自分の駒か確認（LocalBanには自分の駒しかない）
-    Koma koma = game.getLocalBan(loginPlayerName).getKomaAt(fromX, fromY);
-    if (koma == null) {
-      return returnGame(model, game, loginPlayerName, "自分の駒ではありません");
+    Koma koma = game.getBan().getKomaAt(fromX, fromY);
+    if (koma != null && koma.getOwner() != game.getPlayerByName(loginPlayerName)) {
+      return returnGame(model, game, loginPlayerName, game.getBan(), "自分の駒ではありません");
     }
-    
-    // 移動可能か確認
+
+    // 移動ルールを確認
     Boolean canMove = koma.canMove(fromX, fromY, toX, toY);
     System.out.println("canMove:" + canMove);
     if (!canMove) {
-      return returnGame(model, game, loginPlayerName, "不正な手です");
+      return returnGame(model, game, loginPlayerName, game.getBan(), "不正な手です");
     }
 
+    // 相手の駒を取る場合の処理
+    // 未実装
+
     // 駒を移動
-    Boolean isSuccess;
-    if (game.getDisplayBan().getKomaAt(fromX, fromY) != null) {
-      isSuccess = game.getDisplayBan().setKomaAt(toX, toY, game.getDisplayBan().getKomaAt(fromX, fromY));
-    }else {
-      isSuccess = false;
-    }
-    System.out.println("isSuccess:" + isSuccess);
-    if (!isSuccess) {
-      return returnGame(model, game, loginPlayerName, "移動に失敗しました");
-    }
-    game.getDisplayBan().setKomaAt(fromX, fromY, null);
-    game.getLocalBan(loginPlayerName).setKomaAt(toX, toY, game.getLocalBan(loginPlayerName).getKomaAt(fromX, fromY));
-    game.getLocalBan(loginPlayerName).setKomaAt(fromX, fromY, null);
+    game.getBan().setKomaAt(toX, toY, koma);
+    game.getBan().setKomaAt(fromX, fromY, null);
+
+    Ban myban = new Ban();
+    myban.setBoard(game.getBan().getBoard());
+
+    game.getDisplayBan().setBoard(game.getBan().getBoardR180());
+
+    // ターンを交代
+    game.getBan().setBoard(game.getBan().getBoardR180());
     game.switchTurn();
-    return returnGame(model, game, loginPlayerName);
+
+    return returnGame(model, game, loginPlayerName, myban);
   }
 
   @GetMapping("/turn")

@@ -5,11 +5,9 @@
   const errMessage = /*[[${errMessage}]]*/ null;
   const game = /*[[${game}]]*/ null;
   const loginPlayerName = /*[[${#authentication.name}]]*/ null;
-  const isPlayer2 = game && game.player2 && game.player2.name === loginPlayerName;
-  
+
   console.log(game);
   console.log(ban);
-  console.log('isPlayer2:', isPlayer2);
 
   let selectedX = null;
   let selectedY = null;
@@ -44,19 +42,14 @@
     let html = '<table border="1">';
 
     const boardLength = ban.board.length;
-    
-    // player2の場合は盤面を反転表示
+
     for (let y = 0; y < boardLength; y++) {
       html += '<tr>';
       for (let x = 0; x < boardLength; x++) {
-        // player2の場合は座標を反転
-        const displayX = isPlayer2 ? (boardLength - 1 - x) : x;
-        const displayY = isPlayer2 ? (boardLength - 1 - y) : y;
-        
-        const cell = ban.board[displayX][displayY];
+        const cell = ban.board[x][y];
         const cellContent = (cell && cell.name) ?
-          `<div onClick="setSelectdCell(${Xa2b(displayX)}, ${Ya2b(displayY)})">${cell.name}</div>`
-          : `<div onClick="sendMove(${Xa2b(displayX)}, ${Ya2b(displayY)})">　</div>`;
+          `<div onClick="setSelectdCell(${Xa2b(x)}, ${Ya2b(y)})">${cell.name}</div>`
+          : `<div onClick="sendMove(${Xa2b(x)}, ${Ya2b(y)})">　</div>`;
         html += `<td>${cellContent}</td>`;
       }
       html += '</tr>';

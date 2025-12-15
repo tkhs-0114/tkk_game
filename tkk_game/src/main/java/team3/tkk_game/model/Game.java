@@ -2,8 +2,7 @@ package team3.tkk_game.model;
 
 import java.util.Date;
 
-import team3.tkk_game.model.Ban.LocalBan;
-import team3.tkk_game.model.Ban.DisplayBan;
+import team3.tkk_game.model.Ban.Ban;
 
 public class Game {
   // デバッグ用にpublicに変更
@@ -11,20 +10,15 @@ public class Game {
   public Date lastActivity;
   Player player1;
   Player player2;
-  LocalBan player1Ban;
-  LocalBan player2Ban;
-  DisplayBan displayBan;
+  Ban Ban;
+  Ban displayBan;
 
   public Game(String id, String player1Name) {
     this.id = id;
     this.player1 = new Player(player1Name, PlayerStatus.GAME_WAITING);
     this.lastActivity = new Date();
-  }
-
-  public void init_game() {
-    this.displayBan = new DisplayBan();
-    this.player1Ban = new LocalBan(this.player1);
-    this.player2Ban = new LocalBan(this.player2);
+    this.Ban = new Ban();
+    this.displayBan = new Ban();
   }
 
   public String getId() {
@@ -46,12 +40,13 @@ public class Game {
   public void clearPlayer2() {
     this.player2 = null;
   }
-  public LocalBan getPlayer1Ban() {
-    return player1Ban;
-  } 
-  
-  public LocalBan getPlayer2Ban() {
-    return player2Ban;
+
+  public Ban getBan() {
+    return Ban;
+  }
+
+  public Ban getDisplayBan() {
+    return displayBan;
   }
 
   public Player getPlayerByName(String playerName) {
@@ -62,19 +57,6 @@ public class Game {
     } else {
       return null;
     }
-  }
-
-  public LocalBan getLocalBan(String playerName) {
-    if (player1Ban.getOwner().getName().equals(playerName)) {
-      return player1Ban;
-    } else if (player2Ban.getOwner().getName().equals(playerName)) {
-      return player2Ban;
-    }
-    return null;
-  }
-
-  public DisplayBan getDisplayBan() {
-    return displayBan;
   }
 
   public void switchTurn() {

@@ -20,6 +20,10 @@ public class Ban {
     return board;
   }
 
+  public void setBoard(Koma[][] board) {
+    this.board = board;
+  }
+
   // board配列のインデックスに変換する
   protected int b2a(int boardIndex) {
     return boardIndex + (BAN_LENGTH - 1) / 2;
@@ -35,5 +39,15 @@ public class Ban {
     }
     board[b2a(x)][b2a(y)] = koma;
     return true;
+  }
+
+  public Koma[][] getBoardR180() {
+    Koma[][] rotatedBoard = new Koma[BAN_LENGTH][BAN_LENGTH];
+    for (int x = 0; x < BAN_LENGTH; x++) {
+      for (int y = 0; y < BAN_LENGTH; y++) {
+        rotatedBoard[x][y] = board[BAN_LENGTH - 1 - x][BAN_LENGTH - 1 - y];
+      }
+    }
+    return rotatedBoard;
   }
 }
