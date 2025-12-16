@@ -82,10 +82,22 @@
       return rows.join('/');
     }
 
+    function kingcheckSfen(sfen) {
+      // 簡易的に王がいるかチェック
+      const king_id = 0;
+      return sfen.includes(`[${king_id}]`);
+    }
+
     // フォーム送信時に sfen をセットして送る
     document.getElementById('deck-form').addEventListener('submit', (e) => {
       const deckName = document.getElementById('deck-name').value.trim();
-      if (!deckName) { e.preventDefault(); alert('デッキ名を入力してください'); return; }
+      if (!deckName) {
+        e.preventDefault(); alert('デッキ名を入力してください'); return;
+      }
+      if (!kingcheckSfen(buildSfen())) {
+        e.preventDefault(); alert('デッキに王が含まれていません');
+        return;
+      }
       document.getElementById('sfen-input').value = buildSfen();
       // 例: console.log(document.getElementById('sfen-input').value);
     });
