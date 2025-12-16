@@ -1,97 +1,110 @@
-<script th:inline="javascript">
-  const ban = /*[[${ban}]]*/ null;
-  const gameId = /*[[${gameId}]]*/ 'defaultGameId';
-  const playerStatus = /*[[${playerStatus}]]*/ 'defaultStatus';
-  const errMessage = /*[[${errMessage}]]*/ null;
-  const game = /*[[${game}]]*/ null;
-  const loginPlayerName = /*[[${#authentication.name}]]*/ null;
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
 
-  console.log(game);
-  console.log(ban);
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link th:href="@{/global.css}" rel="stylesheet">
+  <title>ゲーム</title>
+  <script th:inline="javascript">
+    const ban = /*[[${ban}]]*/ null;
+    const gameId = /*[[${gameId}]]*/ 'defaultGameId';
+    const playerStatus = /*[[${playerStatus}]]*/ 'defaultStatus';
+    const errMessage = /*[[${errMessage}]]*/ null;
+    const game = /*[[${game}]]*/ null;
+    const loginPlayerName = /*[[${#authentication.name}]]*/ null;
 
-  let selectedX = null;
-  let selectedY = null;
+    console.log(game);
+    console.log(ban);
 
-  // 配列のインデックスを盤面の座標に変換
-  function Xa2b(arrayIndex) {
-    return arrayIndex - (ban.board.length - 1) / 2;
-  }
-  function Ya2b(arrayIndex) {
-    return arrayIndex - (ban.board[0].length - 1) / 2;
-  }
+    let selectedX = null;
+    let selectedY = null;
 
-  function setSelectdCell(x, y) {
-    selectedX = x;
-    selectedY = y;
-    console.log(`Selected cell: (${x}, ${y})`);
-  }
-  function sendMove(x, y) {
-    if (selectedX === null || selectedY === null) {
-      alert('セルが選択されていません');
-      return;
+    // 配列のインデックスを盤面の座標に変換
+    function Xa2b(arrayIndex) {
+      return arrayIndex - (ban.board.length - 1) / 2;
     }
-    window.location.href = `/game/move?fromX=${selectedX}&fromY=${selectedY}&toX=${x}&toY=${y}`;
-  }
-  function drawBoard() {
-    const boardContainer = document.getElementById('board-container');
-    if (!ban || !ban.board) {
-      boardContainer.innerHTML = '<p>盤面データがありません</p>';
-      return;
+    function Ya2b(arrayIndex) {
+      return arrayIndex - (ban.board[0].length - 1) / 2;
     }
 
-    let html = '<table border="1">';
-
-    const boardLength = ban.board.length;
-
-    for (let y = 0; y < boardLength; y++) {
-      html += '<tr>';
-      for (let x = 0; x < boardLength; x++) {
-        const cell = ban.board[x][y];
-        const cellContent = (cell && cell.name) ?
-          `<div onClick="setSelectdCell(${Xa2b(x)}, ${Ya2b(y)})">${cell.name}</div>`
-          : `<div onClick="sendMove(${Xa2b(x)}, ${Ya2b(y)})">　</div>`;
-        html += `<td>${cellContent}</td>`;
+    function setSelectdCell(x, y) {
+      selectedX = x;
+      selectedY = y;
+      console.log(`Selected cell: (${x}, ${y})`);
+    }
+    function sendMove(x, y) {
+      if (selectedX === null || selectedY === null) {
+        alert('セルが選択されていません');
+        return;
       }
-      html += '</tr>';
+      window.location.href = `/game/move?fromX=${selectedX}&fromY=${selectedY}&toX=${x}&toY=${y}`;
     }
+    function drawBoard() {
+      const boardContainer = document.getElementById('board-container');
+      if (!ban || !ban.board) {
+        boardContainer.innerHTML = '<p>盤面データがありません</p>';
+        return;
+      }
 
-    html += '</table>';
-    boardContainer.innerHTML = html;
-  }
+      let html = '<table border="1">';
 
+      const boardLength = ban.board.length;
 
-  window.onload = function () {
-    // 盤面を描画
-    drawBoard();
-
-    // エラーメッセージがあれば表示
-    if (errMessage) {
-      alert(errMessage);
-    }
-
-    console.log('Player Status:', playerStatus);
-
-    if (playerStatus === 'GAME_WAITING') {
-      // SSE接続でターン情報を受信
-      const sse = new EventSource(`/game/turn?gameId=${gameId}`);
-      sse.onmessage = function (event) {
-        const isNextTurn = JSON.parse(event.data);
-        console.log('Is next turn:', isNextTurn);
-        if (isNextTurn) {
-          window.location.href = `/game`;
+      for (let y = 0; y < boardLength; y++) {
+        html += '<tr>';
+        for (let x = 0; x < boardLength; x++) {
+          const cell = ban.board[x][y];
+          const cellContent = (cell && cell.name) ?
+            `<div onClick="setSelectdCell(${Xa2b(x)}, ${Ya2b(y)})">${cell.name}</div>`
+            : `<div onClick="sendMove(${Xa2b(x)}, ${Ya2b(y)})">　</div>`;
+          html += `<td>${cellContent}</td>`;
         }
-      };
-    } else {
+        html += '</tr>';
+      }
 
+      html += '</table>';
+      boardContainer.innerHTML = html;
     }
 
-  };
-</script>
 
-<h1>ゲーム画面</h1>
-<p>ゲームID:[[${gameId}]]</p>
-<p> プレイヤーステータス: [[${playerStatus}]]</p>
+    window.onload = function () {
+      // 盤面を描画
+      drawBoard();
 
-<div id="board-container">
-  <!-- 盤面がここに表示されます -->
-</div>
+      // エラーメッセージがあれば表示
+      if (errMessage) {
+        alert(errMessage);
+      }
+
+      console.log('Player Status:', playerStatus);
+
+      if (playerStatus === 'GAME_WAITING') {
+        // SSE接続でターン情報を受信
+        const sse = new EventSource(`/game/turn?gameId=${gameId}`);
+        sse.onmessage = function (event) {
+          const isNextTurn = JSON.parse(event.data);
+          console.log('Is next turn:', isNextTurn);
+          if (isNextTurn) {
+            window.location.href = `/game`;
+          }
+        };
+      } else {
+
+      }
+
+    };
+  </script>
+</head>
+
+<body>
+  <h1>ゲーム画面</h1>
+  <p>ゲームID:[[${gameId}]]</p>
+  <p>プレイヤーステータス: [[${playerStatus}]]</p>
+
+  <div id="board-container">
+    <!-- 盤面がここに表示されます -->
+  </div>
+</body>
+
+</html>

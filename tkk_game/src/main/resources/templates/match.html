@@ -1,14 +1,16 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
 
 <head>
-  <meta charset="utf-8">
-  <title>マッチング画面</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link th:href="@{/global.css}" rel="stylesheet">
+  <title>マッチング</title>
   <script th:inline="javascript">
     const playerName = /*[[${playerName}]]*/ 'defaultPlayer';
     const csrfToken = /*[[${_csrf.token}]]*/ '';
     const csrfParameterName = /*[[${_csrf.parameterName}]]*/ '_csrf';
-    
+
     // 自分がリクエストを送ったルームのオーナー名を記憶
     let myRequestTo = null;
 
@@ -24,7 +26,7 @@
         if (myRequestedRoom) {
           myRequestTo = myRequestedRoom.player1.name;
         }
-        
+
         // 自分がリクエストを送っていた場合
         if (myRequestTo) {
           const targetRoom = rooms.find(r => r.player1.name === myRequestTo);
@@ -59,7 +61,7 @@
         } else if (player.player2 !== null) {
           html += `[他のプレイヤーがリクエスト中]`;
         }
-          else if (myRequestTo !== null) {
+        else if (myRequestTo !== null) {
           html += `[他のプレイヤーにリクエスト中]`;
         } else {
           html += `<form action="/match/sendRequest?Player1Name=${player.player1.name}" method="post">`;
