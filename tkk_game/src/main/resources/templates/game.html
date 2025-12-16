@@ -56,8 +56,8 @@
         for (let x = 0; x < boardLength; x++) {
           const cell = ban.board[x][y];
           const cellContent = (cell && cell.name) ?
-            `<div onClick="setSelectdCell(${Xa2b(x)}, ${Ya2b(y)})">${cell.name}</div>`
-            : `<div onClick="sendMove(${Xa2b(x)}, ${Ya2b(y)})">　</div>`;
+            `<div class="cell" onClick="setSelectdCell(${Xa2b(x)}, ${Ya2b(y)})">${cell.name}</div>`
+            : `<div class="cell" onClick="sendMove(${Xa2b(x)}, ${Ya2b(y)})">　</div>`;
           html += `<td>${cellContent}</td>`;
         }
         html += '</tr>';
