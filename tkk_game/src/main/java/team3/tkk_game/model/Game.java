@@ -2,8 +2,6 @@ package team3.tkk_game.model;
 
 import java.util.Date;
 
-import team3.tkk_game.model.Ban.Ban;
-
 public class Game {
   // デバッグ用にpublicに変更
   public String id;

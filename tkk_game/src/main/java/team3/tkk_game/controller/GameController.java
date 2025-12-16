@@ -12,9 +12,9 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import team3.tkk_game.model.GameRoom;
 import team3.tkk_game.model.PlayerStatus;
+import team3.tkk_game.model.Ban;
 import team3.tkk_game.model.Game;
 import team3.tkk_game.model.WaitRoom;
-import team3.tkk_game.model.Ban.Ban;
 import team3.tkk_game.services.TurnChecker;
 
 import team3.tkk_game.mapper.KomaMapper;

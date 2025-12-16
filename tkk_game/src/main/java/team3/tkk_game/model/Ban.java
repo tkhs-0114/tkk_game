@@ -1,4 +1,4 @@
-package team3.tkk_game.model.Ban;
+package team3.tkk_game.model;
 
 import team3.tkk_game.model.Koma.Koma;
 
