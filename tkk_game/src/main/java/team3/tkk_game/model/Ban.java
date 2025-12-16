@@ -20,27 +20,34 @@ public class Ban {
     return board;
   }
 
-  // board配列のインデックスに変換する
-  private int b2a(int boardIndex) {
-    return boardIndex + (BAN_LENGTH - 1) / 2;
+  public void setBoard(Koma[][] board) {
+    this.board = board;
   }
 
-  public boolean moveKoma(int fromX, int fromY, int toX, int toY) {
-    System.out.println("x:" + fromX + "  y:" + fromY + "  toX:" + toX + "  toY:" + toY);
-    if (board[b2a(fromX)][b2a(fromY)] == null ||
-        board[b2a(toX)][b2a(toY)] != null) {
-      return false; // 移動元に駒がないor移動先に駒がある場合は失敗
-    }
-    board[b2a(toX)][b2a(toY)] = board[b2a(fromX)][b2a(fromY)];
-    board[b2a(fromX)][b2a(fromY)] = null;
-    return true;
+  // board配列のインデックスに変換する
+  protected int b2a(int boardIndex) {
+    return boardIndex + (BAN_LENGTH - 1) / 2;
   }
 
   public Koma getKomaAt(int x, int y) {
     return board[b2a(x)][b2a(y)];
   }
 
-  public void setKomaAt(int x, int y, Koma koma) {
+  public boolean setKomaAt(int x, int y, Koma koma) {
+    if (board[b2a(x)][b2a(y)] != null && koma != null) {
+      return false;
+    }
     board[b2a(x)][b2a(y)] = koma;
+    return true;
+  }
+
+  public Koma[][] getBoardR180() {
+    Koma[][] rotatedBoard = new Koma[BAN_LENGTH][BAN_LENGTH];
+    for (int x = 0; x < BAN_LENGTH; x++) {
+      for (int y = 0; y < BAN_LENGTH; y++) {
+        rotatedBoard[x][y] = board[BAN_LENGTH - 1 - x][BAN_LENGTH - 1 - y];
+      }
+    }
+    return rotatedBoard;
   }
 }

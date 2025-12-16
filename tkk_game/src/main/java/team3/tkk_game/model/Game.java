@@ -8,13 +8,15 @@ public class Game {
   public Date lastActivity;
   Player player1;
   Player player2;
-  Ban ban = new Ban();
+  Ban Ban;
+  Ban displayBan;
 
   public Game(String id, String player1Name) {
     this.id = id;
     this.player1 = new Player(player1Name, PlayerStatus.GAME_WAITING);
-    this.ban = new Ban();
     this.lastActivity = new Date();
+    this.Ban = new Ban();
+    this.displayBan = new Ban();
   }
 
   public String getId() {
@@ -37,6 +39,14 @@ public class Game {
     this.player2 = null;
   }
 
+  public Ban getBan() {
+    return Ban;
+  }
+
+  public Ban getDisplayBan() {
+    return displayBan;
+  }
+
   public Player getPlayerByName(String playerName) {
     if (player1.getName().equals(playerName)) {
       return player1;
@@ -45,10 +55,6 @@ public class Game {
     } else {
       return null;
     }
-  }
-
-  public Ban getBan() {
-    return ban;
   }
 
   public void switchTurn() {
@@ -63,7 +69,7 @@ public class Game {
   }
 
   // 用修正、SSE時に更新処理として動作させるようにすることを検討中
-  public void updateLastActivity() {
+  private void updateLastActivity() {
     this.lastActivity = new Date();
   }
 

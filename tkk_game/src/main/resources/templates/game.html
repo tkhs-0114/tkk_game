@@ -4,6 +4,8 @@
   const playerStatus = /*[[${playerStatus}]]*/ 'defaultStatus';
   const errMessage = /*[[${errMessage}]]*/ null;
   const game = /*[[${game}]]*/ null;
+  const loginPlayerName = /*[[${#authentication.name}]]*/ null;
+
   console.log(game);
   console.log(ban);
 
@@ -39,10 +41,11 @@
 
     let html = '<table border="1">';
 
-    // 盤面の各行を処理
-    for (let y = 0; y < ban.board.length; y++) {
+    const boardLength = ban.board.length;
+
+    for (let y = 0; y < boardLength; y++) {
       html += '<tr>';
-      for (let x = 0; x < ban.board[y].length; x++) {
+      for (let x = 0; x < boardLength; x++) {
         const cell = ban.board[x][y];
         const cellContent = (cell && cell.name) ?
           `<div onClick="setSelectdCell(${Xa2b(x)}, ${Ya2b(y)})">${cell.name}</div>`

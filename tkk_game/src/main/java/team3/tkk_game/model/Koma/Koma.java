@@ -3,16 +3,20 @@ package team3.tkk_game.model.Koma;
 import java.util.ArrayList;
 import java.util.List;
 
+import team3.tkk_game.model.Player;
+
 public class Koma {
   int id;
   String name;
   ArrayList<KomaRule> rules;
+  Player owner;
   int updateKoma; // 変化後の駒ID. -1なら変化しない
 
-  public Koma(KomaDB komaDB, List<KomaRule> rules) {
+  public Koma(KomaDB komaDB, List<KomaRule> rules, Player owner) {
     this.id = komaDB.getId();
     this.name = komaDB.getName();
     this.rules = new ArrayList<>(rules);
+    this.owner = owner;
     this.updateKoma = komaDB.getUpdateKoma();
   }
 
@@ -26,6 +30,14 @@ public class Koma {
 
   public ArrayList<KomaRule> getRules() {
     return rules;
+  }
+
+  public Player getOwner() {
+    return owner;
+  }
+
+  public void setOwner(Player owner) {
+    this.owner = owner;
   }
 
   public int getUpdateKoma() {
