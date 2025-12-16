@@ -1,3 +1,25 @@
-<h1>ホーム画面</h1>
-<a href="/match">マッチ</a><br />
-<a href="/deck/make">デッキ作成</a>
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ホーム</title>
+</head>
+
+<body>
+  <h1>ホーム画面</h1>
+  <div th:if="${session.selectedDeck != null}">
+    <p>デッキ名：<span th:text="${session.selectedDeck.name}">デッキ名</span></p>
+    <p>内容：<span th:text="${session.selectedDeck.sfen}">SFEN</span></p>
+  </div>
+  <div th:unless="${session.selectedDeck != null}">
+    <p>選択されたデッキはありません</p>
+  </div>
+  <a href="/match">マッチ</a><br />
+  <a href="/deck/make">デッキ作成</a><br />
+  <a href="/deck/select">デッキ一覧</a><br />
+  <a href="/logout">ログアウト</a>
+</body>
+
+</html>
