@@ -1,3 +1,4 @@
+INSERT INTO koma VALUES (0,'王将', -1);
 INSERT INTO koma VALUES (1,'歩兵', 5);
 INSERT INTO koma VALUES (2,'香車', 5);
 INSERT INTO koma VALUES (3,'桂馬', 5);
@@ -5,8 +6,16 @@ INSERT INTO koma VALUES (4,'銀将', 5);
 INSERT INTO koma VALUES (5,'金将', 5);
 INSERT INTO koma VALUES (6,'角行', 5);
 INSERT INTO koma VALUES (7,'飛車', 5);
-INSERT INTO koma VALUES (8,'王将', -1);
 
+
+INSERT INTO KomaRule (koma_id, rule) VALUES (0, 'UP');
+INSERT INTO KomaRule (koma_id, rule) VALUES (0, 'DOWN');
+INSERT INTO KomaRule (koma_id, rule) VALUES (0, 'LEFT');
+INSERT INTO KomaRule (koma_id, rule) VALUES (0, 'RIGHT');
+INSERT INTO KomaRule (koma_id, rule) VALUES (0, 'UP_LEFT');
+INSERT INTO KomaRule (koma_id, rule) VALUES (0, 'UP_RIGHT');
+INSERT INTO KomaRule (koma_id, rule) VALUES (0, 'DOWN_LEFT');
+INSERT INTO KomaRule (koma_id, rule) VALUES (0, 'DOWN_RIGHT');
 INSERT INTO KomaRule (koma_id, rule) VALUES (1, 'UP');
 INSERT INTO KomaRule (koma_id, rule) VALUES (2, 'LINE_UP');
 INSERT INTO KomaRule (koma_id, rule) VALUES (3, 'JUMP_UP_LEFT');
@@ -30,13 +39,5 @@ INSERT INTO KomaRule (koma_id, rule) VALUES (7, 'LINE_UP');
 INSERT INTO KomaRule (koma_id, rule) VALUES (7, 'LINE_DOWN');
 INSERT INTO KomaRule (koma_id, rule) VALUES (7, 'LINE_LEFT');
 INSERT INTO KomaRule (koma_id, rule) VALUES (7, 'LINE_RIGHT');
-INSERT INTO KomaRule (koma_id, rule) VALUES (8, 'UP');
-INSERT INTO KomaRule (koma_id, rule) VALUES (8, 'DOWN');
-INSERT INTO KomaRule (koma_id, rule) VALUES (8, 'LEFT');
-INSERT INTO KomaRule (koma_id, rule) VALUES (8, 'RIGHT');
-INSERT INTO KomaRule (koma_id, rule) VALUES (8, 'UP_LEFT');
-INSERT INTO KomaRule (koma_id, rule) VALUES (8, 'UP_RIGHT');
-INSERT INTO KomaRule (koma_id, rule) VALUES (8, 'DOWN_LEFT');
-INSERT INTO KomaRule (koma_id, rule) VALUES (8, 'DOWN_RIGHT');
 
-INSERT INTO Deck (name, sfen) VALUES ('sample', '5/2[8]2');
+INSERT INTO Deck (name, sfen) VALUES ('sample', '5/2[0]2');
