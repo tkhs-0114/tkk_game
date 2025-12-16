@@ -16,12 +16,16 @@ public class Ban {
     }
   }
 
+  public Ban(Ban otherBan) {
+    this.board = otherBan.getBoard();
+  }
+
   public Koma[][] getBoard() {
     return board;
   }
 
-  public void setBoard(Koma[][] board) {
-    this.board = board;
+  public void applyBan(Ban otherBan) {
+    this.board = otherBan.getBoard();
   }
 
   // board配列のインデックスに変換する
@@ -41,13 +45,13 @@ public class Ban {
     return true;
   }
 
-  public Koma[][] getBoardR180() {
+  public void rotate180() {
     Koma[][] rotatedBoard = new Koma[BAN_LENGTH][BAN_LENGTH];
     for (int x = 0; x < BAN_LENGTH; x++) {
       for (int y = 0; y < BAN_LENGTH; y++) {
         rotatedBoard[x][y] = board[BAN_LENGTH - 1 - x][BAN_LENGTH - 1 - y];
       }
     }
-    return rotatedBoard;
+    this.board = rotatedBoard;
   }
 }
