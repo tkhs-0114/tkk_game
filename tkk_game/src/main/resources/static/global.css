@@ -1,0 +1,148 @@
+/* ===========================================
+   グローバルスタイル
+   =========================================== */
+
+/* 基本スタイル */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 20px;
+  padding: 0;
+  background-color: #f9f9f9;
+  color: #333;
+}
+
+h1 {
+  color: #2c3e50;
+  border-bottom: 2px solid #3498db;
+  padding-bottom: 10px;
+}
+
+h2 {
+  color: #34495e;
+}
+
+a {
+  color: #3498db;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* ===========================================
+   フォーム要素
+   =========================================== */
+
+input[type="text"],
+select {
+  padding: 8px;
+  margin: 5px 0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+button {
+  padding: 10px 20px;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+button:hover {
+  background-color: #2980b9;
+}
+
+/* ===========================================
+   テーブルスタイル（デッキ一覧など）
+   =========================================== */
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  max-width: 800px;
+  margin-top: 16px;
+}
+
+th,
+td {
+  border: 1px solid #ccc;
+  padding: 8px;
+  text-align: left;
+}
+
+th {
+  background: #f5f5f5;
+}
+
+.actions {
+  white-space: nowrap;
+}
+
+/* ===========================================
+   デッキ作成ページ用スタイル
+   =========================================== */
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(5, 100px);
+  grid-auto-rows: 80px;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.cell {
+  border: 1px solid #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+  background: #fafafa;
+  font-weight: 600;
+}
+
+.cell.empty {
+  color: #999;
+}
+
+/* ===========================================
+   ゲーム盤面スタイル
+   =========================================== */
+
+#board-container table {
+  border-collapse: collapse;
+  margin-top: 16px;
+}
+
+#board-container td {
+  width: 60px;
+  height: 60px;
+  text-align: center;
+  vertical-align: middle;
+  cursor: pointer;
+}
+
+#board-container td:hover {
+  background-color: #e0e0e0;
+}
+
+/* ===========================================
+   待機画面用スタイル
+   =========================================== */
+
+#haveRequest {
+  background-color: #e8f5e9;
+  padding: 15px;
+  border-radius: 8px;
+  margin-top: 20px;
+}
+
+#waitingMessage {
+  color: #666;
+  font-style: italic;
+}

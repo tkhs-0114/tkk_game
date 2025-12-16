@@ -1,10 +1,24 @@
-<h1>デバッグ画面</h1>
-<p th:each="game : ${games}">
-  <strong>ゲームID:</strong> <span th:text="${game.id}"></span><br />
-  <strong>最終更新時間:</strong> <span th:text="${game.lastActivity}"></span><br />
-</p>
-<h2>待機中のプレイヤー一覧</h2>
-<ul>
-  <li th:each="player : ${waitPlayers}" th:text="${player}"></li>
-</ul>
-<a href="/home">ホームに戻る</a>
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link th:href="@{/global.css}" rel="stylesheet">
+  <title>デバッグ</title>
+</head>
+
+<body>
+  <h1>デバッグ画面</h1>
+  <p th:each="game : ${games}">
+    <strong>ゲームID:</strong> <span th:text="${game.id}"></span><br />
+    <strong>最終更新時間:</strong> <span th:text="${game.lastActivity}"></span><br />
+  </p>
+  <h2>待機中のプレイヤー一覧</h2>
+  <ul>
+    <li th:each="player : ${waitPlayers}" th:text="${player}"></li>
+  </ul>
+  <a href="/home">ホームに戻る</a>
+</body>
+
+</html>

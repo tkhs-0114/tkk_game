@@ -1,15 +1,17 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
 
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link th:href="@{/global.css}" rel="stylesheet">
   <title>対戦相手待機中</title>
   <script th:inline="javascript">
     const playerName = /*[[${playerName}]]*/ 'defaultPlayer';
 
     window.onload = function () {
       console.log('待機中... Player Name:', playerName);
-      
+
       // SSE接続を開始
       const sse = new EventSource('/match/waitRoom');
       sse.onmessage = function (event) {
@@ -42,7 +44,7 @@
 <body>
   <h1>対戦相手を待っています...</h1>
   <p>プレイヤー名: <span th:text="${playerName}"></span></p>
-  
+
   <!-- 待機中メッセージ -->
   <div id="waitingMessage">
     <p>対戦リクエストを待っています...</p>
@@ -59,7 +61,7 @@
       <button type="submit">拒否する</button>
     </form>
   </div>
-  
+
   <br>
   <a href="/match">キャンセル</a>
 </body>
