@@ -46,12 +46,19 @@ public class GameController {
     if (ban != null) {
       model.addAttribute("ban", ban);
     } else {
-      model.addAttribute("ban", game.getDisplayBan());
+      if (isMyTurn(game, playerName)) {
+        model.addAttribute("ban", game.getDisplayBan());
+      } else {
+        Ban myban = new Ban(game.getDisplayBan());
+        myban.rotate180();
+        model.addAttribute("ban", myban);
+      }
     }
     model.addAttribute("playerStatus", game.getPlayerByName(playerName).getStatus());
     // デバッグ用
     model.addAttribute("game", game);
     return "game.html";
+
   }
 
   private String returnGame(Model model, Game game, String playerName, Ban ban, String errMessage) {
@@ -68,23 +75,24 @@ public class GameController {
       return "redirect:/match";
     }
 
-    /*
-     * ここにデッキ設定等のゲームの初期設定を記入
-     */
+    // 自分の駒を盤面にセットする
     KomaDB koma1 = KomaMapper.selectKomaById(1); // 例: 駒ID1を選択
     List<KomaRule> koma1Rules = KomaMapper.selectKomaRuleById(1);
     Koma koma1Koma = new Koma(koma1, koma1Rules, game.getPlayer1());
+    game.getBan().setKomaAt(0, 2, koma1Koma);
+
+    // 相手の駒を盤面にセットする
+    game.getBan().rotate180();
 
     KomaDB koma2 = KomaMapper.selectKomaById(2); // 例: 駒ID2を選択
     List<KomaRule> koma2Rules = KomaMapper.selectKomaRuleById(2);
     Koma koma2Koma = new Koma(koma2, koma2Rules, game.getPlayer2());
-
-    // 応急処置
-    game.getBan().setKomaAt(0, -2, koma1Koma);
     game.getBan().setKomaAt(0, 2, koma2Koma);
 
-    game.getDisplayBan().setBoard(game.getBan().getBoard());
-    return returnGame(model, game, loginPlayerName, null);
+    // 表示用盤面に反映
+    game.getDisplayBan().applyBan(game.getBan());
+
+    return "redirect:/game";
   }
 
   @GetMapping
@@ -129,15 +137,14 @@ public class GameController {
     game.getBan().setKomaAt(toX, toY, koma);
     game.getBan().setKomaAt(fromX, fromY, null);
 
-    Ban myban = new Ban();
-    myban.setBoard(game.getBan().getBoard());
+    // 自分視点の盤面を保存
+    Ban myban = new Ban(game.getBan());
 
-    game.getDisplayBan().setBoard(game.getBan().getBoardR180());
+    // 相手視点の盤面を保存
+    game.getDisplayBan().applyBan(game.getBan());
 
     // ターンを交代
-    game.getBan().setBoard(game.getBan().getBoardR180());
     game.switchTurn();
-
     return returnGame(model, game, loginPlayerName, myban);
   }
 

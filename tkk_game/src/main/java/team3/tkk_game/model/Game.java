@@ -59,6 +59,10 @@ public class Game {
 
   public void switchTurn() {
     updateLastActivity();
+    // 盤面を相手視点に回転
+    this.displayBan.rotate180();
+    this.Ban.rotate180();
+    // プレイヤーステータスを入れ替え
     if (player1.getStatus() == PlayerStatus.GAME_THINKING) {
       player1.setStatus(PlayerStatus.GAME_WAITING);
       player2.setStatus(PlayerStatus.GAME_THINKING);

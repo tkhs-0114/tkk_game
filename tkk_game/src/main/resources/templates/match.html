@@ -34,7 +34,7 @@
             // ルームが消えた時
             console.log('対戦リクエストが承認されました！');
             sse.close();
-            window.location.href = `/game/start`;
+            window.location.href = `/game`;
             return;
           } else if (targetRoom.player2?.name !== playerName) {
             // ルームはあるが自分のリクエストが無い時
