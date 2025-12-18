@@ -86,6 +86,11 @@ public class GameController {
     Koma koma1_2Koma = new Koma(koma1_2, koma1_2Rules, game.getPlayer1());
     game.getBan().setKomaAt(0, 1, koma1_2Koma);
 
+    KomaDB koma1_3 = KomaMapper.selectKomaById(2); // 例: 駒ID2を選択
+    List<KomaRule> koma1_3Rules = KomaMapper.selectKomaRuleById(2);
+    Koma koma1_3Koma = new Koma(koma1_3, koma1_3Rules, game.getPlayer1());
+    game.getBan().setKomaAt(1, 2, koma1_3Koma);
+
     // 相手の駒を盤面にセットする
     game.getBan().rotate180();
 
@@ -148,6 +153,7 @@ public class GameController {
       }
       // 駒を取る処理
       targetKoma.setOwner(game.getPlayerByName(loginPlayerName));
+      game.addHaveKomaByName(loginPlayerName, targetKoma);
     }
 
     // 駒を移動
