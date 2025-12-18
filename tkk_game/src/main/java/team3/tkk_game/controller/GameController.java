@@ -55,6 +55,7 @@ public class GameController {
       }
     }
     model.addAttribute("playerStatus", game.getPlayerByName(playerName).getStatus());
+    model.addAttribute("haveKoma",game.getHaveKomaByName(playerName));
     // デバッグ用
     model.addAttribute("game", game);
     return "game.html";
@@ -159,6 +160,38 @@ public class GameController {
     // 駒を移動
     game.getBan().setKomaAt(toX, toY, koma);
     game.getBan().setKomaAt(fromX, fromY, null);
+
+    // 自分視点の盤面を保存
+    Ban myban = new Ban(game.getBan());
+
+    // 相手視点の盤面を保存
+    game.getDisplayBan().applyBan(game.getBan());
+
+    // ターンを交代
+    game.switchTurn();
+    return returnGame(model, game, loginPlayerName, myban);
+  }
+
+  @GetMapping("/putKoma")
+  public String gamePutKoma(Principal principal, Model model, @RequestParam int index, @RequestParam int toX, @RequestParam int toY) {
+    String loginPlayerName = principal.getName();
+    Game game = gameRoom.getGameByPlayerName(loginPlayerName);
+
+    // 自分のターンか確認
+    if (!isMyTurn(game, loginPlayerName)) {
+      return returnGame(model, game, loginPlayerName, null, "自分のターンではありません");
+    }
+
+    // 持ち駒のインデックス確認
+    List<Koma> haveKoma = game.getHaveKomaByName(loginPlayerName);
+    if (index < 0 || index >= haveKoma.size()) {
+      return returnGame(model, game, loginPlayerName, game.getBan(), "その持ち駒は存在しません");
+    }
+
+    // 駒を盤面に置く
+    Koma koma = haveKoma.get(index);
+    game.getBan().setKomaAt(toX, toY, koma);
+    haveKoma.remove(index);
 
     // 自分視点の盤面を保存
     Ban myban = new Ban(game.getBan());

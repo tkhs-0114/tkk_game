@@ -13,13 +13,17 @@
     const errMessage = /*[[${errMessage}]]*/ null;
     const game = /*[[${game}]]*/ null;
     const loginPlayerName = /*[[${#authentication.name}]]*/ null;
-    let select = false;
+    const haveKoma = /*[[${haveKoma}]]*/ null;
 
     console.log(game);
     console.log(ban);
+    console.log(haveKoma)
 
+    let select = false;
     let selectedX = null;
     let selectedY = null;
+    let selectedHaveKoma = false;
+    let haveKomaIndex = null;
 
     // 配列のインデックスを盤面の座標に変換
     function Xa2b(arrayIndex) {
@@ -38,14 +42,22 @@
       selectedX = x;
       selectedY = y;
       select = true;
+      selectedHaveKoma = false;
       console.log(`Selected cell: (${x}, ${y})`);
     }
     function sendMove(x, y) {
-      if (selectedX === null || selectedY === null) {
-        alert('セルが選択されていません');
-        return;
+      if (selectedHaveKoma) {
+        window.location.href = `/game/putKoma?index=${haveKomaIndex}&toX=${x}&toY=${y}`;
+
+      } else {
+        if (selectedX === null || selectedY === null) {
+          alert('セルが選択されていません');
+          return;
+        } else {
+          window.location.href = `/game/move?fromX=${selectedX}&fromY=${selectedY}&toX=${x}&toY=${y}`;
+        }
       }
-      window.location.href = `/game/move?fromX=${selectedX}&fromY=${selectedY}&toX=${x}&toY=${y}`;
+
     }
     function drawBoard() {
       const boardContainer = document.getElementById('board-container');
@@ -74,10 +86,37 @@
       boardContainer.innerHTML = html;
     }
 
+    function selectHaveKoma(index) {
+      select = false;
+      selectedHaveKoma = true;
+      haveKomaIndex = index;
+    }
+    function drawhaveKoma() {
+      const haveKomaContainer = document.getElementById('haveKoma-container');
+      if (!haveKoma) {
+        haveKomaContainer.innerHTML = '<p>盤面データがありません</p>';
+        return;
+      }
+
+      let html = '<table>';
+
+      for (let i = 0; i < haveKoma.length; i++) {
+        const cell = haveKoma[i];
+        html += '<tr>';
+        html += `<td><div class="cell" onClick="selectHaveKoma(${i})">${cell.name}</div></td>`;
+        html += '</tr>';
+      }
+
+      html += '</table>';
+      haveKomaContainer.innerHTML = html;
+    }
+
+
 
     window.onload = function () {
       // 盤面を描画
       drawBoard();
+      drawhaveKoma();
 
       // エラーメッセージがあれば表示
       if (errMessage) {
@@ -109,8 +148,13 @@
   <p>ゲームID:[[${gameId}]]</p>
   <p>プレイヤーステータス: [[${playerStatus}]]</p>
 
-  <div id="board-container">
-    <!-- 盤面がここに表示されます -->
+  <div>
+    <div id="board-container">
+      <!-- 盤面がここに表示されます -->
+    </div>
+    <div id="haveKoma-container">
+      <!-- 持ち駒がここに表示されます -->
+    </div>
   </div>
 </body>
 
