@@ -76,18 +76,28 @@ public class GameController {
     }
 
     // 自分の駒を盤面にセットする
-    KomaDB koma1 = KomaMapper.selectKomaById(1); // 例: 駒ID1を選択
-    List<KomaRule> koma1Rules = KomaMapper.selectKomaRuleById(1);
+    KomaDB koma1 = KomaMapper.selectKomaById(0); // 例: 駒ID0を選択
+    List<KomaRule> koma1Rules = KomaMapper.selectKomaRuleById(0);
     Koma koma1Koma = new Koma(koma1, koma1Rules, game.getPlayer1());
     game.getBan().setKomaAt(0, 2, koma1Koma);
+
+    KomaDB koma1_2 = KomaMapper.selectKomaById(1); // 例: 駒ID1を選択
+    List<KomaRule> koma1_2Rules = KomaMapper.selectKomaRuleById(1);
+    Koma koma1_2Koma = new Koma(koma1_2, koma1_2Rules, game.getPlayer1());
+    game.getBan().setKomaAt(0, 1, koma1_2Koma);
 
     // 相手の駒を盤面にセットする
     game.getBan().rotate180();
 
-    KomaDB koma2 = KomaMapper.selectKomaById(2); // 例: 駒ID2を選択
-    List<KomaRule> koma2Rules = KomaMapper.selectKomaRuleById(2);
+    KomaDB koma2 = KomaMapper.selectKomaById(0); // 例: 駒ID0を選択
+    List<KomaRule> koma2Rules = KomaMapper.selectKomaRuleById(0);
     Koma koma2Koma = new Koma(koma2, koma2Rules, game.getPlayer2());
     game.getBan().setKomaAt(0, 2, koma2Koma);
+
+    KomaDB koma2_2 = KomaMapper.selectKomaById(1); // 例: 駒ID1を選択
+    List<KomaRule> koma2_2Rules = KomaMapper.selectKomaRuleById(1);
+    Koma koma2_2Koma = new Koma(koma2_2, koma2_2Rules, game.getPlayer2());
+    game.getBan().setKomaAt(0, 1, koma2_2Koma);
 
     // 表示用盤面に反映
     game.getDisplayBan().applyBan(game.getBan());
@@ -117,7 +127,7 @@ public class GameController {
       return returnGame(model, game, loginPlayerName, null, "自分のターンではありません");
     }
 
-    // 自分の駒か確認（LocalBanには自分の駒しかない）
+    // 自分の駒か確認
     Koma koma = game.getBan().getKomaAt(fromX, fromY);
     if (koma != null && koma.getOwner() != game.getPlayerByName(loginPlayerName)) {
       return returnGame(model, game, loginPlayerName, game.getBan(), "自分の駒ではありません");
@@ -130,8 +140,15 @@ public class GameController {
       return returnGame(model, game, loginPlayerName, game.getBan(), "不正な手です");
     }
 
-    // 相手の駒を取る場合の処理
-    // 未実装
+    // 移動先に駒がある時の処理
+    if (game.getBan().getKomaAt(toX, toY) != null) {
+      Koma targetKoma = game.getBan().getKomaAt(toX, toY);
+      if (targetKoma.getOwner() == game.getPlayerByName(loginPlayerName)) {
+        return returnGame(model, game, loginPlayerName, game.getBan(), "自分の駒がいます");
+      }
+      // 駒を取る処理
+      targetKoma.setOwner(game.getPlayerByName(loginPlayerName));
+    }
 
     // 駒を移動
     game.getBan().setKomaAt(toX, toY, koma);

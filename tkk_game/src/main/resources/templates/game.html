@@ -13,6 +13,7 @@
     const errMessage = /*[[${errMessage}]]*/ null;
     const game = /*[[${game}]]*/ null;
     const loginPlayerName = /*[[${#authentication.name}]]*/ null;
+    let select = false;
 
     console.log(game);
     console.log(ban);
@@ -29,8 +30,14 @@
     }
 
     function setSelectdCell(x, y) {
+      if (select) {
+        select = false;
+        window.location.href = `/game/move?fromX=${selectedX}&fromY=${selectedY}&toX=${x}&toY=${y}`;
+        return;
+      }
       selectedX = x;
       selectedY = y;
+      select = true;
       console.log(`Selected cell: (${x}, ${y})`);
     }
     function sendMove(x, y) {
