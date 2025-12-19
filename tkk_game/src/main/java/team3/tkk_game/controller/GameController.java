@@ -55,7 +55,7 @@ public class GameController {
       }
     }
     model.addAttribute("playerStatus", game.getPlayerByName(playerName).getStatus());
-    model.addAttribute("haveKoma",game.getHaveKomaByName(playerName));
+    model.addAttribute("haveKoma", game.getHaveKomaByName(playerName));
     // デバッグ用
     model.addAttribute("game", game);
     return "game.html";

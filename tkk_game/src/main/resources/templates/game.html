@@ -99,13 +99,14 @@
       }
 
       let html = '<table>';
-
+        
+      html += '<tr>';
       for (let i = 0; i < haveKoma.length; i++) {
         const cell = haveKoma[i];
-        html += '<tr>';
         html += `<td><div class="cell" onClick="selectHaveKoma(${i})">${cell.name}</div></td>`;
-        html += '</tr>';
+        
       }
+      html += '</tr>';
 
       html += '</table>';
       haveKomaContainer.innerHTML = html;
@@ -156,6 +157,7 @@
       <!-- 持ち駒がここに表示されます -->
     </div>
   </div>
+
 </body>
 
 </html>
