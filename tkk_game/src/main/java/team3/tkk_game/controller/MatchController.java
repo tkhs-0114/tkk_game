@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import jakarta.servlet.http.HttpSession;
 import team3.tkk_game.model.Game;
 import team3.tkk_game.model.GameRoom;
 import team3.tkk_game.model.WaitRoom;
@@ -57,8 +58,14 @@ public class MatchController {
 
   // 対戦リクエストを送信する
   @PostMapping("/sendRequest")
-  public String sendRequest(Principal principal, Model model, @RequestParam String Player1Name) {
+  public String sendRequest(Principal principal, Model model, @RequestParam String Player1Name, HttpSession session) {
     String Player2Name = principal.getName();
+    Integer selectedDeckId = (Integer) session.getAttribute("selectedDeckId");
+    Game room = waitRoom.getRoomByName(Player1Name);
+    if (room != null && selectedDeckId != null) {
+      room.setDeckIdPlayer2(selectedDeckId);
+    }
+
     waitRoom.sendRequest(Player2Name, Player1Name);
     model.addAttribute("playerName", Player2Name);
     return "match.html";
@@ -66,11 +73,15 @@ public class MatchController {
 
   // 対戦リクエストを承認する
   @PostMapping("/accept")
-  public String acceptMatch(Principal principal) {
+  public String acceptMatch(Principal principal, HttpSession session) {
     String Player1Name = principal.getName();
     Game room = waitRoom.getRoomByName(Player1Name);
-    
+
     if (room != null && room.getPlayer2() != null) {
+      Integer selectedDeckId1 = (Integer) session.getAttribute("selectedDeckId");
+      if (selectedDeckId1 != null) {
+        room.setDeckIdPlayer1(selectedDeckId1);
+      }
       String Player2Name = room.getPlayer2().getName();
       gameRoom.addGame(room, Player2Name);
       waitRoom.rmRoom(Player1Name);
@@ -87,6 +98,6 @@ public class MatchController {
     waitRoom.clearRequest(Player1Name);
     model.addAttribute("playerName", Player1Name);
     return "waiting.html";
-  }  
+  }
 
 }

@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class WaitRoom {
   ArrayList<Game> waitRoom = new ArrayList<>();
-  
+
   public WaitRoom() {
   }
 
@@ -54,7 +54,7 @@ public class WaitRoom {
     }
     return false;
   }
-  
+
   public void clearRequest(String playerName) {
     Game room = getRoomByName(playerName);
     if (room != null) {
