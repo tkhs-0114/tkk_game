@@ -15,6 +15,7 @@ import team3.tkk_game.model.PlayerStatus;
 import team3.tkk_game.model.Ban;
 import team3.tkk_game.model.Game;
 import team3.tkk_game.model.WaitRoom;
+import team3.tkk_game.services.MoveValidator;
 import team3.tkk_game.services.TurnChecker;
 
 import team3.tkk_game.mapper.KomaMapper;
@@ -36,176 +37,11 @@ public class GameController {
   TurnChecker turnChecker;
   @Autowired
   KomaMapper KomaMapper;
+  @Autowired
+  MoveValidator moveValidator;
 
   private boolean isMyTurn(Game game, String playerName) {
     return game.getPlayerByName(playerName).getStatus() == PlayerStatus.GAME_THINKING;
-  }
-
-  // 移動先に自分の駒がある場合は移動不可
-  // 移動先に敵の駒がある場合は移動可能（駒を取る処理は別途行う）
-  // 経路上に駒がある場合は移動不可
-  private boolean canMove(Ban ban, int fromX, int fromY, int toX, int toY) {
-    Koma koma = ban.getKomaAt(fromX, fromY);
-    Koma targetKoma = ban.getKomaAt(toX, toY);
-
-    // 移動先に自分の駒がある場合は移動不可
-    if (targetKoma != null && targetKoma.getOwner() == koma.getOwner()) {
-      return false;
-    }
-
-    List<KomaRule> rules = koma.getRules();
-    System.out.println(rules);
-    int dx = toX - fromX;
-    int dy = toY - fromY;
-    for (KomaRule rule : rules) {
-      switch (rule) {
-        case UP:
-          if (dx == 0 && dy == -1)
-            return true;
-          break;
-        case DOWN:
-          if (dx == 0 && dy == 1)
-            return true;
-          break;
-        case LEFT:
-          if (dx == -1 && dy == 0)
-            return true;
-          break;
-        case RIGHT:
-          if (dx == 1 && dy == 0)
-            return true;
-          break;
-        case UP_LEFT:
-          if (dx == -1 && dy == -1)
-            return true;
-          break;
-        case UP_RIGHT:
-          if (dx == 1 && dy == -1)
-            return true;
-          break;
-        case DOWN_LEFT:
-          if (dx == -1 && dy == 1)
-            return true;
-          break;
-        case DOWN_RIGHT:
-          if (dx == 1 && dy == 1)
-            return true;
-          break;
-        case LINE_UP:
-          if (dx == 0 && dy < 0) {
-            boolean blocked = false;
-            for (int currentY = fromY - 1; currentY > toY; currentY--) {
-              if (ban.getKomaAt(fromX, currentY) != null) {
-                blocked = true;
-                break;
-              }
-            }
-            if (!blocked) {
-              return true;
-            }
-          }
-          break;
-        case LINE_DOWN:
-          if (dx == 0 && dy > 0) {
-            boolean blocked = false;
-            for (int currentY = fromY + 1; currentY < toY; currentY++) {
-              if (ban.getKomaAt(fromX, currentY) != null) {
-                blocked = true;
-                break;
-              }
-            }
-            if (!blocked) {
-              return true;
-            }
-          }
-          break;
-        case LINE_LEFT:
-          if (dx < 0 && dy == 0) {
-            boolean blocked = false;
-            for (int currentX = fromX - 1; currentX > toX; currentX--) {
-              if (ban.getKomaAt(currentX, fromY) != null) {
-                blocked = true;
-                break;
-              }
-            }
-            if (!blocked) {
-              return true;
-            }
-          }
-          break;
-        case LINE_RIGHT:
-          if (dx > 0 && dy == 0) {
-            boolean blocked = false;
-            for (int currentX = fromX + 1; currentX < toX; currentX++) {
-              if (ban.getKomaAt(currentX, fromY) != null) {
-                blocked = true;
-                break;
-              }
-            }
-            if (!blocked) {
-              return true;
-            }
-          }
-          break;
-        case LINE_UP_LEFT:
-          if (dx < 0 && dy < 0 && Math.abs(dx) == Math.abs(dy)) {
-            boolean blocked = false;
-            for (int i = 1; i < Math.abs(dx); i++) {
-              if (ban.getKomaAt(fromX - i, fromY - i) != null) {
-                blocked = true;
-                break;
-              }
-            }
-            if (!blocked) {
-              return true;
-            }
-          }
-          break;
-        case LINE_UP_RIGHT:
-          if (dx > 0 && dy < 0 && Math.abs(dx) == Math.abs(dy)) {
-            boolean blocked = false;
-            for (int i = 1; i < Math.abs(dx); i++) {
-              if (ban.getKomaAt(fromX + i, fromY - i) != null) {
-                blocked = true;
-                break;
-              }
-            }
-            if (!blocked) {
-              return true;
-            }
-          }
-          break;
-        case LINE_DOWN_LEFT:
-          if (dx < 0 && dy > 0 && Math.abs(dx) == Math.abs(dy)) {
-            boolean blocked = false;
-            for (int i = 1; i < Math.abs(dx); i++) {
-              if (ban.getKomaAt(fromX - i, fromY + i) != null) {
-                blocked = true;
-                break;
-              }
-            }
-            if (!blocked) {
-              return true;
-            }
-          }
-          break;
-        case LINE_DOWN_RIGHT:
-          if (dx > 0 && dy > 0 && Math.abs(dx) == Math.abs(dy)) {
-            boolean blocked = false;
-            for (int i = 1; i < Math.abs(dx); i++) {
-              if (ban.getKomaAt(fromX + i, fromY + i) != null) {
-                blocked = true;
-                break;
-              }
-            }
-            if (!blocked) {
-              return true;
-            }
-          }
-          break;
-      }
-    }
-    return false;
   }
 
   private String returnGame(Model model, Game game, String playerName, Ban ban) {
@@ -298,7 +134,7 @@ public class GameController {
     }
 
     // 移動ルールを確認
-    Boolean canMove = canMove(game.getBan(), fromX, fromY, toX, toY);
+    boolean canMove = moveValidator.canMove(game.getBan(), fromX, fromY, toX, toY);
     if (!canMove) {
       return returnGame(model, game, loginPlayerName, game.getBan(), "不正な手です");
     }

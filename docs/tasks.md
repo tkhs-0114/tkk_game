@@ -1,75 +1,124 @@
-# ログイン機能最小実装計画
+# canMoveメソッドのサービスクラス分離計画
 
 ## 計画作成日
-2025年11月11日
+2025年12月23日
 
 ## 目的
-TOPページ（`/`）からSpring Securityのデフォルトログインフォーム（`/login`）へ遷移し、ユーザー名「takahashi」、パスワード「p@ss」、ロール「USER」でログインできる最小限の仕組みのみを提供する。
+`GameController` 内の `canMove` メソッドを `MoveValidator` サービスクラスに分離し、責務の分離とテスタビリティの向上を図る。
 
 ## 前提条件
-- `build.gradle`にSpring Security関連依存関係が追加済み
-- 現在のTOPページ: `tkk_game/src/main/resources/static/index.html`
-- 追加のコントローラーやテンプレートは不要（デフォルトログインフォームを使用）
+- 既存のサービスクラス (`TurnChecker`, `MatchChecker`) が `tkk_game/src/main/java/team3/tkk_game/services/` に存在
+- `canMove` メソッドは現在 `GameController` 内の private メソッドとして実装済み
+- Spring の `@Service` アノテーションと `@Autowired` による DI を使用
 
 ## スコープ（含む）
-- セキュリティ設定クラスの作成
-- TOPページにログインフォームへのリンク追加
+- `MoveValidator` サービスクラスの新規作成
+- `GameController` から `canMove` メソッドの移動
+- `GameController` での `MoveValidator` の DI と利用
 
 ## スコープ（含まない）
-- 業務用コントローラーの作成
-- 独自ログイン画面の作成
-- ロール別画面表示
-- ゲーム画面等の機能
+- 移動ルールの変更・追加
+- 駒を取る処理の実装
+- テストコードの作成
 
 ---
-### タスク1: セキュリティ設定クラスの作成
-**関連ファイル**: 新規作成 `tkk_game/src/main/java/team3/tkk_game/security/SecurityConfig.java`
+
+## タスク一覧
+
+### タスク1: MoveValidator サービスクラスの作成
+
+**優先度**: 1（最優先）
+
+**関連ファイル**:
+- 新規作成: `tkk_game/src/main/java/team3/tkk_game/services/MoveValidator.java`
+- 参照: `tkk_game/src/main/java/team3/tkk_game/controller/GameController.java` (canMove メソッド)
+- 参照: `tkk_game/src/main/java/team3/tkk_game/model/Ban.java`
+- 参照: `tkk_game/src/main/java/team3/tkk_game/model/Koma/Koma.java`
+- 参照: `tkk_game/src/main/java/team3/tkk_game/model/Koma/KomaRule.java`
 
 **作業内容**:
-1. `security`パッケージを作成
-2. `SecurityConfig`クラスを作成し`@Configuration` `@EnableWebSecurity`を付与
-3. `SecurityFilterChain` Bean を定義
-   - `formLogin().permitAll()` を設定
-   - `logout()` を設定（`/logout` → 成功時 `/` リダイレクト）
-   - ひとまず全パス `permitAll()`（ログイン導線確認が目的のため）
-4. `InMemoryUserDetailsManager` Bean を定義
-   - ユーザー: `takahashi`
-   - パスワード (BCrypt): `{bcrypt}$2y$10$ngxCDmuVK1TaGchiYQfJ1OAKkd64IH6skGsNw1sLabrTICOHPxC0e`
-   - ロール: `USER`
+1. `tkk_game/src/main/java/team3/tkk_game/services/` に `MoveValidator.java` を新規作成
+2. `@Service` アノテーションを付与
+3. `canMove(Ban ban, int fromX, int fromY, int toX, int toY)` メソッドを実装
+   - `GameController` の既存 `canMove` メソッドのロジックをそのまま移植
+   - JavaDoc コメントを追加
+4. 必要な import 文を追加:
+   - `org.springframework.stereotype.Service`
+   - `team3.tkk_game.model.Ban`
+   - `team3.tkk_game.model.Koma.Koma`
+   - `team3.tkk_game.model.Koma.KomaRule`
+   - `java.util.List`
 
 **確認手順**:
-- `./gradlew bootRun` で起動
-- ブラウザで `http://localhost:8080/login` にアクセスしログインフォーム表示を確認
-- `takahashi / p@ss` でログイン → エラーなしで認証成功（直前アクセスが`/login`のみの場合 TOP `/`へ遷移）
+- 最後にユーザーが確認します。次のステップに進んでください
 
 **期待結果**:
-- デフォルトログインフォームが表示され、指定ユーザーでログイン成功する
+- `MoveValidator.java` が作成され、コンパイルが成功する
 
 ---
-### タスク2: TOPページにログイン導線追加
-**関連ファイル**: 編集 `tkk_game/src/main/resources/static/index.html`
+
+### タスク2: GameController の修正
+
+**優先度**: 2
+
+**関連ファイル**:
+- 編集: `tkk_game/src/main/java/team3/tkk_game/controller/GameController.java`
+- 参照: `tkk_game/src/main/java/team3/tkk_game/services/MoveValidator.java`
 
 **作業内容**:
-1. `/login` へのリンクを追加: 例 `<a href="/login">ログイン</a>`
-2. 簡単な説明文を追加（「ユーザー: takahashi / パスワード: p@ss」）
+1. `MoveValidator` の import 文を追加
+   - `import team3.tkk_game.services.MoveValidator;`
+2. `@Autowired` で `MoveValidator` を DI
+   ```java
+   @Autowired
+   MoveValidator moveValidator;
+   ```
+3. `gameMove` メソッド内の `canMove()` 呼び出しを `moveValidator.canMove()` に変更
+   - 変更前: `Boolean canMove = canMove(game.getBan(), fromX, fromY, toX, toY);`
+   - 変更後: `boolean canMove = moveValidator.canMove(game.getBan(), fromX, fromY, toX, toY);`
+4. `GameController` 内の private `canMove` メソッドを削除
 
 **確認手順**:
-- ブラウザで `http://localhost:8080/` を表示
-- 追加したリンクをクリック → `/login` に遷移しフォーム表示
-- 認証成功後 `/` に戻る（もしくはデフォルトの遷移）
+- 最後にユーザーが確認します。次のステップに進んでください
 
 **期待結果**:
-- TOPページからログインフォームへ遷移でき、ログイン後再びTOPページが閲覧可能
+- `GameController` から `canMove` メソッドが削除され、`MoveValidator` を利用するようになる
 
 ---
-## Definition of Done (DoD)
-1. `./gradlew bootRun` でアプリが正常起動する
-2. `http://localhost:8080/` にアクセスしログインリンクが表示される
-3. リンククリックでデフォルトログインフォーム表示
-4. `takahashi / p@ss` でログイン成功し画面遷移が完了する
-5. `/logout` 実行後再度 `/login` からログイン可能
+
+### タスク3: 動作確認
+
+**優先度**: 3
+
+**関連ファイル**:
+- `tkk_game/src/main/java/team3/tkk_game/services/MoveValidator.java`
+- `tkk_game/src/main/java/team3/tkk_game/controller/GameController.java`
+
+**作業内容**:
+1. アプリケーションを起動して動作確認
+2. 駒の移動が正常に動作することを確認
+
+**確認手順**:
+- ユーザーが手作業で確認します。完成した旨を伝えてください
+
+**期待結果**:
+- 駒の移動が従来通り正常に動作する
+
+---
 
 ## 注意事項
-- 追加の業務機能や画面を実装しないこと
-- ログイン成功のみを最小確認対象とする
-- 今後拡張する場合は別途計画を再作成すること
+
+- 移動ルールのロジックは変更しないこと（単純な移植のみ）
+- 駒を取る処理は本計画のスコープ外（既存のまま）
+- テストコードの作成は本計画のスコープ外
+- 実装完了後、`docs/specs.md` のサービス層に `MoveValidator` の説明を追加すること
+
+---
+
+## 変更対象ファイル一覧
+
+| ファイルパス | 変更種別 |
+|-------------|---------|
+| `tkk_game/src/main/java/team3/tkk_game/services/MoveValidator.java` | 新規作成 |
+| `tkk_game/src/main/java/team3/tkk_game/controller/GameController.java` | 編集 |
+| `docs/specs.md` | 編集（実装完了後） |
