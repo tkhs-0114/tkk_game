@@ -41,6 +41,173 @@ public class GameController {
     return game.getPlayerByName(playerName).getStatus() == PlayerStatus.GAME_THINKING;
   }
 
+  // 移動先に自分の駒がある場合は移動不可
+  // 移動先に敵の駒がある場合は移動可能（駒を取る処理は別途行う）
+  // 経路上に駒がある場合は移動不可
+  private boolean canMove(Ban ban, int fromX, int fromY, int toX, int toY) {
+    Koma koma = ban.getKomaAt(fromX, fromY);
+    Koma targetKoma = ban.getKomaAt(toX, toY);
+
+    // 移動先に自分の駒がある場合は移動不可
+    if (targetKoma != null && targetKoma.getOwner() == koma.getOwner()) {
+      return false;
+    }
+
+    List<KomaRule> rules = koma.getRules();
+    System.out.println(rules);
+    int dx = toX - fromX;
+    int dy = toY - fromY;
+    for (KomaRule rule : rules) {
+      switch (rule) {
+        case UP:
+          if (dx == 0 && dy == -1)
+            return true;
+          break;
+        case DOWN:
+          if (dx == 0 && dy == 1)
+            return true;
+          break;
+        case LEFT:
+          if (dx == -1 && dy == 0)
+            return true;
+          break;
+        case RIGHT:
+          if (dx == 1 && dy == 0)
+            return true;
+          break;
+        case UP_LEFT:
+          if (dx == -1 && dy == -1)
+            return true;
+          break;
+        case UP_RIGHT:
+          if (dx == 1 && dy == -1)
+            return true;
+          break;
+        case DOWN_LEFT:
+          if (dx == -1 && dy == 1)
+            return true;
+          break;
+        case DOWN_RIGHT:
+          if (dx == 1 && dy == 1)
+            return true;
+          break;
+        case LINE_UP:
+          if (dx == 0 && dy < 0) {
+            boolean blocked = false;
+            for (int currentY = fromY - 1; currentY > toY; currentY--) {
+              if (ban.getKomaAt(fromX, currentY) != null) {
+                blocked = true;
+                break;
+              }
+            }
+            if (!blocked) {
+              return true;
+            }
+          }
+          break;
+        case LINE_DOWN:
+          if (dx == 0 && dy > 0) {
+            boolean blocked = false;
+            for (int currentY = fromY + 1; currentY < toY; currentY++) {
+              if (ban.getKomaAt(fromX, currentY) != null) {
+                blocked = true;
+                break;
+              }
+            }
+            if (!blocked) {
+              return true;
+            }
+          }
+          break;
+        case LINE_LEFT:
+          if (dx < 0 && dy == 0) {
+            boolean blocked = false;
+            for (int currentX = fromX - 1; currentX > toX; currentX--) {
+              if (ban.getKomaAt(currentX, fromY) != null) {
+                blocked = true;
+                break;
+              }
+            }
+            if (!blocked) {
+              return true;
+            }
+          }
+          break;
+        case LINE_RIGHT:
+          if (dx > 0 && dy == 0) {
+            boolean blocked = false;
+            for (int currentX = fromX + 1; currentX < toX; currentX++) {
+              if (ban.getKomaAt(currentX, fromY) != null) {
+                blocked = true;
+                break;
+              }
+            }
+            if (!blocked) {
+              return true;
+            }
+          }
+          break;
+        case LINE_UP_LEFT:
+          if (dx < 0 && dy < 0 && Math.abs(dx) == Math.abs(dy)) {
+            boolean blocked = false;
+            for (int i = 1; i < Math.abs(dx); i++) {
+              if (ban.getKomaAt(fromX - i, fromY - i) != null) {
+                blocked = true;
+                break;
+              }
+            }
+            if (!blocked) {
+              return true;
+            }
+          }
+          break;
+        case LINE_UP_RIGHT:
+          if (dx > 0 && dy < 0 && Math.abs(dx) == Math.abs(dy)) {
+            boolean blocked = false;
+            for (int i = 1; i < Math.abs(dx); i++) {
+              if (ban.getKomaAt(fromX + i, fromY - i) != null) {
+                blocked = true;
+                break;
+              }
+            }
+            if (!blocked) {
+              return true;
+            }
+          }
+          break;
+        case LINE_DOWN_LEFT:
+          if (dx < 0 && dy > 0 && Math.abs(dx) == Math.abs(dy)) {
+            boolean blocked = false;
+            for (int i = 1; i < Math.abs(dx); i++) {
+              if (ban.getKomaAt(fromX - i, fromY + i) != null) {
+                blocked = true;
+                break;
+              }
+            }
+            if (!blocked) {
+              return true;
+            }
+          }
+          break;
+        case LINE_DOWN_RIGHT:
+          if (dx > 0 && dy > 0 && Math.abs(dx) == Math.abs(dy)) {
+            boolean blocked = false;
+            for (int i = 1; i < Math.abs(dx); i++) {
+              if (ban.getKomaAt(fromX + i, fromY + i) != null) {
+                blocked = true;
+                break;
+              }
+            }
+            if (!blocked) {
+              return true;
+            }
+          }
+          break;
+      }
+    }
+    return false;
+  }
+
   private String returnGame(Model model, Game game, String playerName, Ban ban) {
     model.addAttribute("gameId", game.getId());
     if (ban != null) {
@@ -76,18 +243,25 @@ public class GameController {
     }
 
     // 自分の駒を盤面にセットする
-    KomaDB koma1 = KomaMapper.selectKomaById(1); // 例: 駒ID1を選択
-    List<KomaRule> koma1Rules = KomaMapper.selectKomaRuleById(1);
-    Koma koma1Koma = new Koma(koma1, koma1Rules, game.getPlayer1());
-    game.getBan().setKomaAt(0, 2, koma1Koma);
+    KomaDB koma10 = KomaMapper.selectKomaById(0); // 例: 駒ID1を選択
+    List<KomaRule> koma10Rules = KomaMapper.selectKomaRuleById(0);
+    Koma koma10Koma = new Koma(koma10, koma10Rules, game.getPlayer1());
+    game.getBan().setKomaAt(0, 2, koma10Koma);
+    KomaDB koma11 = KomaMapper.selectKomaById(1); // 例: 駒ID2を選択
+    List<KomaRule> koma11Rules = KomaMapper.selectKomaRuleById(1);
+    Koma koma11Koma = new Koma(koma11, koma11Rules, game.getPlayer1());
+    game.getBan().setKomaAt(1, 2, koma11Koma);
+    KomaDB koma12 = KomaMapper.selectKomaById(7); // 例: 駒ID3を選択
+    List<KomaRule> koma12Rules = KomaMapper.selectKomaRuleById(7);
+    Koma koma12Koma = new Koma(koma12, koma12Rules, game.getPlayer1());
+    game.getBan().setKomaAt(2, 2, koma12Koma);
 
     // 相手の駒を盤面にセットする
     game.getBan().rotate180();
-
-    KomaDB koma2 = KomaMapper.selectKomaById(2); // 例: 駒ID2を選択
-    List<KomaRule> koma2Rules = KomaMapper.selectKomaRuleById(2);
-    Koma koma2Koma = new Koma(koma2, koma2Rules, game.getPlayer2());
-    game.getBan().setKomaAt(0, 2, koma2Koma);
+    KomaDB koma20 = KomaMapper.selectKomaById(0); // 例: 駒ID1を選択
+    List<KomaRule> koma20Rules = KomaMapper.selectKomaRuleById(0);
+    Koma koma20Koma = new Koma(koma20, koma20Rules, game.getPlayer2());
+    game.getBan().setKomaAt(0, 2, koma20Koma);
 
     // 表示用盤面に反映
     game.getDisplayBan().applyBan(game.getBan());
@@ -124,8 +298,7 @@ public class GameController {
     }
 
     // 移動ルールを確認
-    Boolean canMove = koma.canMove(fromX, fromY, toX, toY);
-    System.out.println("canMove:" + canMove);
+    Boolean canMove = canMove(game.getBan(), fromX, fromY, toX, toY);
     if (!canMove) {
       return returnGame(model, game, loginPlayerName, game.getBan(), "不正な手です");
     }
