@@ -54,19 +54,14 @@ public class DeckController {
   }
 
   @PostMapping("/choose")
-  public String chooseDeck(@RequestParam int deckId, Principal principal, Model model) {
-    Deck selectedDeck = deckMapper.selectDeckById(deckId);
-    model.addAttribute("selectedDeck", selectedDeck);
+  public String chooseDeck(@RequestParam int deckId, Principal principal, HttpSession session) {
+    session.setAttribute("selectedDeckId", deckId);
     return "redirect:/home";
   }
 
   @GetMapping("/load/{id}")
   public String loadDeck(@PathVariable("id") int deckId, HttpSession session) {
-    Deck deck = deckMapper.selectDeckById(deckId);
-    if (deck != null) {
-      session.setAttribute("selectedDeck", deck);
-    }
-    // 選択後にホームへ戻す
+    session.setAttribute("selectedDeckId", deckId);
     return "redirect:/home";
   }
 
