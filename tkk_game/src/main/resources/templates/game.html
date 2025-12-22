@@ -19,7 +19,6 @@
     console.log(ban);
     console.log(haveKoma)
 
-    let select = false;
     let selectedX = null;
     let selectedY = null;
     let selectedHaveKoma = false;
@@ -34,21 +33,14 @@
     }
 
     function setSelectdCell(x, y) {
-      if (select) {
-        select = false;
-        window.location.href = `/game/move?fromX=${selectedX}&fromY=${selectedY}&toX=${x}&toY=${y}`;
-        return;
-      }
       selectedX = x;
       selectedY = y;
-      select = true;
       selectedHaveKoma = false;
       console.log(`Selected cell: (${x}, ${y})`);
     }
     function sendMove(x, y) {
       if (selectedHaveKoma) {
         window.location.href = `/game/putKoma?index=${haveKomaIndex}&toX=${x}&toY=${y}`;
-
       } else {
         if (selectedX === null || selectedY === null) {
           alert('セルが選択されていません');
@@ -74,9 +66,11 @@
         html += '<tr>';
         for (let x = 0; x < boardLength; x++) {
           const cell = ban.board[x][y];
-          const cellContent = (cell && cell.name) ?
+          const cellContent = (cell && cell.name && (cell.owner.name === loginPlayerName)) ?
             `<div class="cell" onClick="setSelectdCell(${Xa2b(x)}, ${Ya2b(y)})">${cell.name}</div>`
-            : `<div class="cell" onClick="sendMove(${Xa2b(x)}, ${Ya2b(y)})">　</div>`;
+            : (cell && cell.name) ?
+              `<div class="cell" onClick="sendMove(${Xa2b(x)}, ${Ya2b(y)})">${cell.name}</div>`
+              : `<div class="cell" onClick="sendMove(${Xa2b(x)}, ${Ya2b(y)})">　</div>`;
           html += `<td>${cellContent}</td>`;
         }
         html += '</tr>';
@@ -87,7 +81,6 @@
     }
 
     function selectHaveKoma(index) {
-      select = false;
       selectedHaveKoma = true;
       haveKomaIndex = index;
     }
@@ -99,12 +92,12 @@
       }
 
       let html = '<table>';
-        
+
       html += '<tr>';
       for (let i = 0; i < haveKoma.length; i++) {
         const cell = haveKoma[i];
         html += `<td><div class="cell" onClick="selectHaveKoma(${i})">${cell.name}</div></td>`;
-        
+
       }
       html += '</tr>';
 
