@@ -73,6 +73,16 @@ public class Game {
     }
   }
 
+  public ArrayList<Koma> getEHaveKomaByName(String playerName) {
+    if (player1.getName().equals(playerName)) {
+      return havekoma2;
+    } else if (player2.getName().equals(playerName)) {
+      return havekoma1;
+    } else {
+      return null;
+    }
+  }
+
   public void addHaveKomaByName(String playerName, Koma koma) {
     if (player1.getName().equals(playerName)) {
       havekoma1.add(getHavekomaIndex(havekoma1, koma), koma);
@@ -82,9 +92,10 @@ public class Game {
   }
 
   private byte getHavekomaIndex(ArrayList<Koma> havekoma, Koma koma) {
-    if (havekoma.isEmpty()) return 0;
+    if (havekoma.isEmpty())
+      return 0;
     for (byte i = 0; i < havekoma.size(); i++) {
-      if (havekoma.get(i).getId() > koma.getId()) 
+      if (havekoma.get(i).getId() > koma.getId())
         return i;
     }
     return (byte) havekoma.size();

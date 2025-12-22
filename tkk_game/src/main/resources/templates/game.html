@@ -14,6 +14,7 @@
     const game = /*[[${game}]]*/ null;
     const loginPlayerName = /*[[${#authentication.name}]]*/ null;
     const haveKoma = /*[[${haveKoma}]]*/ null;
+    const haveKoma_E = /*[[${E_haveKoma}]]*/ null;
 
     console.log(game);
     console.log(ban);
@@ -84,25 +85,25 @@
       selectedHaveKoma = true;
       haveKomaIndex = index;
     }
-    function drawhaveKoma() {
-      const haveKomaContainer = document.getElementById('haveKoma-container');
-      if (!haveKoma) {
-        haveKomaContainer.innerHTML = '<p>盤面データがありません</p>';
+    function drawHaveKoma(komaData, containerId, isClickable = false) {
+      const komaContainer = document.getElementById(containerId);
+      if (!komaData) {
+        komaContainer.innerHTML = '<p>盤面データがありません</p>';
         return;
       }
 
       let html = '<table>';
-
       html += '<tr>';
-      for (let i = 0; i < haveKoma.length; i++) {
-        const cell = haveKoma[i];
-        html += `<td><div class="cell" onClick="selectHaveKoma(${i})">${cell.name}</div></td>`;
-
+      for (let i = 0; i < komaData.length; i++) {
+        const cell = komaData[i];
+        const cellContent = isClickable 
+          ? `<div class="cell" onClick="selectHaveKoma(${i})">${cell.name}</div>`
+          : `<div>${cell.name}</div>`;
+        html += `<td>${cellContent}</td>`;
       }
       html += '</tr>';
-
       html += '</table>';
-      haveKomaContainer.innerHTML = html;
+      komaContainer.innerHTML = html;
     }
 
 
@@ -110,7 +111,8 @@
     window.onload = function () {
       // 盤面を描画
       drawBoard();
-      drawhaveKoma();
+      drawHaveKoma(haveKoma, 'haveKoma-container', true);
+      drawHaveKoma(haveKoma_E, 'haveKoma_E-container', false);
 
       // エラーメッセージがあれば表示
       if (errMessage) {
@@ -146,8 +148,16 @@
     <div id="board-container">
       <!-- 盤面がここに表示されます -->
     </div>
-    <div id="haveKoma-container">
-      <!-- 持ち駒がここに表示されます -->
+    <div>
+      <p>自分の持ち駒</p>
+      <div id="haveKoma-container">
+        <!-- 持ち駒がここに表示されます -->
+      </div>
+      <br>
+      <p>相手の持ち駒</p>
+      <div id="haveKoma_E-container">
+        <!-- 相手の持ち駒がここに表示されます -->
+      </div>
     </div>
   </div>
 
