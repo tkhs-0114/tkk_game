@@ -12,8 +12,8 @@ public class Game {
   Player player2;
   Ban Ban;
   Ban displayBan;
-  ArrayList<Koma> havekoma1;
-  ArrayList<Koma> havekoma2;
+  ArrayList<Koma> haveKoma1;
+  ArrayList<Koma> haveKoma2;
 
   public Game(String id, String player1Name) {
     this.id = id;
@@ -21,8 +21,8 @@ public class Game {
     this.lastActivity = new Date();
     this.Ban = new Ban();
     this.displayBan = new Ban();
-    this.havekoma1 = new ArrayList<Koma>();
-    this.havekoma2 = new ArrayList<Koma>();
+    this.haveKoma1 = new ArrayList<Koma>();
+    this.haveKoma2 = new ArrayList<Koma>();
   }
 
   public String getId() {
@@ -65,9 +65,9 @@ public class Game {
 
   public ArrayList<Koma> getHaveKomaByName(String playerName) {
     if (player1.getName().equals(playerName)) {
-      return havekoma1;
+      return haveKoma1;
     } else if (player2.getName().equals(playerName)) {
-      return havekoma2;
+      return haveKoma2;
     } else {
       return null;
     }
@@ -75,9 +75,9 @@ public class Game {
 
   public ArrayList<Koma> getEHaveKomaByName(String playerName) {
     if (player1.getName().equals(playerName)) {
-      return havekoma2;
+      return haveKoma2;
     } else if (player2.getName().equals(playerName)) {
-      return havekoma1;
+      return haveKoma1;
     } else {
       return null;
     }
@@ -85,20 +85,20 @@ public class Game {
 
   public void addHaveKomaByName(String playerName, Koma koma) {
     if (player1.getName().equals(playerName)) {
-      havekoma1.add(getHavekomaIndex(havekoma1, koma), koma);
+      haveKoma1.add(getHaveKomaIndex(haveKoma1, koma), koma);
     } else if (player2.getName().equals(playerName)) {
-      havekoma2.add(getHavekomaIndex(havekoma2, koma), koma);
+      haveKoma2.add(getHaveKomaIndex(haveKoma2, koma), koma);
     }
   }
 
-  private byte getHavekomaIndex(ArrayList<Koma> havekoma, Koma koma) {
-    if (havekoma.isEmpty())
+  private int getHaveKomaIndex(ArrayList<Koma> haveKoma, Koma koma) {
+    if (haveKoma.isEmpty())
       return 0;
-    for (byte i = 0; i < havekoma.size(); i++) {
-      if (havekoma.get(i).getId() > koma.getId())
+    for (int i = 0; i < haveKoma.size(); i++) {
+      if (haveKoma.get(i).getId() > koma.getId())
         return i;
     }
-    return (byte) havekoma.size();
+    return haveKoma.size();
   }
 
   public void switchTurn() {

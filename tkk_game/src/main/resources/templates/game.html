@@ -14,11 +14,11 @@
     const game = /*[[${game}]]*/ null;
     const loginPlayerName = /*[[${#authentication.name}]]*/ null;
     const haveKoma = /*[[${haveKoma}]]*/ null;
-    const haveKoma_E = /*[[${E_haveKoma}]]*/ null;
+    const enemyHaveKoma = /*[[${enemyHaveKoma}]]*/ null;
 
     console.log(game);
     console.log(ban);
-    console.log(haveKoma)
+    console.log(haveKoma);
 
     let selectedX = null;
     let selectedY = null;
@@ -33,7 +33,7 @@
       return arrayIndex - (ban.board[0].length - 1) / 2;
     }
 
-    function setSelectdCell(x, y) {
+    function setSelectedCell(x, y) {
       selectedX = x;
       selectedY = y;
       selectedHaveKoma = false;
@@ -68,7 +68,7 @@
         for (let x = 0; x < boardLength; x++) {
           const cell = ban.board[x][y];
           const cellContent = (cell && cell.name && (cell.owner.name === loginPlayerName)) ?
-            `<div class="cell" onClick="setSelectdCell(${Xa2b(x)}, ${Ya2b(y)})">${cell.name}</div>`
+            `<div class="cell" onClick="setSelectedCell(${Xa2b(x)}, ${Ya2b(y)})">${cell.name}</div>`
             : (cell && cell.name) ?
               `<div class="cell" onClick="sendMove(${Xa2b(x)}, ${Ya2b(y)})">${cell.name}</div>`
               : `<div class="cell" onClick="sendMove(${Xa2b(x)}, ${Ya2b(y)})">　</div>`;
@@ -112,7 +112,7 @@
       // 盤面を描画
       drawBoard();
       drawHaveKoma(haveKoma, 'haveKoma-container', true);
-      drawHaveKoma(haveKoma_E, 'haveKoma_E-container', false);
+      drawHaveKoma(enemyHaveKoma, 'haveKoma_E-container', false);
 
       // エラーメッセージがあれば表示
       if (errMessage) {

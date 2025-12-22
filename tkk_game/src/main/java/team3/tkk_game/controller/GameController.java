@@ -56,7 +56,7 @@ public class GameController {
     }
     model.addAttribute("playerStatus", game.getPlayerByName(playerName).getStatus());
     model.addAttribute("haveKoma", game.getHaveKomaByName(playerName));
-    model.addAttribute("E_haveKoma", game.getEHaveKomaByName(playerName));
+    model.addAttribute("enemyHaveKoma", game.getEHaveKomaByName(playerName));
     // デバッグ用
     model.addAttribute("game", game);
     return "game.html";
