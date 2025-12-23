@@ -1,6 +1,8 @@
 package team3.tkk_game.model;
 
 import java.util.Date;
+import java.util.ArrayList;
+import team3.tkk_game.model.Koma.Koma;
 
 public class Game {
   // デバッグ用にpublicに変更
@@ -10,6 +12,8 @@ public class Game {
   Player player2;
   Ban Ban;
   Ban displayBan;
+  ArrayList<Koma> haveKoma1;
+  ArrayList<Koma> haveKoma2;
 
   public Game(String id, String player1Name) {
     this.id = id;
@@ -17,6 +21,8 @@ public class Game {
     this.lastActivity = new Date();
     this.Ban = new Ban();
     this.displayBan = new Ban();
+    this.haveKoma1 = new ArrayList<Koma>();
+    this.haveKoma2 = new ArrayList<Koma>();
   }
 
   public String getId() {
@@ -55,6 +61,44 @@ public class Game {
     } else {
       return null;
     }
+  }
+
+  public ArrayList<Koma> getHaveKomaByName(String playerName) {
+    if (player1.getName().equals(playerName)) {
+      return haveKoma1;
+    } else if (player2.getName().equals(playerName)) {
+      return haveKoma2;
+    } else {
+      return null;
+    }
+  }
+
+  public ArrayList<Koma> getEHaveKomaByName(String playerName) {
+    if (player1.getName().equals(playerName)) {
+      return haveKoma2;
+    } else if (player2.getName().equals(playerName)) {
+      return haveKoma1;
+    } else {
+      return null;
+    }
+  }
+
+  public void addHaveKomaByName(String playerName, Koma koma) {
+    if (player1.getName().equals(playerName)) {
+      haveKoma1.add(getHaveKomaIndex(haveKoma1, koma), koma);
+    } else if (player2.getName().equals(playerName)) {
+      haveKoma2.add(getHaveKomaIndex(haveKoma2, koma), koma);
+    }
+  }
+
+  private int getHaveKomaIndex(ArrayList<Koma> haveKoma, Koma koma) {
+    if (haveKoma.isEmpty())
+      return 0;
+    for (int i = 0; i < haveKoma.size(); i++) {
+      if (haveKoma.get(i).getId() > koma.getId())
+        return i;
+    }
+    return haveKoma.size();
   }
 
   public void switchTurn() {

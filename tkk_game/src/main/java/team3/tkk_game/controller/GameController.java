@@ -58,6 +58,8 @@ public class GameController {
       }
     }
     model.addAttribute("playerStatus", game.getPlayerByName(playerName).getStatus());
+    model.addAttribute("haveKoma", game.getHaveKomaByName(playerName));
+    model.addAttribute("enemyHaveKoma", game.getEHaveKomaByName(playerName));
     // デバッグ用
     model.addAttribute("game", game);
     return "game.html";
@@ -92,12 +94,27 @@ public class GameController {
     Koma koma12Koma = new Koma(koma12, koma12Rules, game.getPlayer1());
     game.getBan().setKomaAt(2, 2, koma12Koma);
 
+    KomaDB koma1_2 = KomaMapper.selectKomaById(1); // 例: 駒ID1を選択
+    List<KomaRule> koma1_2Rules = KomaMapper.selectKomaRuleById(1);
+    Koma koma1_2Koma = new Koma(koma1_2, koma1_2Rules, game.getPlayer1());
+    game.getBan().setKomaAt(0, 1, koma1_2Koma);
+
+    KomaDB koma1_3 = KomaMapper.selectKomaById(2); // 例: 駒ID2を選択
+    List<KomaRule> koma1_3Rules = KomaMapper.selectKomaRuleById(2);
+    Koma koma1_3Koma = new Koma(koma1_3, koma1_3Rules, game.getPlayer1());
+    game.getBan().setKomaAt(1, 2, koma1_3Koma);
+
     // 相手の駒を盤面にセットする
     game.getBan().rotate180();
     KomaDB koma20 = KomaMapper.selectKomaById(0); // 例: 駒ID1を選択
     List<KomaRule> koma20Rules = KomaMapper.selectKomaRuleById(0);
     Koma koma20Koma = new Koma(koma20, koma20Rules, game.getPlayer2());
     game.getBan().setKomaAt(0, 2, koma20Koma);
+
+    KomaDB koma2_2 = KomaMapper.selectKomaById(1); // 例: 駒ID1を選択
+    List<KomaRule> koma2_2Rules = KomaMapper.selectKomaRuleById(1);
+    Koma koma2_2Koma = new Koma(koma2_2, koma2_2Rules, game.getPlayer2());
+    game.getBan().setKomaAt(0, 1, koma2_2Koma);
 
     // 表示用盤面に反映
     game.getDisplayBan().applyBan(game.getBan());
@@ -127,7 +144,7 @@ public class GameController {
       return returnGame(model, game, loginPlayerName, null, "自分のターンではありません");
     }
 
-    // 自分の駒か確認（LocalBanには自分の駒しかない）
+    // 自分の駒か確認
     Koma koma = game.getBan().getKomaAt(fromX, fromY);
     if (koma != null && koma.getOwner() != game.getPlayerByName(loginPlayerName)) {
       return returnGame(model, game, loginPlayerName, game.getBan(), "自分の駒ではありません");
@@ -139,12 +156,52 @@ public class GameController {
       return returnGame(model, game, loginPlayerName, game.getBan(), "不正な手です");
     }
 
-    // 相手の駒を取る場合の処理
-    // 未実装
+    // 移動先に駒がある時の処理
+    if (game.getBan().getKomaAt(toX, toY) != null) {
+      Koma targetKoma = game.getBan().getKomaAt(toX, toY);
+      if (targetKoma.getOwner() == game.getPlayerByName(loginPlayerName)) {
+        return returnGame(model, game, loginPlayerName, game.getBan(), "自分の駒がいます");
+      }
+      // 駒を取る処理
+      targetKoma.setOwner(game.getPlayerByName(loginPlayerName));
+      game.addHaveKomaByName(loginPlayerName, targetKoma);
+    }
 
     // 駒を移動
     game.getBan().setKomaAt(toX, toY, koma);
     game.getBan().setKomaAt(fromX, fromY, null);
+
+    // 自分視点の盤面を保存
+    Ban myban = new Ban(game.getBan());
+
+    // 相手視点の盤面を保存
+    game.getDisplayBan().applyBan(game.getBan());
+
+    // ターンを交代
+    game.switchTurn();
+    return returnGame(model, game, loginPlayerName, myban);
+  }
+
+  @GetMapping("/putKoma")
+  public String gamePutKoma(Principal principal, Model model, @RequestParam int index, @RequestParam int toX, @RequestParam int toY) {
+    String loginPlayerName = principal.getName();
+    Game game = gameRoom.getGameByPlayerName(loginPlayerName);
+
+    // 自分のターンか確認
+    if (!isMyTurn(game, loginPlayerName)) {
+      return returnGame(model, game, loginPlayerName, null, "自分のターンではありません");
+    }
+
+    // 持ち駒のインデックス確認
+    List<Koma> haveKoma = game.getHaveKomaByName(loginPlayerName);
+    if (index < 0 || index >= haveKoma.size()) {
+      return returnGame(model, game, loginPlayerName, game.getBan(), "その持ち駒は存在しません");
+    }
+
+    // 駒を盤面に置く
+    Koma koma = haveKoma.get(index);
+    game.getBan().setKomaAt(toX, toY, koma);
+    haveKoma.remove(index);
 
     // 自分視点の盤面を保存
     Ban myban = new Ban(game.getBan());

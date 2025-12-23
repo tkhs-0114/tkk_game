@@ -38,7 +38,7 @@ public class Ban {
   }
 
   public boolean setKomaAt(int x, int y, Koma koma) {
-    if (board[b2a(x)][b2a(y)] != null && koma != null) {
+    if (b2a(x) >= BAN_LENGTH || b2a(y) >= BAN_LENGTH || b2a(x) < 0 || b2a(y) < 0) {
       return false;
     }
     board[b2a(x)][b2a(y)] = koma;
