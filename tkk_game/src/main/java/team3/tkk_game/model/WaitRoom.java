@@ -60,10 +60,10 @@ public class WaitRoom {
     waitRoomEventEmitterManager.notifyRoomListChange(waitRoom);
   }
 
-  public boolean sendRequest(String Player2Name, String Player1Name) {
-    Game room = getRoomByName(Player1Name);
+  public boolean sendRequest(String player2Name, String player1Name) {
+    Game room = getRoomByName(player1Name);
     if (room != null && room.getPlayer2() == null) {
-      room.setPlayer2(Player2Name);
+      room.setPlayer2(player2Name);
       // 待機室リストの変更を通知
       waitRoomEventEmitterManager.notifyRoomListChange(waitRoom);
       return true;
