@@ -15,6 +15,7 @@ import team3.tkk_game.model.PlayerStatus;
 import team3.tkk_game.model.Ban;
 import team3.tkk_game.model.Game;
 import team3.tkk_game.model.WaitRoom;
+import team3.tkk_game.services.GameEventEmitterManager;
 import team3.tkk_game.services.MoveValidator;
 import team3.tkk_game.services.TurnChecker;
 
@@ -36,9 +37,11 @@ public class GameController {
   @Autowired
   TurnChecker turnChecker;
   @Autowired
-  KomaMapper KomaMapper;
+  KomaMapper komaMapper;
   @Autowired
   MoveValidator moveValidator;
+  @Autowired
+  GameEventEmitterManager gameEventEmitterManager;
 
   private boolean isMyTurn(Game game, String playerName) {
     return game.getPlayerByName(playerName).getStatus() == PlayerStatus.GAME_THINKING;
@@ -81,38 +84,38 @@ public class GameController {
     }
 
     // 自分の駒を盤面にセットする
-    KomaDB koma10 = KomaMapper.selectKomaById(0); // 例: 駒ID1を選択
-    List<KomaRule> koma10Rules = KomaMapper.selectKomaRuleById(0);
+    KomaDB koma10 = komaMapper.selectKomaById(0); // 例: 駒ID1を選択
+    List<KomaRule> koma10Rules = komaMapper.selectKomaRuleById(0);
     Koma koma10Koma = new Koma(koma10, koma10Rules, game.getPlayer1());
     game.getBan().setKomaAt(0, 2, koma10Koma);
-    KomaDB koma11 = KomaMapper.selectKomaById(1); // 例: 駒ID2を選択
-    List<KomaRule> koma11Rules = KomaMapper.selectKomaRuleById(1);
+    KomaDB koma11 = komaMapper.selectKomaById(1); // 例: 駒ID2を選択
+    List<KomaRule> koma11Rules = komaMapper.selectKomaRuleById(1);
     Koma koma11Koma = new Koma(koma11, koma11Rules, game.getPlayer1());
     game.getBan().setKomaAt(1, 2, koma11Koma);
-    KomaDB koma12 = KomaMapper.selectKomaById(7); // 例: 駒ID3を選択
-    List<KomaRule> koma12Rules = KomaMapper.selectKomaRuleById(7);
+    KomaDB koma12 = komaMapper.selectKomaById(7); // 例: 駒ID3を選択
+    List<KomaRule> koma12Rules = komaMapper.selectKomaRuleById(7);
     Koma koma12Koma = new Koma(koma12, koma12Rules, game.getPlayer1());
     game.getBan().setKomaAt(2, 2, koma12Koma);
 
-    KomaDB koma1_2 = KomaMapper.selectKomaById(1); // 例: 駒ID1を選択
-    List<KomaRule> koma1_2Rules = KomaMapper.selectKomaRuleById(1);
+    KomaDB koma1_2 = komaMapper.selectKomaById(1); // 例: 駒ID1を選択
+    List<KomaRule> koma1_2Rules = komaMapper.selectKomaRuleById(1);
     Koma koma1_2Koma = new Koma(koma1_2, koma1_2Rules, game.getPlayer1());
     game.getBan().setKomaAt(0, 1, koma1_2Koma);
 
-    KomaDB koma1_3 = KomaMapper.selectKomaById(2); // 例: 駒ID2を選択
-    List<KomaRule> koma1_3Rules = KomaMapper.selectKomaRuleById(2);
+    KomaDB koma1_3 = komaMapper.selectKomaById(2); // 例: 駒ID2を選択
+    List<KomaRule> koma1_3Rules = komaMapper.selectKomaRuleById(2);
     Koma koma1_3Koma = new Koma(koma1_3, koma1_3Rules, game.getPlayer1());
     game.getBan().setKomaAt(1, 2, koma1_3Koma);
 
     // 相手の駒を盤面にセットする
     game.getBan().rotate180();
-    KomaDB koma20 = KomaMapper.selectKomaById(0); // 例: 駒ID1を選択
-    List<KomaRule> koma20Rules = KomaMapper.selectKomaRuleById(0);
+    KomaDB koma20 = komaMapper.selectKomaById(0); // 例: 駒ID1を選択
+    List<KomaRule> koma20Rules = komaMapper.selectKomaRuleById(0);
     Koma koma20Koma = new Koma(koma20, koma20Rules, game.getPlayer2());
     game.getBan().setKomaAt(0, 2, koma20Koma);
 
-    KomaDB koma2_2 = KomaMapper.selectKomaById(1); // 例: 駒ID1を選択
-    List<KomaRule> koma2_2Rules = KomaMapper.selectKomaRuleById(1);
+    KomaDB koma2_2 = komaMapper.selectKomaById(1); // 例: 駒ID1を選択
+    List<KomaRule> koma2_2Rules = komaMapper.selectKomaRuleById(1);
     Koma koma2_2Koma = new Koma(koma2_2, koma2_2Rules, game.getPlayer2());
     game.getBan().setKomaAt(0, 1, koma2_2Koma);
 
@@ -179,11 +182,17 @@ public class GameController {
 
     // ターンを交代
     game.switchTurn();
+
+    // ターン変更をSSEで通知
+    String currentTurnPlayerName = getCurrentTurnPlayerName(game);
+    gameEventEmitterManager.notifyTurnChange(game.getId(), currentTurnPlayerName);
+
     return returnGame(model, game, loginPlayerName, myban);
   }
 
   @GetMapping("/putKoma")
-  public String gamePutKoma(Principal principal, Model model, @RequestParam int index, @RequestParam int toX, @RequestParam int toY) {
+  public String gamePutKoma(Principal principal, Model model, @RequestParam int index, @RequestParam int toX,
+      @RequestParam int toY) {
     String loginPlayerName = principal.getName();
     Game game = gameRoom.getGameByPlayerName(loginPlayerName);
 
@@ -196,6 +205,11 @@ public class GameController {
     List<Koma> haveKoma = game.getHaveKomaByName(loginPlayerName);
     if (index < 0 || index >= haveKoma.size()) {
       return returnGame(model, game, loginPlayerName, game.getBan(), "その持ち駒は存在しません");
+    }
+
+    // 移動先に駒がないか確認
+    if (game.getBan().getKomaAt(toX, toY) != null) {
+      return returnGame(model, game, loginPlayerName, game.getBan(), "その位置には駒が存在します");
     }
 
     // 駒を盤面に置く
@@ -211,14 +225,32 @@ public class GameController {
 
     // ターンを交代
     game.switchTurn();
+
+    // ターン変更をSSEで通知
+    String currentTurnPlayerName = getCurrentTurnPlayerName(game);
+    gameEventEmitterManager.notifyTurnChange(game.getId(), currentTurnPlayerName);
+
     return returnGame(model, game, loginPlayerName, myban);
   }
 
   @GetMapping("/turn")
   public SseEmitter game(Principal principal, @RequestParam String gameId) {
-    SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
-    turnChecker.checkTurn(emitter, gameRoom.getGameById(gameId), principal.getName());
-    return emitter;
+    Game game = gameRoom.getGameById(gameId);
+    return turnChecker.registerTurnEmitter(game, principal.getName());
+  }
+
+  /**
+   * 現在のターンのプレイヤー名を取得する
+   *
+   * @param game ゲームオブジェクト
+   * @return 現在のターン（GAME_THINKING）のプレイヤー名
+   */
+  private String getCurrentTurnPlayerName(Game game) {
+    if (game.getPlayer1().getStatus() == PlayerStatus.GAME_THINKING) {
+      return game.getPlayer1().getName();
+    } else {
+      return game.getPlayer2().getName();
+    }
   }
 
 }

@@ -6,11 +6,11 @@ import team3.tkk_game.model.Koma.Koma;
 
 public class Game {
   // デバッグ用にpublicに変更
-  public String id;
-  public Date lastActivity;
+  String id;
+  Date lastActivity;
   Player player1;
   Player player2;
-  Ban Ban;
+  Ban ban;
   Ban displayBan;
   ArrayList<Koma> haveKoma1;
   ArrayList<Koma> haveKoma2;
@@ -19,7 +19,7 @@ public class Game {
     this.id = id;
     this.player1 = new Player(player1Name, PlayerStatus.GAME_WAITING);
     this.lastActivity = new Date();
-    this.Ban = new Ban();
+    this.ban = new Ban();
     this.displayBan = new Ban();
     this.haveKoma1 = new ArrayList<Koma>();
     this.haveKoma2 = new ArrayList<Koma>();
@@ -46,7 +46,7 @@ public class Game {
   }
 
   public Ban getBan() {
-    return Ban;
+    return ban;
   }
 
   public Ban getDisplayBan() {
@@ -105,7 +105,7 @@ public class Game {
     updateLastActivity();
     // 盤面を相手視点に回転
     this.displayBan.rotate180();
-    this.Ban.rotate180();
+    this.ban.rotate180();
     // プレイヤーステータスを入れ替え
     if (player1.getStatus() == PlayerStatus.GAME_THINKING) {
       player1.setStatus(PlayerStatus.GAME_WAITING);

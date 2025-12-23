@@ -16,9 +16,6 @@ public class MoveValidator {
 
   /**
    * 駒が指定された位置に移動可能かを判定する
-   *
-   * 移動先に自分の駒がある場合は移動不可
-   * 移動先に敵の駒がある場合は移動可能（駒を取る処理は別途行う）
    * 経路上に駒がある場合は移動不可
    *
    * @param ban   盤面
@@ -30,12 +27,6 @@ public class MoveValidator {
    */
   public boolean canMove(Ban ban, int fromX, int fromY, int toX, int toY) {
     Koma koma = ban.getKomaAt(fromX, fromY);
-    Koma targetKoma = ban.getKomaAt(toX, toY);
-
-    // 移動先に自分の駒がある場合は移動不可
-    if (targetKoma != null && targetKoma.getOwner() == koma.getOwner()) {
-      return false;
-    }
 
     List<KomaRule> rules = koma.getRules();
     System.out.println(rules);

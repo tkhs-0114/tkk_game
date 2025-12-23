@@ -17,7 +17,11 @@ public class Ban {
   }
 
   public Ban(Ban otherBan) {
-    this.board = otherBan.getBoard();
+    for (int x = 0; x < BAN_LENGTH; x++) {
+      for (int y = 0; y < BAN_LENGTH; y++) {
+        this.board[x][y] = otherBan.getBoard()[x][y];
+      }
+    }
   }
 
   public Koma[][] getBoard() {
@@ -25,7 +29,11 @@ public class Ban {
   }
 
   public void applyBan(Ban otherBan) {
-    this.board = otherBan.getBoard();
+    for (int x = 0; x < BAN_LENGTH; x++) {
+      for (int y = 0; y < BAN_LENGTH; y++) {
+        this.board[x][y] = otherBan.getBoard()[x][y];
+      }
+    }
   }
 
   // board配列のインデックスに変換する
