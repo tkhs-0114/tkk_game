@@ -122,6 +122,12 @@ public class GameController {
     // 表示用盤面に反映
     game.getDisplayBan().applyBan(game.getBan());
 
+    // P2に通知
+    game.getPlayer2().setStatus(PlayerStatus.GAME_THINKING);
+    String currentTurnPlayerName = getCurrentTurnPlayerName(game);
+    gameEventEmitterManager.notifyTurnChange(game.getId(), currentTurnPlayerName);
+
+
     return "redirect:/game";
   }
 
