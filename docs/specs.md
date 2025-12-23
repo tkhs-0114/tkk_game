@@ -1,10 +1,10 @@
 # システム仕様書 (最新版)
 
 ## 最終更新日
-2025-12-16
+2025-12-23
 
 ## システム概要
-Spring Boot を用いた Web アプリケーション。将棋風のボードゲームを実装しており、ユーザー認証、マッチング機能、リアルタイムゲーム機能を提供する。SSE (Server-Sent Events) を活用したリアルタイム通信により、プレイヤー間の対戦マッチングとターン制ゲームプレイを実現している。デッキ作成機能とH2データベースによる駒・デッキデータの永続化機能も実装されている。
+Spring Boot を用いた Web アプリケーション。将棋風のボードゲームを実装しており、ユーザー認証、マッチング機能、リアルタイムゲーム機能を提供する。SSE (Server-Sent Events) を活用したリアルタイム通信により、プレイヤー間の対戦マッチングとターン制ゲームプレイを実現している。デッキ作成機能とH2データベースによる駒・デッキデータの永続化機能も実装されている。駒の移動ルール判定は `MoveValidator` サービスに分離されており、各駒の移動ルール（単マス移動・直線移動）を正確に判定する。
 
 ## 使用技術 / バージョン
 - Java 21 (Gradle Toolchain)
@@ -41,6 +41,7 @@ Spring Boot を用いた Web アプリケーション。将棋風のボードゲ
 | `/game/start` | GET | 認証必須 | ゲーム開始 (マッチング成立時) |
 | `/game` | GET | 認証必須 | ゲーム画面表示 |
 | `/game/move` | GET | 認証必須 | 駒の移動処理 (fromX, fromY, toX, toY パラメータ) |
+| `/game/putKoma` | GET | 認証必須 | 持ち駒を盤面に置く処理 (index, toX, toY パラメータ) |
 | `/game/turn` | GET (SSE) | 認証必須 | ゲームターン情報をリアルタイム配信 |
 | `/deck/make` | GET | 認証必須 | デッキ作成画面 |
 | `/deck/save` | POST | 認証必須 | デッキ保存 (deckName, sfen パラメータ) |
@@ -129,6 +130,7 @@ Spring Boot を用いた Web アプリケーション。将棋風のボードゲ
 - 駒の移動ルールを定義
 - 単マス移動: `UP`, `DOWN`, `LEFT`, `RIGHT`, `UP_LEFT`, `UP_RIGHT`, `DOWN_LEFT`, `DOWN_RIGHT`
 - 直線移動: `LINE_UP`, `LINE_DOWN`, `LINE_LEFT`, `LINE_RIGHT`, `LINE_UP_LEFT`, `LINE_UP_RIGHT`, `LINE_DOWN_LEFT`, `LINE_DOWN_RIGHT`
+- ジャンプ移動: `JUMP_UP_LEFT`, `JUMP_UP_RIGHT` (桂馬用、現在は移動判定未実装)
 
 ### デッキ (`Deck` クラス)
 - デッキID、デッキ名、SFEN形式の盤面配置を保持
@@ -136,13 +138,17 @@ Spring Boot を用いた Web アプリケーション。将棋風のボードゲ
 
 ### プレイヤー (`Player` クラス)
 - プレイヤー名 (`name`) とステータス (`status`) を保持
-- ステータス: `MATCHING`, `MATCHED`, `GAME_THINKING`, `GAME_WAITING`, `OFFLINE`
+- ステータス: `MATCHING`, `WAITING`, `MATCHED`, `GAME_THINKING`, `GAME_WAITING`, `OFFLINE`
 
 ### ゲーム (`Game` クラス)
 - ゲーム ID、2人のプレイヤー、盤面 (`Ban`)、表示用盤面 (`displayBan`)、最終アクティビティ時刻を管理
-- `switchTurn()` でターンを切り替え
+- `switchTurn()` でターンを切り替え（盤面回転も含む）
 - `displayBan` は相手視点用の盤面表示に使用
 - 最終アクティビティ時刻を記録し、非アクティブなゲームの削除に使用
+- 持ち駒管理: `haveKoma1`, `haveKoma2` でプレイヤーごとの持ち駒を管理
+- `getHaveKomaByName()` で自分の持ち駒を取得
+- `getEHaveKomaByName()` で相手の持ち駒を取得
+- `addHaveKomaByName()` で持ち駒を追加（駒ID順にソート挿入）
 
 ### ゲームルーム (`GameRoom` クラス)
 - すべてのゲームを管理 (`ArrayList<Game>`)
@@ -156,6 +162,15 @@ Spring Boot を用いた Web アプリケーション。将棋風のボードゲ
 - Player1が部屋のオーナー、Player2がリクエスト送信者
 
 ### サービス層
+
+#### `MoveValidator` サービス
+- 駒の移動可否を判定するサービスクラス
+- `canMove(Ban ban, int fromX, int fromY, int toX, int toY)` メソッドで判定
+- 移動先に自分の駒がある場合は移動不可
+- 駒の移動ルール (`KomaRule`) に基づいて移動可否を判定
+- 直線移動の場合、経路上に駒がある場合は移動不可（飛び越え不可）
+- 対応ルール: `UP`, `DOWN`, `LEFT`, `RIGHT`, `UP_LEFT`, `UP_RIGHT`, `DOWN_LEFT`, `DOWN_RIGHT`, `LINE_UP`, `LINE_DOWN`, `LINE_LEFT`, `LINE_RIGHT`, `LINE_UP_LEFT`, `LINE_UP_RIGHT`, `LINE_DOWN_LEFT`, `LINE_DOWN_RIGHT`
+- 未対応ルール: `JUMP_UP_LEFT`, `JUMP_UP_RIGHT` (桂馬のジャンプ移動)
 
 #### `TurnChecker` サービス
 - `@Async` による非同期処理
@@ -183,7 +198,8 @@ Spring Boot を用いた Web アプリケーション。将棋風のボードゲ
 ### `GameController`
 - `/game/start`: ゲーム開始処理、駒の初期配置
 - `/game`: ゲーム画面表示
-- `/game/move`: 駒の移動処理、移動の妥当性チェック、ターン切り替え、盤面180度回転
+- `/game/move`: 駒の移動処理、`MoveValidator` による移動の妥当性チェック、駒を取る処理、ターン切り替え、盤面180度回転
+- `/game/putKoma`: 持ち駒を盤面に置く処理、持ち駒リストからの削除、ターン切り替え
 - `/game/turn`: SSE エンドポイント、ターン情報を配信
 
 ### `DeckController`
@@ -228,14 +244,26 @@ Spring Boot を用いた Web アプリケーション。将棋風のボードゲ
 ### 初期データ (駒マスタ)
 | ID | 名前 | 成り先ID |
 |----|------|---------|
+| 0 | 王将 | -1 (成りなし) |
 | 1 | 歩兵 | 5 (金将) |
 | 2 | 香車 | 5 (金将) |
 | 3 | 桂馬 | 5 (金将) |
 | 4 | 銀将 | 5 (金将) |
-| 5 | 金将 | 5 (成りなし) |
+| 5 | 金将 | 5 (成りなし相当) |
 | 6 | 角行 | 5 (金将) |
 | 7 | 飛車 | 5 (金将) |
-| 8 | 王将 | -1 (成りなし) |
+
+### 初期データ (駒移動ルール)
+| 駒ID | 駒名 | ルール |
+|------|------|--------|
+| 0 | 王将 | UP, DOWN, LEFT, RIGHT, UP_LEFT, UP_RIGHT, DOWN_LEFT, DOWN_RIGHT |
+| 1 | 歩兵 | UP |
+| 2 | 香車 | LINE_UP |
+| 3 | 桂馬 | JUMP_UP_LEFT, JUMP_UP_RIGHT |
+| 4 | 銀将 | UP, UP_LEFT, UP_RIGHT, DOWN_LEFT, DOWN_RIGHT |
+| 5 | 金将 | UP, DOWN, LEFT, RIGHT, UP_LEFT, UP_RIGHT |
+| 6 | 角行 | LINE_UP_LEFT, LINE_UP_RIGHT, LINE_DOWN_LEFT, LINE_DOWN_RIGHT |
+| 7 | 飛車 | LINE_UP, LINE_DOWN, LINE_LEFT, LINE_RIGHT |
 
 ## Mapper インターフェース
 
@@ -273,6 +301,7 @@ Spring Boot を用いた Web アプリケーション。将棋風のボードゲ
 | `tkk_game/src/main/java/team3/tkk_game/mapper/DeckMapper.java` | デッキマッパー (MyBatis) |
 | `tkk_game/src/main/java/team3/tkk_game/services/TurnChecker.java` | ターンチェックサービス (SSE) |
 | `tkk_game/src/main/java/team3/tkk_game/services/MatchChecker.java` | マッチングチェックサービス (SSE) |
+| `tkk_game/src/main/java/team3/tkk_game/services/MoveValidator.java` | 駒移動可否判定サービス |
 | `tkk_game/src/main/resources/static/index.html` | トップページ (静的) |
 | `tkk_game/src/main/resources/templates/home.html` | ホーム画面テンプレート |
 | `tkk_game/src/main/resources/templates/match.html` | マッチング画面テンプレート |
@@ -296,11 +325,18 @@ Spring Boot を用いた Web アプリケーション。将棋風のボードゲ
 - ✅ ゲーム開始機能 (2人マッチング)
 - ✅ 盤面表示機能 (5×5)
 - ✅ 駒の移動機能 (盤面180度回転による相手視点対応)
+- ✅ 駒の移動ルール判定 (`MoveValidator` サービスで実装)
+  - ✅ 単マス移動: UP, DOWN, LEFT, RIGHT, UP_LEFT, UP_RIGHT, DOWN_LEFT, DOWN_RIGHT
+  - ✅ 直線移動: LINE_UP, LINE_DOWN, LINE_LEFT, LINE_RIGHT, LINE_UP_LEFT, LINE_UP_RIGHT, LINE_DOWN_LEFT, LINE_DOWN_RIGHT
+  - ✅ 経路ブロック判定 (直線移動時に途中に駒がある場合は移動不可)
+  - ⚠️ ジャンプ移動: JUMP_UP_LEFT, JUMP_UP_RIGHT (桂馬用、未実装)
+- ✅ 駒を取る処理 (相手の駒を取って持ち駒に追加)
+- ✅ 持ち駒機能 (取った駒を保持、盤面に置く)
 - ✅ ターン制御機能 (SSE によるリアルタイム更新)
 - ✅ 非アクティブゲームの自動削除 (10分)
 - ✅ H2データベースによる駒・デッキデータの永続化
 - ✅ MyBatisによるデータアクセス層
 - ✅ デッキ作成・保存機能
 - ✅ デッキ選択・読み込み・削除機能
-- ⚠️ 駒の移動ルール判定 (未完成: 常に `true` を返す状態)
-- ⚠️ 駒を取る処理 (未実装)
+- ⚠️ 駒の成り処理 (未実装)
+- ⚠️ 勝利判定 (未実装)
