@@ -183,7 +183,8 @@ public class GameController {
   }
 
   @GetMapping("/putKoma")
-  public String gamePutKoma(Principal principal, Model model, @RequestParam int index, @RequestParam int toX, @RequestParam int toY) {
+  public String gamePutKoma(Principal principal, Model model, @RequestParam int index, @RequestParam int toX,
+      @RequestParam int toY) {
     String loginPlayerName = principal.getName();
     Game game = gameRoom.getGameByPlayerName(loginPlayerName);
 
@@ -196,6 +197,11 @@ public class GameController {
     List<Koma> haveKoma = game.getHaveKomaByName(loginPlayerName);
     if (index < 0 || index >= haveKoma.size()) {
       return returnGame(model, game, loginPlayerName, game.getBan(), "その持ち駒は存在しません");
+    }
+
+    // 移動先に駒がないか確認
+    if (game.getBan().getKomaAt(toX, toY) != null) {
+      return returnGame(model, game, loginPlayerName, game.getBan(), "その位置には駒が存在します");
     }
 
     // 駒を盤面に置く
