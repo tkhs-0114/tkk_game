@@ -38,7 +38,7 @@ public class Game {
   }
 
   public void setPlayer2(String player2Name) {
-    this.player2 = new Player(player2Name, PlayerStatus.GAME_THINKING);
+    this.player2 = new Player(player2Name, PlayerStatus.GAME_STARTING);
   }
 
   public void clearPlayer2() {

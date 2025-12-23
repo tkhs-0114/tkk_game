@@ -121,7 +121,7 @@
 
       console.log('Player Status:', playerStatus);
 
-      if (playerStatus === 'GAME_WAITING') {
+      if (playerStatus === 'GAME_WAITING'|| playerStatus === 'GAME_STARTING') {
         // SSE接続でターン情報を受信
         const sse = new EventSource(`/game/turn?gameId=${gameId}`);
         sse.onmessage = function (event) {
@@ -131,8 +131,6 @@
             window.location.href = `/game`;
           }
         };
-      } else {
-
       }
 
     };
