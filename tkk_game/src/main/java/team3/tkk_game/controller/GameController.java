@@ -15,6 +15,7 @@ import team3.tkk_game.model.PlayerStatus;
 import team3.tkk_game.model.Ban;
 import team3.tkk_game.model.Game;
 import team3.tkk_game.model.WaitRoom;
+import team3.tkk_game.services.GameEventEmitterManager;
 import team3.tkk_game.services.MoveValidator;
 import team3.tkk_game.services.TurnChecker;
 
@@ -39,6 +40,8 @@ public class GameController {
   KomaMapper KomaMapper;
   @Autowired
   MoveValidator moveValidator;
+  @Autowired
+  GameEventEmitterManager gameEventEmitterManager;
 
   private boolean isMyTurn(Game game, String playerName) {
     return game.getPlayerByName(playerName).getStatus() == PlayerStatus.GAME_THINKING;
@@ -179,6 +182,11 @@ public class GameController {
 
     // ターンを交代
     game.switchTurn();
+
+    // ターン変更をSSEで通知
+    String nextTurnPlayerName = getNextTurnPlayerName(game);
+    gameEventEmitterManager.notifyTurnChange(game.getId(), nextTurnPlayerName);
+
     return returnGame(model, game, loginPlayerName, myban);
   }
 
@@ -217,14 +225,32 @@ public class GameController {
 
     // ターンを交代
     game.switchTurn();
+
+    // ターン変更をSSEで通知
+    String nextTurnPlayerName = getNextTurnPlayerName(game);
+    gameEventEmitterManager.notifyTurnChange(game.getId(), nextTurnPlayerName);
+
     return returnGame(model, game, loginPlayerName, myban);
   }
 
   @GetMapping("/turn")
   public SseEmitter game(Principal principal, @RequestParam String gameId) {
-    SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
-    turnChecker.checkTurn(emitter, gameRoom.getGameById(gameId), principal.getName());
-    return emitter;
+    Game game = gameRoom.getGameById(gameId);
+    return turnChecker.registerTurnEmitter(game, principal.getName());
+  }
+
+  /**
+   * 現在のターンのプレイヤー名を取得する
+   *
+   * @param game ゲームオブジェクト
+   * @return 現在のターン（GAME_THINKING）のプレイヤー名
+   */
+  private String getNextTurnPlayerName(Game game) {
+    if (game.getPlayer1().getStatus() == PlayerStatus.GAME_THINKING) {
+      return game.getPlayer1().getName();
+    } else {
+      return game.getPlayer2().getName();
+    }
   }
 
 }
