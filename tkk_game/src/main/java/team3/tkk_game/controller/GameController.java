@@ -15,6 +15,7 @@ import team3.tkk_game.model.PlayerStatus;
 import team3.tkk_game.model.Ban;
 import team3.tkk_game.model.Game;
 import team3.tkk_game.model.WaitRoom;
+import team3.tkk_game.services.MoveValidator;
 import team3.tkk_game.services.TurnChecker;
 
 import team3.tkk_game.mapper.KomaMapper;
@@ -36,6 +37,8 @@ public class GameController {
   TurnChecker turnChecker;
   @Autowired
   KomaMapper KomaMapper;
+  @Autowired
+  MoveValidator moveValidator;
 
   private boolean isMyTurn(Game game, String playerName) {
     return game.getPlayerByName(playerName).getStatus() == PlayerStatus.GAME_THINKING;
@@ -78,10 +81,18 @@ public class GameController {
     }
 
     // 自分の駒を盤面にセットする
-    KomaDB koma1 = KomaMapper.selectKomaById(0); // 例: 駒ID0を選択
-    List<KomaRule> koma1Rules = KomaMapper.selectKomaRuleById(0);
-    Koma koma1Koma = new Koma(koma1, koma1Rules, game.getPlayer1());
-    game.getBan().setKomaAt(0, 2, koma1Koma);
+    KomaDB koma10 = KomaMapper.selectKomaById(0); // 例: 駒ID1を選択
+    List<KomaRule> koma10Rules = KomaMapper.selectKomaRuleById(0);
+    Koma koma10Koma = new Koma(koma10, koma10Rules, game.getPlayer1());
+    game.getBan().setKomaAt(0, 2, koma10Koma);
+    KomaDB koma11 = KomaMapper.selectKomaById(1); // 例: 駒ID2を選択
+    List<KomaRule> koma11Rules = KomaMapper.selectKomaRuleById(1);
+    Koma koma11Koma = new Koma(koma11, koma11Rules, game.getPlayer1());
+    game.getBan().setKomaAt(1, 2, koma11Koma);
+    KomaDB koma12 = KomaMapper.selectKomaById(7); // 例: 駒ID3を選択
+    List<KomaRule> koma12Rules = KomaMapper.selectKomaRuleById(7);
+    Koma koma12Koma = new Koma(koma12, koma12Rules, game.getPlayer1());
+    game.getBan().setKomaAt(2, 2, koma12Koma);
 
     KomaDB koma1_2 = KomaMapper.selectKomaById(1); // 例: 駒ID1を選択
     List<KomaRule> koma1_2Rules = KomaMapper.selectKomaRuleById(1);
@@ -95,11 +106,10 @@ public class GameController {
 
     // 相手の駒を盤面にセットする
     game.getBan().rotate180();
-
-    KomaDB koma2 = KomaMapper.selectKomaById(0); // 例: 駒ID0を選択
-    List<KomaRule> koma2Rules = KomaMapper.selectKomaRuleById(0);
-    Koma koma2Koma = new Koma(koma2, koma2Rules, game.getPlayer2());
-    game.getBan().setKomaAt(0, 2, koma2Koma);
+    KomaDB koma20 = KomaMapper.selectKomaById(0); // 例: 駒ID1を選択
+    List<KomaRule> koma20Rules = KomaMapper.selectKomaRuleById(0);
+    Koma koma20Koma = new Koma(koma20, koma20Rules, game.getPlayer2());
+    game.getBan().setKomaAt(0, 2, koma20Koma);
 
     KomaDB koma2_2 = KomaMapper.selectKomaById(1); // 例: 駒ID1を選択
     List<KomaRule> koma2_2Rules = KomaMapper.selectKomaRuleById(1);
@@ -141,8 +151,7 @@ public class GameController {
     }
 
     // 移動ルールを確認
-    Boolean canMove = koma.canMove(fromX, fromY, toX, toY);
-    System.out.println("canMove:" + canMove);
+    boolean canMove = moveValidator.canMove(game.getBan(), fromX, fromY, toX, toY);
     if (!canMove) {
       return returnGame(model, game, loginPlayerName, game.getBan(), "不正な手です");
     }
