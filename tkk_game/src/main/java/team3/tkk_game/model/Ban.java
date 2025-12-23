@@ -3,7 +3,7 @@ package team3.tkk_game.model;
 import team3.tkk_game.model.Koma.Koma;
 
 public class Ban {
-  static final int BAN_LENGTH = 5;
+  public static final int BAN_LENGTH = 5;
 
   // board[x][y]で盤面のマスを表す.左下が(0,0)
   Koma[][] board = new Koma[BAN_LENGTH][BAN_LENGTH];
