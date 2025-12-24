@@ -127,7 +127,6 @@ public class GameController {
     String currentTurnPlayerName = getCurrentTurnPlayerName(game);
     gameEventEmitterManager.notifyTurnChange(game.getId(), currentTurnPlayerName);
 
-
     return "redirect:/game";
   }
 
@@ -144,7 +143,7 @@ public class GameController {
 
   @GetMapping("/move")
   public String gameMove(Principal principal, Model model, @RequestParam int fromX, @RequestParam int fromY,
-      @RequestParam int toX, @RequestParam int toY) {
+      @RequestParam int toX, @RequestParam int toY, @RequestParam boolean isUpdate) {
     String loginPlayerName = principal.getName();
     Game game = gameRoom.getGameByPlayerName(loginPlayerName);
 
@@ -174,6 +173,16 @@ public class GameController {
       // 駒を取る処理
       targetKoma.setOwner(game.getPlayerByName(loginPlayerName));
       game.addHaveKomaByName(loginPlayerName, targetKoma);
+    }
+
+    // 駒の成り処理
+    if (isUpdate) {
+      if (fromY <= -1 * (Ban.BAN_LENGTH / 2) || toY <= -1 * (Ban.BAN_LENGTH / 2)) {
+        KomaDB updatedKomaDB = komaMapper.selectKomaById(koma.getUpdateKoma());
+        List<KomaRule> updatedKomaRules = komaMapper.selectKomaRuleById(koma.getUpdateKoma());
+        Koma updatedKoma = new Koma(updatedKomaDB, updatedKomaRules, koma.getOwner());
+        koma = updatedKoma;
+      }
     }
 
     // 駒を移動
