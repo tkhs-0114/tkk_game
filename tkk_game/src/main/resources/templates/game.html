@@ -32,6 +32,12 @@
     function Ya2b(arrayIndex) {
       return arrayIndex - (ban.board[0].length - 1) / 2;
     }
+    function b2Xa(boardX) {
+      return boardX + (ban.board.length - 1) / 2;
+    }
+    function b2Ya(boardY) {
+      return boardY + (ban.board[0].length - 1) / 2;
+    }
 
     function setSelectedCell(x, y) {
       selectedX = x;
@@ -47,7 +53,13 @@
           alert('セルが選択されていません');
           return;
         } else {
-          window.location.href = `/game/move?fromX=${selectedX}&fromY=${selectedY}&toX=${x}&toY=${y}`;
+          let willUpdate = false;
+          // 成れる場合
+          const canUpdate = (selectedY <= -2 || y <= -2) && ban.board[b2Xa(selectedX)][b2Ya(selectedY)].updateKoma !== -1;
+          if (canUpdate) {
+            willUpdate = window.confirm('駒を成りますか？\nOK: 成る\nキャンセル: 成らない');
+          }
+          window.location.href = `/game/move?fromX=${selectedX}&fromY=${selectedY}&toX=${x}&toY=${y}&isUpdate=${willUpdate}`;
         }
       }
 
@@ -96,7 +108,7 @@
       html += '<tr>';
       for (let i = 0; i < komaData.length; i++) {
         const cell = komaData[i];
-        const cellContent = isClickable 
+        const cellContent = isClickable
           ? `<div class="cell" onClick="selectHaveKoma(${i})">${cell.name}</div>`
           : `<div>${cell.name}</div>`;
         html += `<td>${cellContent}</td>`;
@@ -121,7 +133,7 @@
 
       console.log('Player Status:', playerStatus);
 
-      if (playerStatus === 'GAME_WAITING'|| playerStatus === 'GAME_STARTING') {
+      if (playerStatus === 'GAME_WAITING' || playerStatus === 'GAME_STARTING') {
         // SSE接続でターン情報を受信
         const sse = new EventSource(`/game/turn?gameId=${gameId}`);
         sse.onmessage = function (event) {
