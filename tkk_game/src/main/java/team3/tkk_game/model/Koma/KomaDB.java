@@ -3,11 +3,13 @@ package team3.tkk_game.model.Koma;
 public class KomaDB {
   Integer id;
   String name;
+  String skill;
   Integer updateKoma;
 
-  public KomaDB(Integer id, String name, Integer updateKoma) {
+  public KomaDB(Integer id, String name, String skill, Integer updateKoma) {
     this.id = id;
     this.name = name;
+    this.skill = skill;
     this.updateKoma = updateKoma;
   }
 
@@ -17,6 +19,10 @@ public class KomaDB {
 
   public String getName() {
     return name;
+  }
+
+  public String getSkill() {
+    return skill;
   }
 
   public Integer getUpdateKoma() {
@@ -29,6 +35,10 @@ public class KomaDB {
 
   public void setName(String name) {
     this.name = name;
+  }
+
+  public void setSkill(String skill) {
+    this.skill = skill;
   }
 
   public void setUpdateKoma(Integer updateKoma) {
