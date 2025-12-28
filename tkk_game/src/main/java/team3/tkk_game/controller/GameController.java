@@ -57,6 +57,7 @@ public class GameController {
       }
     }
     model.addAttribute("playerStatus", game.getPlayerByName(playerName).getStatus());
+    //デバック用
     model.addAttribute("game", game);
     return "game.html";
   }
@@ -70,6 +71,7 @@ public class GameController {
   public String gameStart(Principal principal, Model model) {
     String loginPlayerName = principal.getName();
     Game game = gameRoom.getGameByPlayerName(loginPlayerName);
+    // ゲームが見つからない場合はマッチング画面に戻る
     if (game == null) {
       return "redirect:/match";
     }
@@ -92,6 +94,7 @@ public class GameController {
   public String gamePage(Principal principal, Model model) {
     String loginPlayerName = principal.getName();
     Game game = gameRoom.getGameByPlayerName(loginPlayerName);
+    // ゲームが見つからない場合はマッチング画面に戻る
     if (game == null) {
       return "redirect:/match";
     }
@@ -104,27 +107,38 @@ public class GameController {
     String loginPlayerName = principal.getName();
     Game game = gameRoom.getGameByPlayerName(loginPlayerName);
 
+    // 自分のターンか確認
     if (!isMyTurn(game, loginPlayerName)) {
       return returnGame(model, game, loginPlayerName, null, "自分のターンではありません");
     }
 
+    // 自分の駒か確認（LocalBanには自分の駒しかない）
     Koma koma = game.getBan().getKomaAt(fromX, fromY);
     if (koma != null && koma.getOwner() != game.getPlayerByName(loginPlayerName)) {
       return returnGame(model, game, loginPlayerName, game.getBan(), "自分の駒ではありません");
     }
 
+    // 移動ルールを確認
     Boolean canMove = koma.canMove(fromX, fromY, toX, toY);
     System.out.println("canMove:" + canMove);
     if (!canMove) {
       return returnGame(model, game, loginPlayerName, game.getBan(), "不正な手です");
     }
 
+    // 相手の駒を取る場合の処理
+    // 未実装
+
     // 駒を移動
     game.getBan().setKomaAt(toX, toY, koma);
     game.getBan().setKomaAt(fromX, fromY, null);
 
+    // 自分視点の盤面を保存
     Ban myban = new Ban(game.getBan());
+
+    // 相手視点の盤面を保存
     game.getDisplayBan().applyBan(game.getBan());
+
+    // ターンを交代
     game.switchTurn();
     return returnGame(model, game, loginPlayerName, myban);
   }
