@@ -62,7 +62,7 @@ public class GameController {
     }
     model.addAttribute("playerStatus", game.getPlayerByName(playerName).getStatus());
     model.addAttribute("haveKoma", game.getHaveKomaByName(playerName));
-    model.addAttribute("enemyHaveKoma", game.getEHaveKomaByName(playerName));
+    model.addAttribute("enemyHaveKoma", game.getEnemyHaveKomaByName(playerName));
     // デバッグ用
     model.addAttribute("game", game);
     return "game.html";
@@ -82,7 +82,7 @@ public class GameController {
     if (game == null) {
       return "redirect:/match";
     }
-
+    
     // 自分の駒を盤面にセットする
     KomaDB koma10 = komaMapper.selectKomaById(0); // 例: 駒ID1を選択
     List<KomaRule> koma10Rules = komaMapper.selectKomaRuleById(0);
@@ -193,6 +193,12 @@ public class GameController {
     // 相手視点の盤面を保存
     game.getDisplayBan().applyBan(game.getBan());
 
+    // 勝利判定
+    if (!game.getBan().isHaveKing(game.getEnemyPlayerByName(loginPlayerName))) {
+      game.getPlayerByName(loginPlayerName).setStatus(PlayerStatus.GAME_WIN);
+      game.getEnemyPlayerByName(loginPlayerName).setStatus(PlayerStatus.GAME_LOSE);
+    }
+
     // ターンを交代
     game.switchTurn();
 
@@ -250,6 +256,16 @@ public class GameController {
   public SseEmitter game(Principal principal, @RequestParam String gameId) {
     Game game = gameRoom.getGameById(gameId);
     return turnChecker.registerTurnEmitter(game, principal.getName());
+  }
+
+  @GetMapping("/result")
+  public String gameEnd (Principal principal) {
+    String loginPlayerName = principal.getName();
+    Game game = gameRoom.getGameByPlayerName(loginPlayerName);
+    if (!game.getIsFinished()) {
+      return "redirect:/game";
+    }
+      return "game.html";
   }
 
   /**
