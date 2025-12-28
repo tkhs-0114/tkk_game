@@ -178,6 +178,38 @@ public class MoveValidator {
             }
           }
           break;
+        case JUMP_UP_LEFT:
+          if (dx == -1 && dy == -2)
+            return true;
+          break;
+        case JUMP_UP_RIGHT:
+          if (dx == 1 && dy == -2)
+            return true;
+          break;
+        case JUMP_DOWN_LEFT:
+          if (dx == -1 && dy == 2)
+            return true;
+          break;
+        case JUMP_DOWN_RIGHT:
+          if (dx == 1 && dy == 2)
+            return true;
+          break;
+        case JUMP_LEFT_UP:
+          if (dx == -2 && dy == -1)
+            return true;
+          break;
+        case JUMP_LEFT_DOWN:
+          if (dx == -2 && dy == 1)
+            return true;
+          break;
+        case JUMP_RIGHT_UP:
+          if (dx == 2 && dy == -1)
+            return true;
+          break;
+        case JUMP_RIGHT_DOWN:
+          if (dx == 2 && dy == 1)
+            return true;
+          break;
       }
     }
     return false;
