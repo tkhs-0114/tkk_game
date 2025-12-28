@@ -107,6 +107,11 @@ public class GameController {
     Koma koma1_3Koma = new Koma(koma1_3, koma1_3Rules, game.getPlayer1());
     game.getBan().setKomaAt(1, 2, koma1_3Koma);
 
+    KomaDB koma1_4 = komaMapper.selectKomaById(14); // 例: 駒ID2を選択
+    List<KomaRule> koma1_4Rules = komaMapper.selectKomaRuleById(14);
+    Koma koma1_4Koma = new Koma(koma1_4, koma1_4Rules, game.getPlayer1());
+    game.getBan().setKomaAt(-2, 2, koma1_4Koma);
+
     // 相手の駒を盤面にセットする
     game.getBan().rotate180();
     KomaDB koma20 = komaMapper.selectKomaById(0); // 例: 駒ID1を選択
@@ -183,19 +188,38 @@ public class GameController {
       }
     }
 
-    // 駒を移動
-    game.getBan().setKomaAt(toX, toY, koma);
-    game.getBan().setKomaAt(fromX, fromY, null);
+    Ban myban;
 
-    // 自分視点の盤面を保存
-    Ban myban = new Ban(game.getBan());
+    switch (koma.getskill()) {
+      default:
 
-    // 相手視点の盤面を保存
-    game.getDisplayBan().applyBan(game.getBan());
+        // 駒を移動
+        game.getBan().setKomaAt(toX, toY, koma);
+        game.getBan().setKomaAt(fromX, fromY, null);
 
+        // 自分視点の盤面を保存
+        myban = new Ban(game.getBan());
+
+        // 相手視点の盤面を保存
+        game.getDisplayBan().applyBan(game.getBan());
+
+        break;
+      case STEALTH:
+        System.out.println("STEALTHスキル発動");
+
+        // 相手視点の盤面を保存
+        game.getDisplayBan().applyBan(game.getBan());
+
+        // 駒を移動
+        game.getBan().setKomaAt(toX, toY, koma);
+        game.getBan().setKomaAt(fromX, fromY, null);
+
+        // 自分視点の盤面を保存
+        myban = new Ban(game.getBan());
+
+    }
     // ターンを交代
     game.switchTurn();
-
     // ターン変更をSSEで通知
     String currentTurnPlayerName = getCurrentTurnPlayerName(game);
     gameEventEmitterManager.notifyTurnChange(game.getId(), currentTurnPlayerName);

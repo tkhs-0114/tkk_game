@@ -18,7 +18,7 @@ public class Koma {
     this.name = komaDB.getName();
     this.rules = new ArrayList<>(rules);
     this.owner = owner;
-    this.skill = komaDB.getSkill() != null ? KomaSkill.valueOf(komaDB.getSkill()) : null;
+    this.skill = komaDB.getSkill() != null ? KomaSkill.valueOf(komaDB.getSkill()) : KomaSkill.NULL;
     this.updateKoma = komaDB.getUpdateKoma();
   }
 
@@ -40,6 +40,10 @@ public class Koma {
 
   public void setOwner(Player owner) {
     this.owner = owner;
+  }
+
+  public KomaSkill getskill() {
+    return skill;
   }
 
   public int getUpdateKoma() {
