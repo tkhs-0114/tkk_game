@@ -28,6 +28,11 @@ public class MoveValidator {
   public boolean canMove(Ban ban, int fromX, int fromY, int toX, int toY) {
     Koma koma = ban.getKomaAt(fromX, fromY);
 
+    Koma movedKoma = ban.getKomaAt(toX, toY);
+    if (movedKoma != null && movedKoma.getOwner() == koma.getOwner()) {
+      return false;
+    }
+
     List<KomaRule> rules = koma.getRules();
     System.out.println(rules);
     int dx = toX - fromX;

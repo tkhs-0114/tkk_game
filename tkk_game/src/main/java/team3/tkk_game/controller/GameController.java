@@ -165,12 +165,8 @@ public class GameController {
     }
 
     // 移動先に駒がある時の処理
-    if (game.getBan().getKomaAt(toX, toY) != null) {
-      Koma targetKoma = game.getBan().getKomaAt(toX, toY);
-      if (targetKoma.getOwner() == game.getPlayerByName(loginPlayerName)) {
-        return returnGame(model, game, loginPlayerName, game.getBan(), "自分の駒がいます");
-      }
-      // 駒を取る処理
+    Koma targetKoma = game.getBan().getKomaAt(toX, toY);
+    if (targetKoma != null) {
       targetKoma.setOwner(game.getPlayerByName(loginPlayerName));
       game.addHaveKomaByName(loginPlayerName, targetKoma);
     }
