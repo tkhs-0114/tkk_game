@@ -188,7 +188,7 @@ public class GameController {
       }
     }
 
-    Ban myban;
+    Ban myban = null;
 
     switch (koma.getSkill()) {
       default:
