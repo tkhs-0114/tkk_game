@@ -42,7 +42,7 @@ public class Koma {
     this.owner = owner;
   }
 
-  public KomaSkill getskill() {
+  public KomaSkill getSkill() {
     return skill;
   }
 

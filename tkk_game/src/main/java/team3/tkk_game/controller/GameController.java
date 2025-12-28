@@ -190,7 +190,7 @@ public class GameController {
 
     Ban myban;
 
-    switch (koma.getskill()) {
+    switch (koma.getSkill()) {
       default:
 
         // 駒を移動
@@ -217,6 +217,7 @@ public class GameController {
         // 自分視点の盤面を保存
         myban = new Ban(game.getBan());
 
+        break;
     }
     // ターンを交代
     game.switchTurn();
