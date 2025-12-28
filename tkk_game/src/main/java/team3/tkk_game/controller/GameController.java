@@ -102,8 +102,8 @@ public class GameController {
     Koma koma1_2Koma = new Koma(koma1_2, koma1_2Rules, game.getPlayer1());
     game.getBan().setKomaAt(0, 1, koma1_2Koma);
 
-    KomaDB koma1_3 = komaMapper.selectKomaById(2); // 例: 駒ID2を選択
-    List<KomaRule> koma1_3Rules = komaMapper.selectKomaRuleById(2);
+    KomaDB koma1_3 = komaMapper.selectKomaById(3); // 例: 駒ID2を選択
+    List<KomaRule> koma1_3Rules = komaMapper.selectKomaRuleById(3);
     Koma koma1_3Koma = new Koma(koma1_3, koma1_3Rules, game.getPlayer1());
     game.getBan().setKomaAt(1, 2, koma1_3Koma);
 
