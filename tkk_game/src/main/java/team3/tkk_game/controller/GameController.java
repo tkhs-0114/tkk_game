@@ -182,6 +182,8 @@ public class GameController {
         List<KomaRule> updatedKomaRules = komaMapper.selectKomaRuleById(koma.getUpdateKoma());
         Koma updatedKoma = new Koma(updatedKomaDB, updatedKomaRules, koma.getOwner());
         koma = updatedKoma;
+      } else {
+        return returnGame(model, game, loginPlayerName, game.getBan(), "成ることができません");
       }
     }
 
