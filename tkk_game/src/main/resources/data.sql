@@ -1,17 +1,19 @@
-INSERT INTO koma VALUES (0,'王将', -1);
-INSERT INTO koma VALUES (1,'歩兵', 8);
-INSERT INTO koma VALUES (2,'香車', 9);
-INSERT INTO koma VALUES (3,'桂馬', 10);
-INSERT INTO koma VALUES (4,'銀将', 11);
-INSERT INTO koma VALUES (5,'金将', -1);
-INSERT INTO koma VALUES (6,'角行', 12);
-INSERT INTO koma VALUES (7,'飛車', 13);
-INSERT INTO koma VALUES (8,'と金', -1);
-INSERT INTO koma VALUES (9,'成香', -1);
-INSERT INTO koma VALUES (10,'成桂', -1);
-INSERT INTO koma VALUES (11,'成銀', -1);
-INSERT INTO koma VALUES (12,'馬', -1);
-INSERT INTO koma VALUES (13,'龍', -1);
+INSERT INTO koma VALUES (0,'王将', NULL,  -1);
+INSERT INTO koma VALUES (1,'歩兵', NULL,  8);
+INSERT INTO koma VALUES (2,'香車', NULL,  9);
+INSERT INTO koma VALUES (3,'桂馬', NULL,  10);
+INSERT INTO koma VALUES (4,'銀将', NULL,  11);
+INSERT INTO koma VALUES (5,'金将', NULL,  -1);
+INSERT INTO koma VALUES (6,'角行', NULL,  12);
+INSERT INTO koma VALUES (7,'飛車', NULL,  13);
+INSERT INTO koma VALUES (8,'と金', NULL,  -1);
+INSERT INTO koma VALUES (9,'成香', NULL,  -1);
+INSERT INTO koma VALUES (10,'成桂', NULL, -1);
+INSERT INTO koma VALUES (11,'成銀', NULL, -1);
+INSERT INTO koma VALUES (12,'馬', NULL, -1);
+INSERT INTO koma VALUES (13,'龍', NULL, -1);
+
+INSERT INTO koma VALUES (14,'忍び', 'STEALTH', -1);
 
 
 INSERT INTO KomaRule (koma_id, rule) VALUES (0, 'UP');
@@ -85,5 +87,11 @@ INSERT INTO KomaRule (koma_id, rule) VALUES (13, 'LINE_UP');
 INSERT INTO KomaRule (koma_id, rule) VALUES (13, 'LINE_DOWN');
 INSERT INTO KomaRule (koma_id, rule) VALUES (13, 'LINE_LEFT');
 INSERT INTO KomaRule (koma_id, rule) VALUES (13, 'LINE_RIGHT');
+
+INSERT INTO KomaRule (koma_id, rule) VALUES (14, 'UP');
+INSERT INTO KomaRule (koma_id, rule) VALUES (14, 'UP_LEFT');
+INSERT INTO KomaRule (koma_id, rule) VALUES (14, 'UP_RIGHT');
+INSERT INTO KomaRule (koma_id, rule) VALUES (14, 'DOWN_LEFT');
+INSERT INTO KomaRule (koma_id, rule) VALUES (14, 'DOWN_RIGHT');
 
 INSERT INTO Deck (name, sfen) VALUES ('sample', '5/2[0]2');

@@ -10,6 +10,7 @@ public class Koma {
   String name;
   ArrayList<KomaRule> rules;
   Player owner;
+  KomaSkill skill;
   int updateKoma; // 変化後の駒ID. -1なら変化しない
 
   public Koma(KomaDB komaDB, List<KomaRule> rules, Player owner) {
@@ -17,6 +18,7 @@ public class Koma {
     this.name = komaDB.getName();
     this.rules = new ArrayList<>(rules);
     this.owner = owner;
+    this.skill = komaDB.getSkill() != null ? KomaSkill.valueOf(komaDB.getSkill()) : KomaSkill.NULL;
     this.updateKoma = komaDB.getUpdateKoma();
   }
 
@@ -38,6 +40,10 @@ public class Koma {
 
   public void setOwner(Player owner) {
     this.owner = owner;
+  }
+
+  public KomaSkill getSkill() {
+    return skill;
   }
 
   public int getUpdateKoma() {
