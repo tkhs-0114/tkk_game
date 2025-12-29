@@ -15,6 +15,7 @@
     const loginPlayerName = /*[[${#authentication.name}]]*/ null;
     const haveKoma = /*[[${haveKoma}]]*/ null;
     const enemyHaveKoma = /*[[${enemyHaveKoma}]]*/ null;
+    const GAME_END = /*[[${GAME_END}]]*/ false;
 
     console.log(game);
     console.log(ban);
@@ -81,12 +82,19 @@
         html += '<tr>';
         for (let x = 0; x < boardLength; x++) {
           const cell = ban.board[x][y];
-          const cellContent = (cell && cell.name && (cell.owner.name === loginPlayerName)) ?
-            `<div class="cell" onClick="setSelectedCell(${Xa2b(x)}, ${Ya2b(y)})">${cell.name}</div>`
-            : (cell && cell.name) ?
-              `<div class="cell" onClick="sendMove(${Xa2b(x)}, ${Ya2b(y)})">${cell.name}</div>`
-              : `<div class="cell" onClick="sendMove(${Xa2b(x)}, ${Ya2b(y)})">　</div>`;
-          html += `<td>${cellContent}</td>`;
+          
+          // GAME_ENDの場合はクリックイベントを設定しない
+          if (GAME_END) {
+            const cellContent = (cell && cell.name) ? cell.name : '　';
+            html += `<td><div class="cell">${cellContent}</div></td>`;
+          } else {
+            const cellContent = (cell && cell.name && (cell.owner.name === loginPlayerName)) ?
+              `<div class="cell" onClick="setSelectedCell(${Xa2b(x)}, ${Ya2b(y)})">${cell.name}</div>`
+              : (cell && cell.name) ?
+                `<div class="cell" onClick="sendMove(${Xa2b(x)}, ${Ya2b(y)})">${cell.name}</div>`
+                : `<div class="cell" onClick="sendMove(${Xa2b(x)}, ${Ya2b(y)})">　</div>`;
+            html += `<td>${cellContent}</td>`;
+          }
         }
         html += '</tr>';
       }
@@ -110,7 +118,8 @@
       html += '<tr>';
       for (let i = 0; i < komaData.length; i++) {
         const cell = komaData[i];
-        const cellContent = isClickable
+        // GAME_ENDの場合はクリックイベントを設定しない
+        const cellContent = (isClickable && !GAME_END)
           ? `<div class="cell" onClick="selectHaveKoma(${i})">${cell.name}</div>`
           : `<div>${cell.name}</div>`;
         html += `<td>${cellContent}</td>`;
@@ -135,13 +144,17 @@
 
       console.log('Player Status:', playerStatus);
 
-      if (playerStatus === 'GAME_WAITING' || playerStatus === 'GAME_STARTING') {
+      if (playerStatus === 'GAME_WAITING' || playerStatus === 'GAME_STARTING' || playerStatus === 'GAME_LOSE') {
         // SSE接続でターン情報を受信
         const sse = new EventSource(`/game/turn?gameId=${gameId}`);
         sse.onmessage = function (event) {
-          const isNextTurn = JSON.parse(event.data);
-          console.log('Is next turn:', isNextTurn);
-          if (isNextTurn) {
+          const data = JSON.parse(event.data);
+          console.log('Is my turn:', data.isMyTurn);
+          console.log('Is game end:', data.isGameEnd);
+          
+          if (data.isGameEnd) {
+            window.location.href = `/game/result`;
+          }else if (data.isMyTurn) {
             window.location.href = `/game`;
           }
         };
@@ -171,6 +184,10 @@
         <!-- 相手の持ち駒がここに表示されます -->
       </div>
     </div>
+  </div>
+  <br>
+  <div>
+    <a th:if="${GAME_END}" href="/home">ホームに戻る</a>
   </div>
 
 </body>

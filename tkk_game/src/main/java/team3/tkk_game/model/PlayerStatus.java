@@ -9,5 +9,6 @@ public enum PlayerStatus {
   GAME_WAITING,
   GAME_WIN,
   GAME_LOSE,
+  GAME_END,
   OFFLINE
 }

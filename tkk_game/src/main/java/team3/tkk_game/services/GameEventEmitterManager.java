@@ -66,7 +66,7 @@ public class GameEventEmitterManager {
    * @param gameId                ゲームID
    * @param currentTurnPlayerName 現在のターンのプレイヤー名
    */
-  public void notifyTurnChange(String gameId, String currentTurnPlayerName) {
+  public void notifyTurnChange(String gameId, String currentTurnPlayerName, boolean isGameEnd) {
     CopyOnWriteArrayList<SseEmitter> emitters = gameEmitters.get(gameId);
     if (emitters == null) {
       return;
@@ -80,9 +80,10 @@ public class GameEventEmitterManager {
         // このEmitterに対応するプレイヤー名を取得
         String playerName = getPlayerNameByEmitter(emitter);
         if (playerName != null) {
-          // 自分のターンかどうかを通知
+          // 自分のターンかゲームが終わったかどうかを通知
           boolean isMyTurn = playerName.equals(currentTurnPlayerName);
-          emitter.send(isMyTurn);
+          String Response = String.format("{\"isMyTurn\":%b,\"isGameEnd\":%b}", isMyTurn, isGameEnd);
+          emitter.send(Response);
         }
       } catch (IOException | IllegalStateException e) {
         // 送信失敗時（接続切断やEmitter完了済み）は削除対象に追加
@@ -117,6 +118,27 @@ public class GameEventEmitterManager {
           gameEmitters.remove(gameId);
         }
       }
+    }
+  }
+
+  /**
+   * 指定されたゲームIDに関連するすべてのEmitterを削除する
+   * ゲーム終了時にリソースを解放するために使用する
+   *
+   * @param gameId ゲームID
+   */
+  public void removeAllGameEmitters(String gameId) {
+    // 削除対象のプレイヤー名を収集
+    java.util.ArrayList<String> playersToRemove = new java.util.ArrayList<>();
+    for (var entry : playerToGame.entrySet()) {
+      if (gameId.equals(entry.getValue())) {
+        playersToRemove.add(entry.getKey());
+      }
+    }
+
+    // 各プレイヤーのEmitterを既存のメソッドで削除
+    for (String playerName : playersToRemove) {
+      removeEmitter(playerName);
     }
   }
 
