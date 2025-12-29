@@ -135,7 +135,7 @@ public class Game {
     this.isFinished = true;
   }
 
-  // 用修正、SSE時に更新処理として動作させるようにすることを検討中
+  // 要修正、SSE時に更新処理として動作させるようにすることを検討中
   private void updateLastActivity() {
     this.lastActivity = new Date();
   }

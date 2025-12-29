@@ -82,8 +82,8 @@ public class GameEventEmitterManager {
         if (playerName != null) {
           // 自分のターンかゲームが終わったかどうかを通知
           boolean isMyTurn = playerName.equals(currentTurnPlayerName);
-          String Response = String.format("{\"isMyTurn\":%b,\"isGameEnd\":%b}", isMyTurn, isGameEnd);
-          emitter.send(Response);
+          String response = String.format("{\"isMyTurn\":%b,\"isGameEnd\":%b}", isMyTurn, isGameEnd);
+          emitter.send(response);
         }
       } catch (IOException | IllegalStateException e) {
         // 送信失敗時（接続切断やEmitter完了済み）は削除対象に追加
