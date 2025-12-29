@@ -37,8 +37,8 @@ public class TurnChecker {
       boolean isMyTurn = player.getStatus() == PlayerStatus.GAME_THINKING;
       boolean isGameEnd = game.getIsFinished();
 
-      String Response = String.format("{\"isMyTurn\":%b,\"isGameEnd\":%b}", isMyTurn, isGameEnd);
-      emitter.send(Response);
+      String response = String.format("{\"isMyTurn\":%b,\"isGameEnd\":%b}", isMyTurn, isGameEnd);
+      emitter.send(response);
     } catch (IOException e) {
       emitter.complete();
     }

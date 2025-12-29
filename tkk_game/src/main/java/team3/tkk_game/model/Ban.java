@@ -34,7 +34,7 @@ public class Ban {
     for (int x = 0; x < BAN_LENGTH; x++) {
       for (int y = 0; y < BAN_LENGTH; y++) {
         koma = this.board[x][y];
-        if (koma != null && koma.getId() == KING_ID  && koma.getOwner().equals(player)) { 
+        if (koma != null && koma.getId() == KING_ID  && koma.getOwner().equals(player)) {
           return true;
         }
       }
