@@ -12,9 +12,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import jakarta.servlet.http.HttpSession;
 import team3.tkk_game.mapper.DeckMapper;
 import team3.tkk_game.mapper.KomaMapper;
+import team3.tkk_game.mapper.PlayerMapper;
 import team3.tkk_game.model.Deck;
 import team3.tkk_game.model.Koma.KomaDB;
 
@@ -27,6 +27,9 @@ public class DeckController {
 
   @Autowired
   DeckMapper deckMapper;
+
+  @Autowired
+  PlayerMapper playerMapper;
 
   @GetMapping("/make")
   public String deckmake(Principal principal, Model model) {
@@ -54,19 +57,20 @@ public class DeckController {
   }
 
   @PostMapping("/choose")
-  public String chooseDeck(@RequestParam int deckId, Principal principal, HttpSession session) {
-    session.setAttribute("selectedDeckId", deckId);
+  public String chooseDeck(@RequestParam int deckId, Principal principal) {
+    playerMapper.updateSelectedDeckId(principal.getName(), deckId);
     return "redirect:/home";
   }
 
   @GetMapping("/load/{id}")
-  public String loadDeck(@PathVariable("id") int deckId, HttpSession session) {
-    session.setAttribute("selectedDeckId", deckId);
+  public String loadDeck(@PathVariable("id") int deckId, Principal principal) {
+    playerMapper.updateSelectedDeckId(principal.getName(), deckId);
     return "redirect:/home";
   }
 
   @GetMapping("/delete/{id}")
   public String deleteDeck(@PathVariable("id") int deckId) {
+    playerMapper.clearSelectedDeckId(deckId);
     deckMapper.deleteDeckById(deckId);
     return "redirect:/deck/select";
   }

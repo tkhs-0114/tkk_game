@@ -41,3 +41,8 @@ INSERT INTO KomaRule (koma_id, rule) VALUES (7, 'LINE_LEFT');
 INSERT INTO KomaRule (koma_id, rule) VALUES (7, 'LINE_RIGHT');
 
 INSERT INTO Deck (name, sfen) VALUES ('sample', '5/2[0]2');
+
+INSERT INTO Player (username) VALUES ('user1');
+INSERT INTO Player (username) VALUES ('user2');
+INSERT INTO Player (username) VALUES ('user3');
+INSERT INTO Player (username) VALUES ('user4');

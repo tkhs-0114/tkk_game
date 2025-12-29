@@ -11,11 +11,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import jakarta.servlet.http.HttpSession;
 import team3.tkk_game.model.Game;
 import team3.tkk_game.model.GameRoom;
 import team3.tkk_game.model.WaitRoom;
 import team3.tkk_game.services.MatchChecker;
+import team3.tkk_game.mapper.PlayerMapper;
 
 @Controller
 @RequestMapping("/match")
@@ -27,6 +27,8 @@ public class MatchController {
   GameRoom gameRoom;
   @Autowired
   MatchChecker matchChecker;
+  @Autowired
+  PlayerMapper playerMapper;
 
   @GetMapping
   public String match(Principal principal, Model model) {
@@ -58,9 +60,9 @@ public class MatchController {
 
   // 対戦リクエストを送信する
   @PostMapping("/sendRequest")
-  public String sendRequest(Principal principal, Model model, @RequestParam String Player1Name, HttpSession session) {
+  public String sendRequest(Principal principal, Model model, @RequestParam String Player1Name) {
     String Player2Name = principal.getName();
-    Integer selectedDeckId = (Integer) session.getAttribute("selectedDeckId");
+    Integer selectedDeckId = playerMapper.getSelectedDeckIdByName(Player2Name);
     Game room = waitRoom.getRoomByName(Player1Name);
     if (room != null && selectedDeckId != null) {
       room.setDeckIdPlayer2(selectedDeckId);
@@ -73,12 +75,12 @@ public class MatchController {
 
   // 対戦リクエストを承認する
   @PostMapping("/accept")
-  public String acceptMatch(Principal principal, HttpSession session) {
+  public String acceptMatch(Principal principal) {
     String Player1Name = principal.getName();
     Game room = waitRoom.getRoomByName(Player1Name);
 
     if (room != null && room.getPlayer2() != null) {
-      Integer selectedDeckId1 = (Integer) session.getAttribute("selectedDeckId");
+      Integer selectedDeckId1 = playerMapper.getSelectedDeckIdByName(Player1Name);
       if (selectedDeckId1 != null) {
         room.setDeckIdPlayer1(selectedDeckId1);
       }

@@ -13,6 +13,7 @@ import team3.tkk_game.model.WaitRoom;
 import org.springframework.ui.Model;
 
 import team3.tkk_game.mapper.DeckMapper;
+import team3.tkk_game.mapper.PlayerMapper;
 
 @Controller
 public class MainController {
@@ -23,11 +24,13 @@ public class MainController {
   GameRoom gameRoom;
   @Autowired
   DeckMapper deckMapper;
+  @Autowired
+  PlayerMapper playerMapper;
 
   @GetMapping("/home")
   public String home(Principal principal, Model model,HttpSession session) {
     String playerName = principal.getName();
-    Integer deckId = (Integer) session.getAttribute("selectedDeckId");
+    Integer deckId = playerMapper.getSelectedDeckIdByName(playerName);
       if (deckId != null) {
     Deck deck = deckMapper.selectDeckById(deckId);
     model.addAttribute("deckname", deck.getName());
