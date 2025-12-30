@@ -66,7 +66,7 @@ public class GameEventEmitterManager {
    * @param gameId                ゲームID
    * @param currentTurnPlayerName 現在のターンのプレイヤー名
    */
-  public void notifyTurnChange(String gameId, String currentTurnPlayerName, boolean isGameEnd) {
+  public void notifyTurnChange(String gameId, String currentTurnPlayerName) {
     CopyOnWriteArrayList<SseEmitter> emitters = gameEmitters.get(gameId);
     if (emitters == null) {
       return;
@@ -80,10 +80,9 @@ public class GameEventEmitterManager {
         // このEmitterに対応するプレイヤー名を取得
         String playerName = getPlayerNameByEmitter(emitter);
         if (playerName != null) {
-          // 自分のターンかゲームが終わったかどうかを通知
+          // 自分のターンかどうかを通知
           boolean isMyTurn = playerName.equals(currentTurnPlayerName);
-          String response = String.format("{\"isMyTurn\":%b,\"isGameEnd\":%b}", isMyTurn, isGameEnd);
-          emitter.send(response);
+          emitter.send(isMyTurn);
         }
       } catch (IOException | IllegalStateException e) {
         // 送信失敗時（接続切断やEmitter完了済み）は削除対象に追加
