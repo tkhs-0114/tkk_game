@@ -103,10 +103,15 @@ public class GameController {
     Koma koma1_2Koma = new Koma(koma1_2, koma1_2Rules, game.getPlayer1());
     game.getBan().setKomaAt(0, 1, koma1_2Koma);
 
-    KomaDB koma1_3 = komaMapper.selectKomaById(2); // 例: 駒ID2を選択
-    List<KomaRule> koma1_3Rules = komaMapper.selectKomaRuleById(2);
+    KomaDB koma1_3 = komaMapper.selectKomaById(3); // 例: 駒ID2を選択
+    List<KomaRule> koma1_3Rules = komaMapper.selectKomaRuleById(3);
     Koma koma1_3Koma = new Koma(koma1_3, koma1_3Rules, game.getPlayer1());
     game.getBan().setKomaAt(1, 2, koma1_3Koma);
+
+    KomaDB koma1_4 = komaMapper.selectKomaById(14); // 例: 駒ID2を選択
+    List<KomaRule> koma1_4Rules = komaMapper.selectKomaRuleById(14);
+    Koma koma1_4Koma = new Koma(koma1_4, koma1_4Rules, game.getPlayer1());
+    game.getBan().setKomaAt(-2, 2, koma1_4Koma);
 
     // 相手の駒を盤面にセットする
     game.getBan().rotate180();
@@ -188,32 +193,52 @@ public class GameController {
       }
     }
 
-    // 駒を移動
-    game.getBan().setKomaAt(toX, toY, koma);
-    game.getBan().setKomaAt(fromX, fromY, null);
+    Ban myban = null;
 
-    // 自分視点の盤面を保存
-    Ban myban = new Ban(game.getBan());
+    switch (koma.getSkill()) {
+      default:
 
-    // 相手視点の盤面を保存
-    game.getDisplayBan().applyBan(game.getBan());
+        // 駒を移動
+        game.getBan().setKomaAt(toX, toY, koma);
+        game.getBan().setKomaAt(fromX, fromY, null);
 
-    // 勝利判定
-    if (!game.getBan().isHaveKing(game.getEnemyPlayerByName(loginPlayerName))) {
-      game.getPlayerByName(loginPlayerName).setStatus(PlayerStatus.GAME_WIN);
-      game.getEnemyPlayerByName(loginPlayerName).setStatus(PlayerStatus.GAME_LOSE);
-      game.setIsFinished();
-      
-      // 全プレイヤーにゲーム終了を通知
-      gameEventEmitterManager.notifyTurnChange(game.getId(), "", game.getIsFinished());
-      
-      // 勝者を結果画面にリダイレクト
-      return "redirect:/game/result";
+        // 勝利判定
+        if (!game.getBan().isHaveKing(game.getEnemyPlayerByName(loginPlayerName))) {
+          game.getPlayerByName(loginPlayerName).setStatus(PlayerStatus.GAME_WIN);
+          game.getEnemyPlayerByName(loginPlayerName).setStatus(PlayerStatus.GAME_LOSE);
+          game.setIsFinished();
+
+          // 全プレイヤーにゲーム終了を通知
+          gameEventEmitterManager.notifyTurnChange(game.getId(), "", game.getIsFinished());
+
+          // 勝者を結果画面にリダイレクト
+          return "redirect:/game/result";
+        }
+
+        // 自分視点の盤面を保存
+        myban = new Ban(game.getBan());
+
+        // 相手視点の盤面を保存
+        game.getDisplayBan().applyBan(game.getBan());
+
+        break;
+      case STEALTH:
+        System.out.println("STEALTHスキル発動");
+
+        // 相手視点の盤面を保存
+        game.getDisplayBan().applyBan(game.getBan());
+
+        // 駒を移動
+        game.getBan().setKomaAt(toX, toY, koma);
+        game.getBan().setKomaAt(fromX, fromY, null);
+
+        // 自分視点の盤面を保存
+        myban = new Ban(game.getBan());
+
+        break;
     }
-
     // ターンを交代
     game.switchTurn();
-
     // ターン変更をSSEで通知
     String currentTurnPlayerName = getCurrentTurnPlayerName(game);
     gameEventEmitterManager.notifyTurnChange(game.getId(), currentTurnPlayerName, game.getIsFinished());
@@ -254,15 +279,15 @@ public class GameController {
     // 相手視点の盤面を保存
     game.getDisplayBan().applyBan(game.getBan());
 
-        // 勝利判定
+    // 勝利判定
     if (!game.getBan().isHaveKing(game.getEnemyPlayerByName(loginPlayerName))) {
       game.getPlayerByName(loginPlayerName).setStatus(PlayerStatus.GAME_WIN);
       game.getEnemyPlayerByName(loginPlayerName).setStatus(PlayerStatus.GAME_LOSE);
       game.setIsFinished();
-      
+
       // ゲーム終了を通知
       gameEventEmitterManager.notifyTurnChange(game.getId(), "", game.getIsFinished());
-      
+
       // 勝者を結果画面にリダイレクト
       return "redirect:/game/result";
     }
@@ -287,36 +312,36 @@ public class GameController {
   public String gameEnd(Principal principal, Model model) {
     String loginPlayerName = principal.getName();
     Game game = gameRoom.getGameByPlayerName(loginPlayerName);
-    
+
     // ゲームが見つからない場合はホームへ
     if (game == null) {
       return "redirect:/home";
     }
-    
+
     // ゲームが終了していない場合はゲーム画面へ
     if (!game.getIsFinished()) {
       return "redirect:/game";
     }
-    
+
     Player player = game.getPlayerByName(loginPlayerName);
     Player enemyPlayer = game.getEnemyPlayerByName(loginPlayerName);
-    
+
     // 盤面の向きを決定（ステータス変更前に判定）
     // 勝者（GAME_WIN）：最後に手を打った側なので、displayBanをそのまま表示
     // 敗者（GAME_LOSE）：相手が最後に手を打ったので、180度回転して表示
     Ban resultBan = new Ban(game.getDisplayBan());
     boolean isWinner = (player.getStatus() == PlayerStatus.GAME_WIN);
-    
+
     if (!isWinner) {
       // 敗者の場合は回転して自分視点に
       resultBan.rotate180();
     }
-    
+
     // ステータスをGAME_ENDに変更（得点調整等の処理もここで行う）
     if (player.getStatus() == PlayerStatus.GAME_WIN) {
-      /* 
-        ここに勝者の得点調整等の処理を追加 
-      */
+      /*
+       * ここに勝者の得点調整等の処理を追加
+       */
       player.setStatus(PlayerStatus.GAME_END);
     } else if (player.getStatus() == PlayerStatus.GAME_LOSE) {
 
@@ -324,17 +349,17 @@ public class GameController {
         // 勝者の処理が完了してないので、ゲーム画面に戻して待機させる
         return "redirect:/game";
       }
-      
-      /* 
-        ここに敗者の得点調整等の処理を追加
-      */
+
+      /*
+       * ここに敗者の得点調整等の処理を追加
+       */
 
       player.setStatus(PlayerStatus.GAME_END);
-      
+
       gameEventEmitterManager.removeAllGameEmitters(game.getId());
       gameRoom.rmGameByName(loginPlayerName);
     }
-    
+
     // モデルに最終盤面情報を追加
     model.addAttribute("gameId", game.getId());
     model.addAttribute("playerStatus", player.getStatus());
@@ -343,7 +368,7 @@ public class GameController {
     model.addAttribute("ban", resultBan);
     model.addAttribute("haveKoma", game.getHaveKomaByName(loginPlayerName));
     model.addAttribute("enemyHaveKoma", game.getEnemyHaveKomaByName(loginPlayerName));
-    
+
     // デバッグ用
     model.addAttribute("game", game);
 
