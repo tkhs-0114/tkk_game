@@ -353,7 +353,7 @@ public class GameController {
 
     // モデルに最終盤面情報を追加
     model.addAttribute("GAME_END", true);
-    return returnGame(model, game, loginPlayerName, myban);
+    return returnGame(model, game, loginPlayerName, myBan);
   }
 
   /**
