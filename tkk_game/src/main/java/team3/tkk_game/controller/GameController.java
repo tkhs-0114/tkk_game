@@ -347,7 +347,7 @@ public class GameController {
 
       player.setStatus(PlayerStatus.GAME_END);
 
-      gameEventEmitterManager.removeAllGameEmitters(game.getId());
+      gameEventEmitterManager.removePlayerEmittersByGameId(game.getId());
       gameRoom.rmGameByName(loginPlayerName);
     }
 

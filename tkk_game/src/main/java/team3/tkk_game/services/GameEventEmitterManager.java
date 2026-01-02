@@ -126,7 +126,7 @@ public class GameEventEmitterManager {
    *
    * @param gameId ゲームID
    */
-  public void removeAllGameEmitters(String gameId) {
+  public void removePlayerEmittersByGameId(String gameId) {
     // 削除対象のプレイヤー名を収集
     java.util.ArrayList<String> playersToRemove = new java.util.ArrayList<>();
     for (var entry : playerToGame.entrySet()) {

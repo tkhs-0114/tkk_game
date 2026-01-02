@@ -86,7 +86,7 @@
           // GAME_ENDの場合はクリックイベントを設定しない
           let cellContent;
           if (GAME_END) {
-            cellContent = (cell && cell.name) ? cell.name : '　';
+            cellContent = (cell && cell.name) ? `<div class="cell">${cell.name}</div>` : `<div class="cell">　</div>`;
           } else {
             cellContent = (cell && cell.name && (cell.owner.name === loginPlayerName)) ?
               `<div class="cell" onClick="setSelectedCell(${Xa2b(x)}, ${Ya2b(y)})">${cell.name}</div>`
