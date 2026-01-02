@@ -352,17 +352,8 @@ public class GameController {
     }
 
     // モデルに最終盤面情報を追加
-    model.addAttribute("gameId", game.getId());
-    model.addAttribute("playerStatus", player.getStatus());
     model.addAttribute("GAME_END", true);
-    model.addAttribute("ban", myBan);
-    model.addAttribute("haveKoma", game.getHaveKomaByName(loginPlayerName));
-    model.addAttribute("enemyHaveKoma", game.getEnemyHaveKomaByName(loginPlayerName));
-
-    // デバッグ用
-    model.addAttribute("game", game);
-
-    return "game.html";
+    return returnGame(model, game, loginPlayerName, myban);
   }
 
   /**
