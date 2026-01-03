@@ -5,6 +5,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link th:href="@{/global.css}" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Yuji+Boku&display=swap" rel="stylesheet">
   <title>ゲーム</title>
   <script th:inline="javascript">
     const ban = /*[[${ban}]]*/ null;
@@ -45,6 +48,7 @@
       selectedY = y;
       selectedHaveKoma = false;
       console.log(`Selected cell: (${x}, ${y})`);
+      highlightMovableCells(x, y);
     }
     function sendMove(x, y) {
       if (selectedHaveKoma) {
@@ -67,6 +71,27 @@
       }
 
     }
+    // サーバーAPIから移動可能マスを取得してハイライト
+    async function highlightMovableCells(fromX, fromY) {
+      // 既存のハイライトをクリア
+      document.querySelectorAll('#board-container .cell').forEach(cell => {
+        cell.classList.remove('selected', 'movable');
+      });
+
+      // 選択中のセルをハイライト
+      const selectedCell = document.querySelector(`#board-container [data-x="${fromX}"][data-y="${fromY}"]`);
+      if (selectedCell) selectedCell.classList.add('selected');
+
+      // サーバーから移動可能マスを取得
+      const response = await fetch(`/game/movable?x=${fromX}&y=${fromY}`);
+      const movableCells = await response.json();
+
+      for (const [x, y] of movableCells) {
+        const cell = document.querySelector(`#board-container [data-x="${x}"][data-y="${y}"]`);
+        if (cell) cell.classList.add('movable');
+      }
+    }
+
     function drawBoard() {
       const boardContainer = document.getElementById('board-container');
       if (!ban || !ban.board) {
@@ -82,17 +107,21 @@
         html += '<tr>';
         for (let x = 0; x < boardLength; x++) {
           const cell = ban.board[x][y];
-          
+
           // GAME_ENDの場合はクリックイベントを設定しない
           let cellContent;
           if (GAME_END) {
-            cellContent = (cell && cell.name) ? `<div class="cell">${cell.name}</div>` : `<div class="cell">　</div>`;
+            cellContent = (cell && cell.name) ? 
+              `<div class="cell koma${cell.owner.name !== loginPlayerName ? ' enemy' : ''}">${cell.name}</div>` 
+              : `<div class="cell">　</div>`;
           } else {
+            const boardX = Xa2b(x);
+            const boardY = Ya2b(y);
             cellContent = (cell && cell.name && (cell.owner.name === loginPlayerName)) ?
-              `<div class="cell" onClick="setSelectedCell(${Xa2b(x)}, ${Ya2b(y)})">${cell.name}</div>`
+              `<div class="cell koma"  data-x="${boardX}" data-y="${boardY}" onClick="setSelectedCell(${boardX}, ${boardY})">${cell.name}</div>`
               : (cell && cell.name) ?
-                `<div class="cell" onClick="sendMove(${Xa2b(x)}, ${Ya2b(y)})">${cell.name}</div>`
-                : `<div class="cell" onClick="sendMove(${Xa2b(x)}, ${Ya2b(y)})">　</div>`;
+                `<div class="cell koma enemy" data-x="${boardX}" data-y="${boardY}" onClick="sendMove(${boardX}, ${boardY})">${cell.name}</div>`
+                : `<div class="cell" data-x="${boardX}" data-y="${boardY}" onClick="sendMove(${boardX}, ${boardY})">　</div>`;
           }
           html += `<td>${cellContent}</td>`;
         }
@@ -118,10 +147,9 @@
       html += '<tr>';
       for (let i = 0; i < komaData.length; i++) {
         const cell = komaData[i];
-        // GAME_ENDの場合はクリックイベントを設定しない
         const cellContent = (isClickable && !GAME_END)
-          ? `<div class="cell" onClick="selectHaveKoma(${i})">${cell.name}</div>`
-          : `<div>${cell.name}</div>`;
+          ? `<div class="cell koma" onClick="selectHaveKoma(${i})">${cell.name}</div>`
+          : `<div class="cell koma">${cell.name}</div>`;
         html += `<td>${cellContent}</td>`;
       }
       html += '</tr>';
@@ -166,6 +194,13 @@
   <p>プレイヤーステータス: [[${playerStatus}]]</p>
 
   <div>
+    <div>
+      <p>相手の持ち駒</p>
+      <div id="haveKoma_E-container">
+        <!-- 相手の持ち駒がここに表示されます -->
+      </div>
+    </div>
+    <br>
     <div id="board-container">
       <!-- 盤面がここに表示されます -->
     </div>
@@ -173,11 +208,6 @@
       <p>自分の持ち駒</p>
       <div id="haveKoma-container">
         <!-- 持ち駒がここに表示されます -->
-      </div>
-      <br>
-      <p>相手の持ち駒</p>
-      <div id="haveKoma_E-container">
-        <!-- 相手の持ち駒がここに表示されます -->
       </div>
     </div>
   </div>

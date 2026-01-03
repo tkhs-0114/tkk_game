@@ -8,6 +8,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import team3.tkk_game.model.GameRoom;
@@ -354,6 +355,19 @@ public class GameController {
     // モデルに最終盤面情報を追加
     model.addAttribute("GAME_END", true);
     return returnGame(model, game, loginPlayerName, myBan);
+  }
+  // 指定した駒の移動可能なマスを取得するAPI
+  @GetMapping("/movable")
+  @ResponseBody
+  public List<int[]> getMovableCells(Principal principal, @RequestParam int x, @RequestParam int y) {
+    String loginPlayerName = principal.getName();
+    Game game = gameRoom.getGameByPlayerName(loginPlayerName);
+    
+    if (game == null || !isMyTurn(game, loginPlayerName)) {
+      return List.of();
+    }
+    
+    return moveValidator.getMovableCells(game.getDisplayBan(), x, y);
   }
 
   /**
