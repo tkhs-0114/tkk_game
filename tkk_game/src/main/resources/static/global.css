@@ -130,15 +130,29 @@ button:hover {
   transform: rotate(180deg);
 }
 
+#board-container .cell.selected {
+  background-color: #ffeb3b;
+  border: 2px solid #ffc107;
+  box-sizing: border-box;
+}
+
+#board-container .cell.movable {
+  background-color: #c8e6c9;
+  border: 2px solid #4caf50;
+  box-sizing: border-box;
+}
+
 #haveKoma-container {
   overflow-y: auto;
 }
 
 #haveKoma-container .cell {
+  user-select: none;
   cursor: pointer;
 }
 
 #haveKoma_E-container .cell {
+  user-select: none;
   transform: rotate(180deg);
 }
 

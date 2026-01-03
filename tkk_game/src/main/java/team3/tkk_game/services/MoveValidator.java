@@ -1,5 +1,6 @@
 package team3.tkk_game.services;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -13,6 +14,21 @@ import team3.tkk_game.model.Koma.KomaRule;
  */
 @Service
 public class MoveValidator {
+
+  // 指定した駒が移動可能なすべてのマスを取得する
+  public List<int[]> getMovableCells(Ban ban, int fromX, int fromY) {
+    List<int[]> movableCells = new ArrayList<>();
+    int halfLen = (ban.getBoard().length - 1) / 2;
+    for (int toY = -halfLen; toY <= halfLen; toY++) {
+      for (int toX = -halfLen; toX <= halfLen; toX++) {
+        if (fromX == toX && fromY == toY) continue;
+        if (canMove(ban, fromX, fromY, toX, toY)) {
+          movableCells.add(new int[]{toX, toY});
+        }
+      }
+    }
+    return movableCells;
+  }
 
   /**
    * 駒が指定された位置に移動可能かを判定する
