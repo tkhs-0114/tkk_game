@@ -21,14 +21,22 @@
     <!-- komas を受け取り、value に id、表示は name にする -->
     <select id="koma-select" name="komaId">
       <option value="" disabled selected>選んでください</option>
-      <option th:each="k : ${komas}" th:value="${k.id}" th:text="${k.name}">駒名</option>
+      <option th:each="k : ${komas}" th:value="${k.id}" th:text="${k.name}" th:attr="data-cost=${komaCosts[k.id]}">駒名
+      </option>
     </select>
+
+    <span id="selected-koma-cost"></span>
 
     <!-- SFEN を入れる hidden -->
     <input type="hidden" id="sfen-input" name="sfen" />
 
     <button type="submit">保存</button>
   </form>
+
+  <div>
+    <strong>デッキの合計コスト：</strong>
+    <span id="total-deck-cost">0</span>
+  </div>
 
   <!-- 5x2 マス目 -->
   <div class="board" id="board">
@@ -46,6 +54,31 @@
   </div>
 
   <script>
+    // 駒選択時にコストを表示
+    document.getElementById('koma-select').addEventListener('change', function () {
+      const selectedOption = this.options[this.selectedIndex];
+      const cost = selectedOption.getAttribute('data-cost');
+      const costDisplay = document.getElementById('selected-koma-cost');
+      if (cost) {
+        costDisplay.textContent = `コスト: ${cost}`;
+        costDisplay.style.color = '#0066cc';
+      } else {
+        costDisplay.textContent = '';
+      }
+    });
+
+    // デッキの合計コストを計算して表示
+    function updateTotalCost() {
+      let totalCost = 0;
+      document.querySelectorAll('.cell').forEach(cell => {
+        const cost = cell.dataset.cost;
+        if (cost) {
+          totalCost += parseInt(cost, 10);
+        }
+      });
+      document.getElementById('total-deck-cost').textContent = totalCost;
+    }
+
     // セルに駒を配置：value=id を dataset.komaId に、表示は選択肢のテキスト（駒名）
     document.querySelectorAll('.cell').forEach(cell => {
       cell.addEventListener('click', () => {
@@ -53,9 +86,12 @@
         const id = sel.value;
         if (!id) { alert('先に駒を選んでください'); return; }
         const name = sel.options[sel.selectedIndex].text;
+        const cost = sel.options[sel.selectedIndex].getAttribute('data-cost');
         cell.textContent = name;
         cell.classList.remove('empty');
         cell.dataset.komaId = id;
+        cell.dataset.cost = cost;
+        updateTotalCost();
       });
     });
 
