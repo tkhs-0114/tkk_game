@@ -47,6 +47,12 @@
       selectedY = y;
       selectedHaveKoma = false;
       console.log(`Selected cell: (${x}, ${y})`);
+
+      // 持ち駒のハイライトをクリア
+      document.querySelectorAll('#haveKoma-container .cell').forEach(cell => {
+        cell.classList.remove('selected');
+      });
+
       highlightMovableCells(x, y);
     }
     function sendMove(x, y) {
@@ -91,6 +97,63 @@
       }
     }
 
+    // 駒の詳細を表示
+    function showKomaDetail(cell) {
+      const komaView = document.getElementById('koma-view');
+      if (!cell || !cell.name) {
+        komaView.innerHTML = '';
+        return;
+      }
+      console.log('Showing koma detail:', cell);
+      const owner = cell.owner?.name === loginPlayerName ? '自分' : '相手';
+      
+      // ルールを日本語に変換
+      const ruleNameMap = {
+        'UP': '上',
+        'DOWN': '下',
+        'LEFT': '左',
+        'RIGHT': '右',
+        'UP_LEFT': '左上',
+        'UP_RIGHT': '右上',
+        'DOWN_LEFT': '左下',
+        'DOWN_RIGHT': '右下',
+        'LINE_UP': '上(直線)',
+        'LINE_DOWN': '下(直線)',
+        'LINE_LEFT': '左(直線)',
+        'LINE_RIGHT': '右(直線)',
+        'LINE_UP_LEFT': '左上(直線)',
+        'LINE_UP_RIGHT': '右上(直線)',
+        'LINE_DOWN_LEFT': '左下(直線)',
+        'LINE_DOWN_RIGHT': '右下(直線)',
+        'JUMP_UP_LEFT': '上左(飛び越え)',
+        'JUMP_UP_RIGHT': '上右(飛び越え)',
+        'JUMP_DOWN_LEFT': '下左(飛び越え)',
+        'JUMP_DOWN_RIGHT': '下右(飛び越え)',
+        'JUMP_LEFT_UP': '左上(飛び越え)',
+        'JUMP_LEFT_DOWN': '左下(飛び越え)',
+        'JUMP_RIGHT_UP': '右上(飛び越え)',
+        'JUMP_RIGHT_DOWN': '右下(飛び越え)'
+      };
+      const rules = cell.rules?.map(r => ruleNameMap[r] || r).join('<br>・') || 'なし';
+      
+      // スキルを日本語に変換
+      const skillNameMap = {
+        'NULL': 'なし',
+        'STEALTH': '動きが１ターン遅れて見える',
+      };
+      const skill = cell.skill ? (skillNameMap[cell.skill] || cell.skill) : 'なし';
+      
+      console.log('cell:', cell);
+      komaView.innerHTML = `
+        <div class="koma-detail">
+          <p><strong>${cell.name}</strong></p>
+          <p>所有者: ${owner}</p>
+          <p>スキル: ${skill}</p>
+          <p>移動方向:<br>・${rules}</p>
+        </div>
+      `;
+    }
+
     function drawBoard() {
       const boardContainer = document.getElementById('board-container');
       if (!ban || !ban.board) {
@@ -108,10 +171,11 @@
           const cell = ban.board[x][y];
           const boardX = Xa2b(x);
           const boardY = Ya2b(y);
+          const hover = `onmouseenter="showKomaDetail(ban.board[${x}][${y}])" onmouseleave="showKomaDetail(null)"`;
           const cellContent = (cell && cell.name && (cell.owner.name === loginPlayerName)) ?
-            `<div class="cell koma"  data-x="${boardX}" data-y="${boardY}" onClick="setSelectedCell(${boardX}, ${boardY})">${cell.name}</div>`
+            `<div class="cell koma" data-x="${boardX}" data-y="${boardY}" onClick="setSelectedCell(${boardX}, ${boardY})" ${hover}>${cell.name}</div>`
             : (cell && cell.name) ?
-              `<div class="cell koma Enemy" data-x="${boardX}" data-y="${boardY}" onClick="sendMove(${boardX}, ${boardY})">${cell.name}</div>`
+              `<div class="cell koma Enemy" data-x="${boardX}" data-y="${boardY}" onClick="sendMove(${boardX}, ${boardY})" ${hover}>${cell.name}</div>`
               : `<div class="cell" data-x="${boardX}" data-y="${boardY}" onClick="sendMove(${boardX}, ${boardY})">　</div>`;
           html += `<td>${cellContent}</td>`;
         }
@@ -125,6 +189,20 @@
     function selectHaveKoma(index) {
       selectedHaveKoma = true;
       haveKomaIndex = index;
+
+      // 盤面のハイライトをクリア
+      document.querySelectorAll('#board-container .cell').forEach(cell => {
+        cell.classList.remove('selected', 'movable');
+      });
+
+      // 持ち駒のハイライトをクリア
+      document.querySelectorAll('#haveKoma-container .cell').forEach(cell => {
+        cell.classList.remove('selected');
+      });
+
+      // 選択した持ち駒をハイライト
+      const selectedCell = document.querySelector(`#haveKoma-container .cell[data-index="${index}"]`);
+      if (selectedCell) selectedCell.classList.add('selected');
     }
     function drawHaveKoma(komaData, containerId, isClickable = false) {
       const komaContainer = document.getElementById(containerId);
@@ -137,9 +215,10 @@
       html += '<tr>';
       for (let i = 0; i < komaData.length; i++) {
         const cell = komaData[i];
+        const hover = `onmouseenter="showKomaDetail(${containerId === 'haveKoma-container' ? 'haveKoma' : 'enemyHaveKoma'}[${i}])" onmouseleave="showKomaDetail(null)"`;
         const cellContent = isClickable
-          ? `<div class="cell koma" onClick="selectHaveKoma(${i})">${cell.name}</div>`
-          : `<div class="cell koma">${cell.name}</div>`;
+          ? `<div class="cell koma" data-index="${i}" onClick="selectHaveKoma(${i})" ${hover}>${cell.name}</div>`
+          : `<div class="cell koma" ${hover}>${cell.name}</div>`;
         html += `<td>${cellContent}</td>`;
       }
       html += '</tr>';
@@ -184,17 +263,23 @@
   <p>プレイヤーステータス: [[${playerStatus}]]</p>
 
   <div>
-    <div>
+    <div class="frame">
       <p>相手の持ち駒</p>
       <div id="haveKoma_E-container">
         <!-- 相手の持ち駒がここに表示されます -->
       </div>
     </div>
     <br>
-    <div id="board-container">
-      <!-- 盤面がここに表示されます -->
+    <div style="display: flex; gap: 20px;">
+      <div id="board-container">
+        <!-- 盤面がここに表示されます -->
+      </div>
+      <div class="frame" id="koma-view">
+        <!-- 駒の詳細がここに表示されます -->
+      </div>
     </div>
-    <div>
+    <br>
+    <div class="frame">
       <p>自分の持ち駒</p>
       <div id="haveKoma-container">
         <!-- 持ち駒がここに表示されます -->
