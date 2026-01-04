@@ -4,23 +4,31 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link th:href="@{/global.css}" rel="stylesheet">
+  <link th:href="@{/css/home.css}" rel="stylesheet">
   <title>ホーム</title>
 </head>
 
 <body>
-  <h1>ホーム画面</h1>
-  <div th:if="${session.selectedDeck != null}">
-    <p>デッキ名：<span th:text="${session.selectedDeck.name}">デッキ名</span></p>
-    <p>内容：<span th:text="${session.selectedDeck.sfen}">SFEN</span></p>
+  <div class="container">
+    <header>
+      <h1>ホーム</h1>
+    </header>
+
+    <div class="deck-info">
+      <div th:if="${session.selectedDeck != null}">
+        <p>使用中の配置：<span th:text="${session.selectedDeck.name}">デッキ名</span></p>
+      </div>
+      <div th:unless="${session.selectedDeck != null}">
+        <p>デッキが選択されていません</p>
+      </div>
+    </div>
+
+    <nav class="menu">
+      <a href="/match" class="menu-item">対局開始</a>
+      <a href="/deck/make" class="menu-item">デッキ作成</a>
+      <a href="/deck/select" class="menu-item">デッキ一覧</a>
+    </nav>
   </div>
-  <div th:unless="${session.selectedDeck != null}">
-    <p>選択されたデッキはありません</p>
-  </div>
-  <a href="/match">マッチ</a><br />
-  <a href="/deck/make">デッキ作成</a><br />
-  <a href="/deck/select">デッキ一覧</a><br />
-  <a href="/logout">ログアウト</a>
 </body>
 
 </html>

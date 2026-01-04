@@ -4,42 +4,44 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link th:href="@{/global.css}" rel="stylesheet">
+  <link th:href="@{/css/deckselect.css}" rel="stylesheet">
   <title>デッキ一覧</title>
 </head>
 
 <body>
-  <h1>保存済みデッキ一覧</h1>
+  <div class="container">
+    <header>
+      <h1>デッキ一覧</h1>
+    </header>
 
-  <p><a href="/home">ホームに戻る</a></p>
+    <div class="deck-table">
+      <table>
+        <thead>
+          <tr>
+            <th>デッキ名</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr th:if="${decks == null or #lists.isEmpty(decks)}">
+            <td colspan="2">保存されたデッキはありません</td>
+          </tr>
+          <tr th:each="deck : ${decks}">
+            <td th:text="${deck.name}">デッキ名</td>
+            <td class="actions">
+              <a th:href="@{'/deck/load/' + ${deck.id}}" class="action-link">選択</a>
+              <a th:href="@{'/deck/delete/' + ${deck.id}}" class="action-link delete"
+                onclick="return confirm('削除してよいですか？');">削除</a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
-  <table>
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>デッキ名</th>
-        <th>SFEN</th>
-        <th>操作</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr th:if="${decks == null or #lists.isEmpty(decks)}">
-        <td colspan="4">保存されたデッキはありません</td>
-      </tr>
-      <tr th:each="deck : ${decks}">
-        <td th:text="${deck.id}">1</td>
-        <td th:text="${deck.name}">デッキ名</td>
-        <td th:text="${deck.sfen}">sfen</td>
-        <td class="actions">
-          <!-- 編集や読み込みのリンクは必要に応じて実装 -->
-          <a th:href="@{'/deck/load/' + ${deck.id}}">読み込み</a>
-          &nbsp;|&nbsp;
-          <a th:href="@{'/deck/delete/' + ${deck.id}}" onclick="return confirm('削除してよいですか？');">削除</a>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-
+    <nav class="menu">
+      <a href="/home" class="menu-item">ホームに戻る</a>
+    </nav>
+  </div>
 </body>
 
 </html>
