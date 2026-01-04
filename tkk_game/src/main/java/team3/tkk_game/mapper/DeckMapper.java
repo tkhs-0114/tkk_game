@@ -10,14 +10,14 @@ import team3.tkk_game.model.Deck;
 
 @Mapper
 public interface DeckMapper {
-  @Insert("INSERT INTO Deck(name, sfen) VALUES(#{name}, #{sfen})")
+  @Insert("INSERT INTO Deck(name, sfen, cost) VALUES(#{name}, #{sfen}, #{cost})")
   @Options(useGeneratedKeys = true, keyProperty = "id")
   int insertDeck(Deck deck);
 
-  @Select("SELECT id, name, sfen FROM Deck")
+  @Select("SELECT id, name, sfen, cost FROM Deck")
   java.util.List<Deck> selectAllDecks();
 
-  @Select("SELECT id, name, sfen FROM Deck WHERE id = #{id}")
+  @Select("SELECT id, name, sfen, cost FROM Deck WHERE id = #{id}")
   Deck selectDeckById(int id);
 
   @Delete("DELETE FROM Deck WHERE id = #{id}")
