@@ -1,9 +1,12 @@
 package team3.tkk_game.controller;
 
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -14,6 +17,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import jakarta.servlet.http.HttpSession;
 import team3.tkk_game.mapper.DeckMapper;
@@ -25,6 +29,8 @@ import team3.tkk_game.model.Koma.KomaRule;
 @Controller
 @RequestMapping("/deck")
 public class DeckController {
+
+  private static final int COST_LIMIT = 50;
 
   @Autowired
   KomaMapper komaMapper;
@@ -47,16 +53,60 @@ public class DeckController {
     }
     model.addAttribute("komaCosts", komaCosts);
 
+    // コスト上限をモデルに追加
+    model.addAttribute("costLimit", COST_LIMIT);
+
     return "deckmake.html";
   }
 
   @PostMapping("/save")
-  public String saveDeck(@RequestParam String deckName, @RequestParam String sfen, Principal principal) {
+  public String saveDeck(@RequestParam String deckName, @RequestParam String sfen, Principal principal,
+      RedirectAttributes redirectAttributes) {
+    // SFENから駒IDを抽出
+    List<Integer> komaIds = extractKomaIdsFromSfen(sfen);
+
+    // 各駒のコストを取得して合計を計算
+    int totalCost = 0;
+    for (Integer komaId : komaIds) {
+      KomaDB koma = komaMapper.selectKomaById(komaId);
+      if (koma != null) {
+        List<KomaRule> rules = komaMapper.selectKomaRuleById(komaId);
+        totalCost += koma.calculateCost(rules);
+      }
+    }
+
+    // コスト上限チェック
+    if (totalCost > COST_LIMIT) {
+      redirectAttributes.addFlashAttribute("error",
+          "デッキのコストが上限を超えています (" + totalCost + "/" + COST_LIMIT + ")");
+      return "redirect:/deck/make";
+    }
+
+    // デッキを保存
     Deck deck = new Deck();
     deck.setName(deckName);
     deck.setSfen(sfen);
+    deck.setCost(totalCost);
     deckMapper.insertDeck(deck);
+
+    redirectAttributes.addFlashAttribute("success", "デッキを保存しました (コスト: " + totalCost + ")");
     return "redirect:/deck/make";
+  }
+
+  /**
+   * SFENから駒IDを抽出するヘルパーメソッド
+   *
+   * @param sfen SFEN形式の文字列
+   * @return 駒IDのリスト
+   */
+  private List<Integer> extractKomaIdsFromSfen(String sfen) {
+    List<Integer> komaIds = new ArrayList<>();
+    Pattern pattern = Pattern.compile("\\[(\\d+)\\]");
+    Matcher matcher = pattern.matcher(sfen);
+    while (matcher.find()) {
+      komaIds.add(Integer.parseInt(matcher.group(1)));
+    }
+    return komaIds;
   }
 
   @GetMapping("/select")

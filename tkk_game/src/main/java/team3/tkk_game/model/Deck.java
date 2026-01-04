@@ -4,6 +4,7 @@ public class Deck {
   int id;
   String name;
   String sfen;
+  Integer cost;
 
   public Integer getId() {
     return id;
@@ -27,5 +28,13 @@ public class Deck {
 
   public void setSfen(String sfen) {
     this.sfen = sfen;
+  }
+
+  public Integer getCost() {
+    return cost;
+  }
+
+  public void setCost(Integer cost) {
+    this.cost = cost;
   }
 }

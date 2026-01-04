@@ -13,15 +13,20 @@
 
   <p><a href="/home">ホームに戻る</a><a href="/deck/make/koma">駒を作る</a></p>
 
+  <!-- エラー・成功メッセージ表示 -->
+  <div th:if="${error}" th:text="${error}" style="color:red; font-weight:bold; margin:10px 0;"></div>
+  <div th:if="${success}" th:text="${success}" style="color:green; font-weight:bold; margin:10px 0;"></div>
+
   <form th:action="@{/deck/save}" method="post" id="deck-form">
     <label for="deck-name">デッキ名：</label>
     <input id="deck-name" name="deckName" type="text" required />
 
     <label for="koma-select">駒を選択：</label>
-    <!-- komas を受け取り、value に id、表示は name にする -->
+    <!-- komas を受け取り、value に id、表示は「コスト: 駒名」形式にする -->
     <select id="koma-select" name="komaId">
       <option value="" disabled selected>選んでください</option>
-      <option th:each="k : ${komas}" th:value="${k.id}" th:text="${k.name}" th:attr="data-cost=${komaCosts[k.id]}">駒名
+      <option th:each="k : ${komas}" th:value="${k.id}" th:text="${komaCosts[k.id]} + ': ' + ${k.name}"
+        th:attr="data-cost=${komaCosts[k.id]}">コスト: 駒名
       </option>
     </select>
 
@@ -34,9 +39,16 @@
   </form>
 
   <div>
+    <strong>コスト上限：</strong>
+    <span id="cost-limit-display" th:text="${costLimit}">50</span>
+  </div>
+
+  <div>
     <strong>デッキの合計コスト：</strong>
     <span id="total-deck-cost">0</span>
   </div>
+
+  <div id="cost-warning" style="display:none; color:red; font-weight:bold; margin:10px 0;"></div>
 
   <!-- 5x2 マス目 -->
   <div class="board" id="board">
@@ -77,6 +89,21 @@
         }
       });
       document.getElementById('total-deck-cost').textContent = totalCost;
+      checkCostLimit(totalCost);
+    }
+
+    // コスト上限チェック
+    function checkCostLimit(totalCost) {
+      const costLimit = parseInt(document.getElementById('cost-limit-display').textContent, 10);
+      const warning = document.getElementById('cost-warning');
+      if (totalCost > costLimit) {
+        warning.textContent = `警告: デッキコストが上限を超えています (${totalCost}/${costLimit})`;
+        warning.style.display = 'block';
+        return false;
+      } else {
+        warning.style.display = 'none';
+        return true;
+      }
     }
 
     // セルに駒を配置：value=id を dataset.komaId に、表示は選択肢のテキスト（駒名）
@@ -132,6 +159,13 @@
       }
       if (!kingcheckSfen(buildSfen())) {
         e.preventDefault(); alert('デッキに王が含まれていません');
+        return;
+      }
+      // コスト上限チェック
+      const totalCost = parseInt(document.getElementById('total-deck-cost').textContent, 10);
+      if (!checkCostLimit(totalCost)) {
+        e.preventDefault();
+        alert('デッキのコストが上限を超えています。駒を減らしてください。');
         return;
       }
       document.getElementById('sfen-input').value = buildSfen();
