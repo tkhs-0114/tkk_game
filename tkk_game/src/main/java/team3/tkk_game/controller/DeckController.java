@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,6 +18,7 @@ import team3.tkk_game.mapper.DeckMapper;
 import team3.tkk_game.mapper.KomaMapper;
 import team3.tkk_game.model.Deck;
 import team3.tkk_game.model.Koma.KomaDB;
+import team3.tkk_game.model.Koma.KomaRule;
 
 @Controller
 @RequestMapping("/deck")
@@ -85,7 +87,35 @@ public class DeckController {
   }
 
   @PostMapping("make/koma/save")
-  public String saveKomaData(@RequestParam String name, Principal principal) {
+  @Transactional
+  public String saveKomaData(
+      @RequestParam String name,
+      @RequestParam(required = false) List<String> rules,
+      @RequestParam(required = false) Integer updateKomaId,
+      Principal principal) {
+
+    try {
+      // 1. KomaDBオブジェクトを作成
+      KomaDB newKoma = new KomaDB(name, null, updateKomaId);
+
+      // 2. komaテーブルにInsert（IDが自動採番される）
+      komaMapper.insertKoma(newKoma);
+
+      // 3. komaruleテーブルへの挿入
+      if (rules != null && !rules.isEmpty()) {
+        for (String ruleName : rules) {
+          KomaRule komaRule = KomaRule.valueOf(ruleName);
+          komaMapper.insertKomaRule(newKoma.getId(), komaRule);
+        }
+      }
+
+    } catch (RuntimeException e) {
+      // エラーログ出力（将来的にはログフレームワークを使用）
+      System.err.println("駒の保存に失敗しました: " + e.getMessage());
+      e.printStackTrace();
+      // トランザクションがロールバックされる
+    }
+
     return "redirect:/deck/make";
   }
 }

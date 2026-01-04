@@ -12,7 +12,7 @@
   <label><input type="checkbox" id="DOWN_LEFT" name="rules" value="DOWN_LEFT">DOWN_LEFT</label><br>
   <label><input type="checkbox" id="DOWN_RIGHT" name="rules" value="DOWN_RIGHT">DOWN_RIGHT</label><br>
   <label>駒の成り先<select id="update" name="updateKomaId">
-      <option value="" selected>成らない</option>
+      <option value="-1" selected>成らない</option>
       <option th:each="k : ${canUpdateKomas}" th:value="${k.id}" th:text="${k.name}">駒名</option>
     </select></label><br>
   <label><button type="submit">作成</button>
