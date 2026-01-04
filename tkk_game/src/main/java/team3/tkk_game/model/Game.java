@@ -17,7 +17,7 @@ public class Game {
 
   public Game(String id, String player1Name) {
     this.id = id;
-    this.player1 = new Player(player1Name, PlayerStatus.GAME_WAITING);
+    this.player1 = new Player(player1Name, PlayerStatus.WAITING);
     this.lastActivity = new Date();
     this.ban = new Ban();
     this.displayBan = new Ban();
