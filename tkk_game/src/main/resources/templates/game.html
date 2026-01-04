@@ -79,7 +79,7 @@
     // サーバーAPIから移動可能マスを取得してハイライト
     async function highlightMovableCells(fromX, fromY) {
       // 既存のハイライトをクリア
-      document.querySelectorAll('#board-container .cell').forEach(cell => {
+      document.querySelectorAll('#board-container .cells').forEach(cell => {
         cell.classList.remove('selected', 'movable');
       });
 
@@ -173,10 +173,10 @@
           const boardY = Ya2b(y);
           const hover = `onmouseenter="showKomaDetail(ban.board[${x}][${y}])" onmouseleave="showKomaDetail(null)"`;
           const cellContent = (cell && cell.name && (cell.owner.name === loginPlayerName)) ?
-            `<div class="cell koma" data-x="${boardX}" data-y="${boardY}" onClick="setSelectedCell(${boardX}, ${boardY})" ${hover}>${cell.name}</div>`
+            `<div class="cells koma" data-x="${boardX}" data-y="${boardY}" onClick="setSelectedCell(${boardX}, ${boardY})" ${hover}>${cell.name}</div>`
             : (cell && cell.name) ?
-              `<div class="cell koma Enemy" data-x="${boardX}" data-y="${boardY}" onClick="sendMove(${boardX}, ${boardY})" ${hover}>${cell.name}</div>`
-              : `<div class="cell" data-x="${boardX}" data-y="${boardY}" onClick="sendMove(${boardX}, ${boardY})">　</div>`;
+              `<div class="cells koma Enemy" data-x="${boardX}" data-y="${boardY}" onClick="sendMove(${boardX}, ${boardY})" ${hover}>${cell.name}</div>`
+              : `<div class="cells" data-x="${boardX}" data-y="${boardY}" onClick="sendMove(${boardX}, ${boardY})">　</div>`;
           html += `<td>${cellContent}</td>`;
         }
         html += '</tr>';
@@ -191,17 +191,17 @@
       haveKomaIndex = index;
 
       // 盤面のハイライトをクリア
-      document.querySelectorAll('#board-container .cell').forEach(cell => {
+      document.querySelectorAll('#board-container .cells').forEach(cell => {
         cell.classList.remove('selected', 'movable');
       });
 
       // 持ち駒のハイライトをクリア
-      document.querySelectorAll('#haveKoma-container .cell').forEach(cell => {
+      document.querySelectorAll('#haveKoma-container .cells').forEach(cell => {
         cell.classList.remove('selected');
       });
 
       // 選択した持ち駒をハイライト
-      const selectedCell = document.querySelector(`#haveKoma-container .cell[data-index="${index}"]`);
+      const selectedCell = document.querySelector(`#haveKoma-container .cells[data-index="${index}"]`);
       if (selectedCell) selectedCell.classList.add('selected');
     }
     function drawHaveKoma(komaData, containerId, isClickable = false) {
@@ -217,8 +217,8 @@
         const cell = komaData[i];
         const hover = `onmouseenter="showKomaDetail(${containerId === 'haveKoma-container' ? 'haveKoma' : 'enemyHaveKoma'}[${i}])" onmouseleave="showKomaDetail(null)"`;
         const cellContent = isClickable
-          ? `<div class="cell koma" data-index="${i}" onClick="selectHaveKoma(${i})" ${hover}>${cell.name}</div>`
-          : `<div class="cell koma" ${hover}>${cell.name}</div>`;
+          ? `<div class="cells koma" data-index="${i}" onClick="selectHaveKoma(${i})" ${hover}>${cell.name}</div>`
+          : `<div class="cells koma" ${hover}>${cell.name}</div>`;
         html += `<td>${cellContent}</td>`;
       }
       html += '</tr>';
