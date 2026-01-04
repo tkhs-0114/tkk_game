@@ -85,6 +85,12 @@ public class GameController {
       return "redirect:/match";
     }
 
+    // 既にゲームが開始されている場合は/gameにリダイレクト
+    PlayerStatus status = game.getPlayerByName(loginPlayerName).getStatus();
+    if (status == PlayerStatus.GAME_THINKING || status == PlayerStatus.GAME_WAITING) {
+      return "redirect:/game";
+    }
+
     // 自分の駒を盤面にセットする
     KomaDB koma10 = komaMapper.selectKomaById(0); // 例: 駒ID1を選択
     List<KomaRule> koma10Rules = komaMapper.selectKomaRuleById(0);
@@ -130,6 +136,7 @@ public class GameController {
     game.getDisplayBan().applyBan(game.getBan());
 
     // P2に通知
+    game.getPlayer1().setStatus(PlayerStatus.GAME_WAITING);
     game.getPlayer2().setStatus(PlayerStatus.GAME_THINKING);
     String currentTurnPlayerName = getCurrentTurnPlayerName(game);
     gameEventEmitterManager.notifyTurnChange(game.getId(), currentTurnPlayerName);
