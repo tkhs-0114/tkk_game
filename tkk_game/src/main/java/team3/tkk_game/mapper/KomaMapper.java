@@ -2,6 +2,7 @@ package team3.tkk_game.mapper;
 
 import java.util.List;
 
+import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 
@@ -18,4 +19,10 @@ public interface KomaMapper {
 
   @Select("SELECT rule FROM komarule WHERE koma_id = #{komaId}")
   List<KomaRule> selectKomaRuleById(Integer komaId);
+
+  @Insert("INSERT INTO koma(name, skill, update_koma) VALUES(#{name}, #{skill}, #{updateKoma})")
+  void insertKoma(String name, String skill, Integer updateKoma);
+
+  @Insert("INSERT INTO komarule(koma_id, rule_name) VALUES(#{komaId}, #{ruleName})")
+  void insertKomaRule(int komaId, KomaRule komaRule);
 }

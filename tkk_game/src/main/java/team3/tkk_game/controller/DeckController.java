@@ -75,4 +75,17 @@ public class DeckController {
     deckMapper.deleteDeckById(deckId);
     return "redirect:/deck/select";
   }
+
+  @GetMapping("make/koma")
+  public String komaMake(Principal principal, Model model) {
+    List<KomaDB> komas = komaMapper.selectAllKoma();
+    List<KomaDB> canUpdateKomas = komas.stream().filter(k -> k.getUpdateKoma() == -1).toList();
+    model.addAttribute("canUpdateKomas", canUpdateKomas);
+    return "komamake.html";
+  }
+
+  @PostMapping("make/koma/save")
+  public String saveKomaData(@RequestParam String name, Principal principal) {
+    return "redirect:/deck/make";
+  }
 }
