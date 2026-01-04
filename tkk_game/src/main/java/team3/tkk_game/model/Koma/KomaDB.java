@@ -6,8 +6,10 @@ public class KomaDB {
   String skill;
   Integer updateKoma;
 
-  public KomaDB(Integer id, String name, String skill, Integer updateKoma) {
-    this.id = id;
+  public KomaDB() {
+  }
+
+  public KomaDB(String name, String skill, Integer updateKoma) {
     this.name = name;
     this.skill = skill;
     this.updateKoma = updateKoma;

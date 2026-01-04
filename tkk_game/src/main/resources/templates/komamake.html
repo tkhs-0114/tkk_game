@@ -1,0 +1,19 @@
+<script th:inline="none">
+</script>
+<div id="board"></div>
+<form th:action="@{/deck/make/koma/save}" method="post" onchange="console.log('changed')">
+  <label for="name">駒の名前:<input type="text" id="name" name="name" required></label><br>
+  <label><input type="checkbox" id="UP" name="rules" value="UP">UP</label><br>
+  <label><input type="checkbox" id="DOWN" name="rules" value="DOWN">DOWN</label><br>
+  <label><input type="checkbox" id="LEFT" name="rules" value="LEFT">LEFT</label><br>
+  <label><input type="checkbox" id="RIGHT" name="rules" value="RIGHT">RIGHT</label><br>
+  <label><input type="checkbox" id="UP_LEFT" name="rules" value="UP_LEFT">UP_LEFT</label><br>
+  <label><input type="checkbox" id="UP_RIGHT" name="rules" value="UP_RIGHT">UP_RIGHT</label><br>
+  <label><input type="checkbox" id="DOWN_LEFT" name="rules" value="DOWN_LEFT">DOWN_LEFT</label><br>
+  <label><input type="checkbox" id="DOWN_RIGHT" name="rules" value="DOWN_RIGHT">DOWN_RIGHT</label><br>
+  <label>駒の成り先<select id="update" name="updateKomaId">
+      <option value="-1" selected>成らない</option>
+      <option th:each="k : ${canUpdateKomas}" th:value="${k.id}" th:text="${k.name}">駒名</option>
+    </select></label><br>
+  <label><button type="submit">作成</button>
+</form>
