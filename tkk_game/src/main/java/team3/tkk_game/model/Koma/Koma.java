@@ -50,6 +50,23 @@ public class Koma {
     return updateKoma;
   }
 
+  /**
+   * 駒のコストを計算
+   * 移動ルールのコスト合計 + スキルのコスト
+   *
+   * @return 駒の合計コスト
+   */
+  public int getCost() {
+    int totalCost = 0;
+    // 移動ルールのコスト合計
+    for (KomaRule rule : rules) {
+      totalCost += rule.getCost();
+    }
+    // スキルのコスト
+    totalCost += skill.getCost();
+    return totalCost;
+  }
+
   public Boolean canMove(int fromX, int fromY, int toX, int toY) {
     return true;
   }

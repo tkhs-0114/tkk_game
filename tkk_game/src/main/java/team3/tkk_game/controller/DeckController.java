@@ -1,7 +1,9 @@
 package team3.tkk_game.controller;
 
 import java.security.Principal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -35,6 +37,16 @@ public class DeckController {
     model.addAttribute("playerName", principal.getName());
     List<KomaDB> komas = komaMapper.selectAllKoma();
     model.addAttribute("komas", komas);
+
+    // 各駒のコストを計算してモデルに追加
+    Map<Integer, Integer> komaCosts = new HashMap<>();
+    for (KomaDB koma : komas) {
+      List<KomaRule> rules = komaMapper.selectKomaRuleById(koma.getId());
+      int cost = koma.calculateCost(rules);
+      komaCosts.put(koma.getId(), cost);
+    }
+    model.addAttribute("komaCosts", komaCosts);
+
     return "deckmake.html";
   }
 
