@@ -106,13 +106,50 @@
       }
       console.log('Showing koma detail:', cell);
       const owner = cell.owner?.name === loginPlayerName ? '自分' : '相手';
-      const rules = cell.rules?.map(r => `(${r.dx}, ${r.dy})`).join(', ') || 'なし';
+      
+      // ルールを日本語に変換
+      const ruleNameMap = {
+        'UP': '上',
+        'DOWN': '下',
+        'LEFT': '左',
+        'RIGHT': '右',
+        'UP_LEFT': '左上',
+        'UP_RIGHT': '右上',
+        'DOWN_LEFT': '左下',
+        'DOWN_RIGHT': '右下',
+        'LINE_UP': '上(直線)',
+        'LINE_DOWN': '下(直線)',
+        'LINE_LEFT': '左(直線)',
+        'LINE_RIGHT': '右(直線)',
+        'LINE_UP_LEFT': '左上(直線)',
+        'LINE_UP_RIGHT': '右上(直線)',
+        'LINE_DOWN_LEFT': '左下(直線)',
+        'LINE_DOWN_RIGHT': '右下(直線)',
+        'JUMP_UP_LEFT': '上左(飛び越え)',
+        'JUMP_UP_RIGHT': '上右(飛び越え)',
+        'JUMP_DOWN_LEFT': '下左(飛び越え)',
+        'JUMP_DOWN_RIGHT': '下右(飛び越え)',
+        'JUMP_LEFT_UP': '左上(飛び越え)',
+        'JUMP_LEFT_DOWN': '左下(飛び越え)',
+        'JUMP_RIGHT_UP': '右上(飛び越え)',
+        'JUMP_RIGHT_DOWN': '右下(飛び越え)'
+      };
+      const rules = cell.rules?.map(r => ruleNameMap[r] || r).join('<br>・') || 'なし';
+      
+      // スキルを日本語に変換
+      const skillNameMap = {
+        'NULL': 'なし',
+        'STEALTH': '動きが１ターン遅れて見える',
+      };
+      const skill = cell.skill ? (skillNameMap[cell.skill] || cell.skill) : 'なし';
+      
       console.log('cell:', cell);
       komaView.innerHTML = `
         <div class="koma-detail">
           <p><strong>${cell.name}</strong></p>
           <p>所有者: ${owner}</p>
-          <p>移動ルール: ${rules}</p>
+          <p>スキル: ${skill}</p>
+          <p>移動方向:<br>・${rules}</p>
         </div>
       `;
     }
