@@ -145,7 +145,7 @@ button:hover {
   background-position: center;
 }
 
-#board-container .Enemy {
+#board-container .enemy {
   transform: rotate(180deg);
 }
 

@@ -121,6 +121,27 @@ public class GameEventEmitterManager {
   }
 
   /**
+   * 指定されたゲームIDに関連するすべてのEmitterを削除する
+   * ゲーム終了時にリソースを解放するために使用する
+   *
+   * @param gameId ゲームID
+   */
+  public void removePlayerEmittersByGameId(String gameId) {
+    // 削除対象のプレイヤー名を収集
+    java.util.ArrayList<String> playersToRemove = new java.util.ArrayList<>();
+    for (var entry : playerToGame.entrySet()) {
+      if (gameId.equals(entry.getValue())) {
+        playersToRemove.add(entry.getKey());
+      }
+    }
+
+    // 各プレイヤーのEmitterを既存のメソッドで削除
+    for (String playerName : playersToRemove) {
+      removeEmitter(playerName);
+    }
+  }
+
+  /**
    * Emitterに対応するプレイヤー名を取得する
    *
    * @param emitter SseEmitter

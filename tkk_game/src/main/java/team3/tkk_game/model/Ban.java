@@ -4,6 +4,7 @@ import team3.tkk_game.model.Koma.Koma;
 
 public class Ban {
   public static final int BAN_LENGTH = 5;
+  private static final int KING_ID = 0;
 
   // board[x][y]で盤面のマスを表す.左下が(0,0)
   Koma[][] board = new Koma[BAN_LENGTH][BAN_LENGTH];
@@ -26,6 +27,19 @@ public class Ban {
 
   public Koma[][] getBoard() {
     return board;
+  }
+
+  public boolean isHaveKing(Player player) {
+    Koma koma;
+    for (int x = 0; x < BAN_LENGTH; x++) {
+      for (int y = 0; y < BAN_LENGTH; y++) {
+        koma = this.board[x][y];
+        if (koma != null && koma.getId() == KING_ID  && koma.getOwner().equals(player)) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   public void applyBan(Ban otherBan) {

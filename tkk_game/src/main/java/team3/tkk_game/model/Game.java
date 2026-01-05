@@ -14,6 +14,7 @@ public class Game {
   Ban displayBan;
   ArrayList<Koma> haveKoma1;
   ArrayList<Koma> haveKoma2;
+  Boolean isFinished = false;
 
   public Game(String id, String player1Name) {
     this.id = id;
@@ -63,6 +64,16 @@ public class Game {
     }
   }
 
+  public Player getEnemyPlayerByName(String playerName) {
+    if (player1.getName().equals(playerName)) {
+      return player2;
+    } else if (player2.getName().equals(playerName)) {
+      return player1;
+    } else {
+      return null;
+    }
+  }
+
   public ArrayList<Koma> getHaveKomaByName(String playerName) {
     if (player1.getName().equals(playerName)) {
       return haveKoma1;
@@ -73,7 +84,7 @@ public class Game {
     }
   }
 
-  public ArrayList<Koma> getEHaveKomaByName(String playerName) {
+  public ArrayList<Koma> getEnemyHaveKomaByName(String playerName) {
     if (player1.getName().equals(playerName)) {
       return haveKoma2;
     } else if (player2.getName().equals(playerName)) {
@@ -116,7 +127,15 @@ public class Game {
     }
   }
 
-  // 用修正、SSE時に更新処理として動作させるようにすることを検討中
+  public Boolean getIsFinished() {
+    return isFinished;
+  }
+
+  public void setIsFinished() {
+    this.isFinished = true;
+  }
+
+  // 要修正、SSE時に更新処理として動作させるようにすることを検討中
   private void updateLastActivity() {
     this.lastActivity = new Date();
   }
