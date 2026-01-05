@@ -39,7 +39,20 @@ public class GameRoom {
   }
 
   public boolean rmGameByName(String playerName) {
-    return games.removeIf(game -> game.getPlayer1().getName().equals(playerName) || game.getPlayer2().getName().equals(playerName));
+    for (Game game : games) {
+      String player1Name = game.getPlayer1().getName();
+      String player2Name = game.getPlayer2().getName();
+      if (player1Name.equals(playerName) || player2Name.equals(playerName)) {
+        if (game.getPlayerByName(playerName).getStatus() == PlayerStatus.GAME_THINKING || game.getPlayerByName(playerName).getStatus() == PlayerStatus.GAME_WAITING) {
+          /*
+            ここにペナルティ処理を書く
+          */
+        }
+        games.remove(game);
+        return true;
+      }
+    }
+    return false;
   }
 
   @Scheduled(fixedRate = 600000)
