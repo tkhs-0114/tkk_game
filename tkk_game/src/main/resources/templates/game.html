@@ -18,6 +18,7 @@
     const loginPlayerName = /*[[${#authentication.name}]]*/ null;
     const haveKoma = /*[[${haveKoma}]]*/ null;
     const enemyHaveKoma = /*[[${enemyHaveKoma}]]*/ null;
+    const GAME_END = /*[[${GAME_END}]]*/ false;
 
     console.log(game);
     console.log(ban);
@@ -106,7 +107,7 @@
       }
       console.log('Showing koma detail:', cell);
       const owner = cell.owner?.name === loginPlayerName ? '自分' : '相手';
-      
+
       // ルールを日本語に変換
       const ruleNameMap = {
         'UP': '上',
@@ -135,14 +136,14 @@
         'JUMP_RIGHT_DOWN': '右下(飛び越え)'
       };
       const rules = cell.rules?.map(r => ruleNameMap[r] || r).join('<br>・') || 'なし';
-      
+
       // スキルを日本語に変換
       const skillNameMap = {
         'NULL': 'なし',
         'STEALTH': '動きが１ターン遅れて見える',
       };
       const skill = cell.skill ? (skillNameMap[cell.skill] || cell.skill) : 'なし';
-      
+
       console.log('cell:', cell);
       komaView.innerHTML = `
         <div class="koma-detail">
@@ -169,14 +170,23 @@
         html += '<tr>';
         for (let x = 0; x < boardLength; x++) {
           const cell = ban.board[x][y];
-          const boardX = Xa2b(x);
-          const boardY = Ya2b(y);
+
+          // GAME_ENDの場合はクリックイベントを設定しない
+          let cellContent;
           const hover = `onmouseenter="showKomaDetail(ban.board[${x}][${y}])" onmouseleave="showKomaDetail(null)"`;
-          const cellContent = (cell && cell.name && (cell.owner.name === loginPlayerName)) ?
-            `<div class="cells koma" data-x="${boardX}" data-y="${boardY}" onClick="setSelectedCell(${boardX}, ${boardY})" ${hover}>${cell.name}</div>`
-            : (cell && cell.name) ?
-              `<div class="cells koma Enemy" data-x="${boardX}" data-y="${boardY}" onClick="sendMove(${boardX}, ${boardY})" ${hover}>${cell.name}</div>`
-              : `<div class="cells" data-x="${boardX}" data-y="${boardY}" onClick="sendMove(${boardX}, ${boardY})">　</div>`;
+          if (GAME_END) {
+            cellContent = (cell && cell.name) ?
+              `<div class="cell koma${cell.owner.name !== loginPlayerName ? ' enemy' : ''}" ${hover}>${cell.name}</div>`
+              : `<div class="cell">　</div>`;
+          } else {
+            const boardX = Xa2b(x);
+            const boardY = Ya2b(y);
+            cellContent = (cell && cell.name && (cell.owner.name === loginPlayerName)) ?
+              `<div class="cell koma" data-x="${boardX}" data-y="${boardY}" onClick="setSelectedCell(${boardX}, ${boardY})" ${hover}>${cell.name}</div>`
+              : (cell && cell.name) ?
+                `<div class="cell koma enemy" data-x="${boardX}" data-y="${boardY}" onClick="sendMove(${boardX}, ${boardY})" ${hover}>${cell.name}</div>`
+                : `<div class="cell" data-x="${boardX}" data-y="${boardY}" onClick="sendMove(${boardX}, ${boardY})">　</div>`;
+          }
           html += `<td>${cellContent}</td>`;
         }
         html += '</tr>';
@@ -216,9 +226,9 @@
       for (let i = 0; i < komaData.length; i++) {
         const cell = komaData[i];
         const hover = `onmouseenter="showKomaDetail(${containerId === 'haveKoma-container' ? 'haveKoma' : 'enemyHaveKoma'}[${i}])" onmouseleave="showKomaDetail(null)"`;
-        const cellContent = isClickable
-          ? `<div class="cells koma" data-index="${i}" onClick="selectHaveKoma(${i})" ${hover}>${cell.name}</div>`
-          : `<div class="cells koma" ${hover}>${cell.name}</div>`;
+        const cellContent = (isClickable && !GAME_END)
+          ? `<div class="cell koma" data-index="${i}" onClick="selectHaveKoma(${i})" ${hover}>${cell.name}</div>`
+          : `<div class="cell koma" ${hover}>${cell.name}</div>`;
         html += `<td>${cellContent}</td>`;
       }
       html += '</tr>';
@@ -285,6 +295,10 @@
         <!-- 持ち駒がここに表示されます -->
       </div>
     </div>
+  </div>
+  <br>
+  <div>
+    <a th:if="${GAME_END}" href="/home">ホームに戻る</a>
   </div>
 
 </body>

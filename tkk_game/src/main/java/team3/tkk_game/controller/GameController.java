@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import team3.tkk_game.model.GameRoom;
+import team3.tkk_game.model.Player;
 import team3.tkk_game.model.PlayerStatus;
 import team3.tkk_game.model.Ban;
 import team3.tkk_game.model.Game;
@@ -63,7 +64,7 @@ public class GameController {
     }
     model.addAttribute("playerStatus", game.getPlayerByName(playerName).getStatus());
     model.addAttribute("haveKoma", game.getHaveKomaByName(playerName));
-    model.addAttribute("enemyHaveKoma", game.getEHaveKomaByName(playerName));
+    model.addAttribute("enemyHaveKoma", game.getEnemyHaveKomaByName(playerName));
     // デバッグ用
     model.addAttribute("game", game);
     return "game.html";
@@ -151,6 +152,10 @@ public class GameController {
     if (game == null) {
       return "redirect:/match";
     }
+    // ゲームが終了している場合は結果画面へ
+    if (game.getIsFinished()) {
+      return "redirect:/game/result";
+    }
     return returnGame(model, game, loginPlayerName, null);
   }
 
@@ -227,6 +232,16 @@ public class GameController {
 
         break;
     }
+
+    // 勝利判定
+    if (!game.getBan().isHaveKing(game.getEnemyPlayerByName(loginPlayerName))) {
+      game.getPlayerByName(loginPlayerName).setStatus(PlayerStatus.GAME_WIN);
+      game.setIsFinished();
+
+      // 勝者を結果画面にリダイレクト
+      return "redirect:/game/result";
+    }
+
     // ターンを交代
     game.switchTurn();
     // ターン変更をSSEで通知
@@ -269,6 +284,15 @@ public class GameController {
     // 相手視点の盤面を保存
     game.getDisplayBan().applyBan(game.getBan());
 
+    // 勝利判定
+    if (!game.getBan().isHaveKing(game.getEnemyPlayerByName(loginPlayerName))) {
+      game.getPlayerByName(loginPlayerName).setStatus(PlayerStatus.GAME_WIN);
+      game.setIsFinished();
+
+      // 勝者を結果画面にリダイレクト
+      return "redirect:/game/result";
+    }
+
     // ターンを交代
     game.switchTurn();
 
@@ -285,6 +309,60 @@ public class GameController {
     return turnChecker.registerTurnEmitter(game, principal.getName());
   }
 
+  @GetMapping("/result")
+  public String gameEnd(Principal principal, Model model) {
+    String loginPlayerName = principal.getName();
+    Game game = gameRoom.getGameByPlayerName(loginPlayerName);
+
+    // ゲームが見つからない場合はホームへ
+    if (game == null) {
+      return "redirect:/home";
+    }
+
+    // ゲームが終了していない場合はゲーム画面へ
+    if (!game.getIsFinished()) {
+      return "redirect:/game";
+    }
+
+    Player player = game.getPlayerByName(loginPlayerName);
+    Player enemyPlayer = game.getEnemyPlayerByName(loginPlayerName);
+    Ban myBan = new Ban(game.getBan());
+
+    // ステータスをGAME_ENDに変更（得点調整等の処理もここで行う）
+    if (player.getStatus() == PlayerStatus.GAME_WIN) {
+      
+      /*
+       * ここに勝者の得点調整等の処理を追加
+       */
+
+      // ターンを交代して相手に最後の盤面を見せる
+      player.setStatus(PlayerStatus.GAME_THINKING);
+      game.switchTurn();
+      String currentTurnPlayerName = getCurrentTurnPlayerName(game);
+      gameEventEmitterManager.notifyTurnChange(game.getId(), currentTurnPlayerName);
+
+      player.setStatus(PlayerStatus.GAME_END);
+    } else if (player.getStatus() != PlayerStatus.GAME_END) {
+
+      if (enemyPlayer.getStatus() == PlayerStatus.GAME_WIN) {
+        // 勝者の処理が完了してないので、ゲーム画面に戻して待機させる
+        return "redirect:/game";
+      }
+
+      /*
+       * ここに敗者の得点調整等の処理を追加
+       */
+
+      player.setStatus(PlayerStatus.GAME_END);
+
+      gameEventEmitterManager.removePlayerEmittersByGameId(game.getId());
+      gameRoom.rmGameByName(loginPlayerName);
+    }
+
+    // モデルに最終盤面情報を追加
+    model.addAttribute("GAME_END", true);
+    return returnGame(model, game, loginPlayerName, myBan);
+  }
   // 指定した駒の移動可能なマスを取得するAPI
   @GetMapping("/movable")
   @ResponseBody
