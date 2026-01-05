@@ -1,5 +1,7 @@
 package team3.tkk_game.model.Koma;
 
+import java.util.List;
+
 public class KomaDB {
   Integer id;
   String name;
@@ -45,5 +47,26 @@ public class KomaDB {
 
   public void setUpdateKoma(Integer updateKoma) {
     this.updateKoma = updateKoma;
+  }
+
+  /**
+   * 駒のコストを計算
+   *
+   * @param rules 移動ルールのリスト
+   * @return 駒の合計コスト（移動ルールのコスト + スキルのコスト）
+   */
+  public int calculateCost(List<KomaRule> rules) {
+    int totalCost = 0;
+    // 移動ルールのコスト合計
+    if (rules != null) {
+      for (KomaRule rule : rules) {
+        totalCost += rule.getCost();
+      }
+    }
+    // スキルのコスト
+    if (skill != null) {
+      totalCost += KomaSkill.valueOf(skill).getCost();
+    }
+    return totalCost;
   }
 }
