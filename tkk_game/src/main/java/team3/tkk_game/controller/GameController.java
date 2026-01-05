@@ -5,11 +5,15 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
+import team3.tkk_game.mapper.DeckMapper;
+import team3.tkk_game.mapper.KomaMapper;
 
 import team3.tkk_game.model.GameRoom;
 import team3.tkk_game.model.Player;
@@ -21,12 +25,9 @@ import team3.tkk_game.services.GameEventEmitterManager;
 import team3.tkk_game.services.MoveValidator;
 import team3.tkk_game.services.TurnChecker;
 
-import team3.tkk_game.mapper.KomaMapper;
 import team3.tkk_game.model.Koma.Koma;
 import team3.tkk_game.model.Koma.KomaDB;
 import team3.tkk_game.model.Koma.KomaRule;
-
-import org.springframework.ui.Model;
 
 @Controller
 @RequestMapping("/game")
@@ -40,6 +41,8 @@ public class GameController {
   TurnChecker turnChecker;
   @Autowired
   KomaMapper komaMapper;
+  @Autowired
+  DeckMapper deckMapper;
   @Autowired
   MoveValidator moveValidator;
   @Autowired
@@ -63,12 +66,12 @@ public class GameController {
       }
     }
     model.addAttribute("playerStatus", game.getPlayerByName(playerName).getStatus());
+
     model.addAttribute("haveKoma", game.getHaveKomaByName(playerName));
     model.addAttribute("enemyHaveKoma", game.getEnemyHaveKomaByName(playerName));
     // デバッグ用
     model.addAttribute("game", game);
     return "game.html";
-
   }
 
   private String returnGame(Model model, Game game, String playerName, Ban ban, String errMessage) {
@@ -85,52 +88,13 @@ public class GameController {
       return "redirect:/match";
     }
 
-    // 既にゲームが開始されている場合は/gameにリダイレクト
-    PlayerStatus status = game.getPlayerByName(loginPlayerName).getStatus();
-    if (status == PlayerStatus.GAME_THINKING || status == PlayerStatus.GAME_WAITING) {
-      return "redirect:/game";
-    }
+    String p1sfen = deckMapper.selectDeckById(game.getDeckIdPlayer1()).getSfen();
+    applySfenToBan(game, p1sfen, game.getPlayer1());
 
-    // 自分の駒を盤面にセットする
-    KomaDB koma10 = komaMapper.selectKomaById(0); // 例: 駒ID1を選択
-    List<KomaRule> koma10Rules = komaMapper.selectKomaRuleById(0);
-    Koma koma10Koma = new Koma(koma10, koma10Rules, game.getPlayer1());
-    game.getBan().setKomaAt(0, 2, koma10Koma);
-    KomaDB koma11 = komaMapper.selectKomaById(1); // 例: 駒ID2を選択
-    List<KomaRule> koma11Rules = komaMapper.selectKomaRuleById(1);
-    Koma koma11Koma = new Koma(koma11, koma11Rules, game.getPlayer1());
-    game.getBan().setKomaAt(1, 2, koma11Koma);
-    KomaDB koma12 = komaMapper.selectKomaById(7); // 例: 駒ID3を選択
-    List<KomaRule> koma12Rules = komaMapper.selectKomaRuleById(7);
-    Koma koma12Koma = new Koma(koma12, koma12Rules, game.getPlayer1());
-    game.getBan().setKomaAt(2, 2, koma12Koma);
+    game.getBan().rotate180(); // プレイヤー2側から見た盤面にする;
 
-    KomaDB koma1_2 = komaMapper.selectKomaById(1); // 例: 駒ID1を選択
-    List<KomaRule> koma1_2Rules = komaMapper.selectKomaRuleById(1);
-    Koma koma1_2Koma = new Koma(koma1_2, koma1_2Rules, game.getPlayer1());
-    game.getBan().setKomaAt(0, 1, koma1_2Koma);
-
-    KomaDB koma1_3 = komaMapper.selectKomaById(3); // 例: 駒ID2を選択
-    List<KomaRule> koma1_3Rules = komaMapper.selectKomaRuleById(3);
-    Koma koma1_3Koma = new Koma(koma1_3, koma1_3Rules, game.getPlayer1());
-    game.getBan().setKomaAt(1, 2, koma1_3Koma);
-
-    KomaDB koma1_4 = komaMapper.selectKomaById(14); // 例: 駒ID2を選択
-    List<KomaRule> koma1_4Rules = komaMapper.selectKomaRuleById(14);
-    Koma koma1_4Koma = new Koma(koma1_4, koma1_4Rules, game.getPlayer1());
-    game.getBan().setKomaAt(-2, 2, koma1_4Koma);
-
-    // 相手の駒を盤面にセットする
-    game.getBan().rotate180();
-    KomaDB koma20 = komaMapper.selectKomaById(0); // 例: 駒ID1を選択
-    List<KomaRule> koma20Rules = komaMapper.selectKomaRuleById(0);
-    Koma koma20Koma = new Koma(koma20, koma20Rules, game.getPlayer2());
-    game.getBan().setKomaAt(0, 2, koma20Koma);
-
-    KomaDB koma2_2 = komaMapper.selectKomaById(1); // 例: 駒ID1を選択
-    List<KomaRule> koma2_2Rules = komaMapper.selectKomaRuleById(1);
-    Koma koma2_2Koma = new Koma(koma2_2, koma2_2Rules, game.getPlayer2());
-    game.getBan().setKomaAt(0, 1, koma2_2Koma);
+    String p2sfen = deckMapper.selectDeckById(game.getDeckIdPlayer2()).getSfen();
+    applySfenToBan(game, p2sfen, game.getPlayer2());
 
     // 表示用盤面に反映
     game.getDisplayBan().applyBan(game.getBan());
@@ -330,7 +294,7 @@ public class GameController {
 
     // ステータスをGAME_ENDに変更（得点調整等の処理もここで行う）
     if (player.getStatus() == PlayerStatus.GAME_WIN) {
-      
+
       /*
        * ここに勝者の得点調整等の処理を追加
        */
@@ -363,17 +327,18 @@ public class GameController {
     model.addAttribute("GAME_END", true);
     return returnGame(model, game, loginPlayerName, myBan);
   }
+
   // 指定した駒の移動可能なマスを取得するAPI
   @GetMapping("/movable")
   @ResponseBody
   public List<int[]> getMovableCells(Principal principal, @RequestParam int x, @RequestParam int y) {
     String loginPlayerName = principal.getName();
     Game game = gameRoom.getGameByPlayerName(loginPlayerName);
-    
+
     if (game == null || !isMyTurn(game, loginPlayerName)) {
       return List.of();
     }
-    
+
     return moveValidator.getMovableCells(game.getDisplayBan(), x, y);
   }
 
@@ -391,4 +356,93 @@ public class GameController {
     }
   }
 
+  /**
+   * SFEN をパースして game.getBan() に駒をセットする。
+   * gameStart 側で両プレイヤー分を呼んでいるため、ここでは単に盤面に駒を配置するだけにする。
+   * フォーマット:
+   * - 行は '/' で区切る
+   * - 数字は連続する空セル数
+   * - 駒は [id] の形式（例: [12]）
+   */
+  private void applySfenToBan(Game game, String sfen, Player owner) {
+    if (sfen == null || sfen.isBlank())
+      return;
+
+    String[] rows = sfen.split("/");
+    int half = (game.getBan().getBoard().length - 1) / 2;
+    int startY = half - (rows.length - 1); // rows.length に応じた開始 y
+    for (int row = 0; row < rows.length; row++) {
+      String token = rows[row];
+      int y = startY + row;
+      int x = -half; // 行内は左から右へ x を増やす。盤の左端が -half
+
+      int i = 0;
+      while (i < token.length()) {
+        char ch = token.charAt(i);
+        if (Character.isDigit(ch)) {
+          int j = i + 1;
+          while (j < token.length() && Character.isDigit(token.charAt(j)))
+            j++;
+          int empty = Integer.parseInt(token.substring(i, j));
+          x += empty;
+          i = j;
+          continue;
+        }
+
+        if (ch == '[') {
+          int j = token.indexOf(']', i + 1);
+          if (j == -1) {
+            System.out.println("Malformed SFEN: missing ']' in token: " + token);
+            break;
+          }
+          String idStr = token.substring(i + 1, j);
+          int komaId;
+          try {
+            komaId = Integer.parseInt(idStr);
+          } catch (NumberFormatException ex) {
+            System.out.println("Invalid koma id in SFEN: " + idStr);
+            i = j + 1;
+            continue;
+          }
+
+          KomaDB kdb = null;
+          try {
+            kdb = komaMapper.selectKomaById(komaId);
+          } catch (Exception ex) {
+            System.out.println("Failed to select Koma by id: " + komaId + " -> " + ex.getMessage());
+          }
+
+          if (kdb != null) {
+            List<KomaRule> rules = null;
+            try {
+              rules = komaMapper.selectKomaRuleById(komaId);
+            } catch (Exception ex) {
+              // ルール取得失敗はログ出力してフォールバック
+              System.out.println("Failed to select KomaRule for id: " + komaId + " -> " + ex.getMessage());
+            }
+            if (rules == null) {
+              rules = java.util.Collections.emptyList();
+            }
+
+            Koma koma = new Koma(kdb, rules, owner);
+            try {
+              game.getBan().setKomaAt(x, y, koma);
+            } catch (Exception ex) {
+              System.out
+                  .println("Failed to set Koma at x=" + x + " y=" + y + " id=" + komaId + " -> " + ex.getMessage());
+            }
+          } else {
+            System.out.println("Unknown piece id in SFEN: " + komaId);
+          }
+
+          x++;
+          i = j + 1;
+          continue;
+        }
+
+        // その他の記号は無視
+        i++;
+      }
+    }
+  }
 }

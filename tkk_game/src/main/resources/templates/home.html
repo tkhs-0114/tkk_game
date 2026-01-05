@@ -10,11 +10,11 @@
 
 <body>
   <h1>ホーム画面</h1>
-  <div th:if="${session.selectedDeck != null}">
-    <p>デッキ名：<span th:text="${session.selectedDeck.name}">デッキ名</span></p>
-    <p>内容：<span th:text="${session.selectedDeck.sfen}">SFEN</span></p>
+  <div th:if="${selectedDeckId != null}">
+    <p>デッキ名：<span th:text="${deckname}">デッキ名</span></p>
+    <p>内容：<span th:text="${sfen}">SFEN</span></p>
   </div>
-  <div th:unless="${session.selectedDeck != null}">
+  <div th:if="${selectedDeckId == null}"></div>
     <p>選択されたデッキはありません</p>
   </div>
   <a href="/match">マッチ</a><br />

@@ -88,6 +88,11 @@ INSERT INTO KomaRule (koma_id, rule) VALUES (13, 'LINE_DOWN');
 INSERT INTO KomaRule (koma_id, rule) VALUES (13, 'LINE_LEFT');
 INSERT INTO KomaRule (koma_id, rule) VALUES (13, 'LINE_RIGHT');
 
+INSERT INTO Player (username) VALUES ('user1');
+INSERT INTO Player (username) VALUES ('user2');
+INSERT INTO Player (username) VALUES ('user3');
+INSERT INTO Player (username) VALUES ('user4');
+
 INSERT INTO KomaRule (koma_id, rule) VALUES (14, 'UP');
 INSERT INTO KomaRule (koma_id, rule) VALUES (14, 'UP_LEFT');
 INSERT INTO KomaRule (koma_id, rule) VALUES (14, 'UP_RIGHT');
