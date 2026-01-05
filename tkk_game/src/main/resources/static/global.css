@@ -73,7 +73,7 @@ button:hover {
   margin-top: 16px;
 }
 
-.cell {
+#board .cell {
   border: 1px solid #333;
   display: flex;
   align-items: center;
@@ -84,7 +84,7 @@ button:hover {
   font-weight: 600;
 }
 
-.cell.empty {
+#board .cell.empty {
   color: #999;
 }
 
@@ -121,7 +121,7 @@ button:hover {
   background-color: #e0e0e0;
 }
 
-#board-container .cells {
+#board-container .cell {
   width: 100%;
   height: 100%;
   display: flex;
@@ -149,13 +149,13 @@ button:hover {
   transform: rotate(180deg);
 }
 
-#board-container .cells.selected {
+#board-container .cell.selected {
   background-color: #ffeb3b;
   border: 2px solid #ffc107;
   box-sizing: border-box;
 }
 
-#board-container .cells.movable {
+#board-container .cell.movable {
   background-color: #c8e6c9;
   border: 2px solid #4caf50;
   box-sizing: border-box;
@@ -165,19 +165,19 @@ button:hover {
   overflow-y: auto;
 }
 
-#haveKoma-container .cells {
+#haveKoma-container .cell {
   user-select: none;
   cursor: pointer;
   position: relative;
 }
 
-#haveKoma-container .cells.selected {
+#haveKoma-container .cell.selected {
   outline: 3px solid #ffc107;
   outline-offset: -3px;
   z-index: 1;
 }
 
-#haveKoma_E-container .cells {
+#haveKoma_E-container .cell {
   user-select: none;
 }
 
