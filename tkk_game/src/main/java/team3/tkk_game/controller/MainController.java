@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
-import jakarta.servlet.http.HttpSession;
 import team3.tkk_game.model.Deck;
 import team3.tkk_game.model.GameRoom;
 import team3.tkk_game.model.WaitRoom;
@@ -28,15 +27,15 @@ public class MainController {
   PlayerMapper playerMapper;
 
   @GetMapping("/home")
-  public String home(Principal principal, Model model,HttpSession session) {
+  public String home(Principal principal, Model model) {
     String playerName = principal.getName();
     Integer deckId = playerMapper.getSelectedDeckIdByName(playerName);
-      if (deckId != null) {
-    Deck deck = deckMapper.selectDeckById(deckId);
-    model.addAttribute("deckname", deck.getName());
-    model.addAttribute("sfen", deck.getSfen());
-    model.addAttribute("selectedDeckId", deckId);
-  }
+    if (deckId != null) {
+      Deck deck = deckMapper.selectDeckById(deckId);
+      model.addAttribute("deckname", deck.getName());
+      model.addAttribute("sfen", deck.getSfen());
+      model.addAttribute("selectedDeckId", deckId);
+    }
     waitRoom.clearRequest(playerName);
     waitRoom.rmRoom(playerName);
     gameRoom.rmGameByName(playerName);
