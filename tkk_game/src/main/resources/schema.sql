@@ -15,5 +15,13 @@ CREATE TABLE KomaRule(
 CREATE TABLE Deck(
   id INT PRIMARY KEY AUTO_INCREMENT,
   name VARCHAR(255),
-  sfen VARCHAR(255)
+  sfen VARCHAR(255),
+  cost INT DEFAULT 0
+);
+
+CREATE TABLE Player(
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  username VARCHAR(255) NOT NULL UNIQUE,
+  selected_deck_id INT DEFAULT NULL,
+  FOREIGN KEY (selected_deck_id) REFERENCES Deck(id)
 );

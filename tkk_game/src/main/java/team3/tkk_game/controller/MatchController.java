@@ -15,6 +15,7 @@ import team3.tkk_game.model.Game;
 import team3.tkk_game.model.GameRoom;
 import team3.tkk_game.model.WaitRoom;
 import team3.tkk_game.services.MatchChecker;
+import team3.tkk_game.mapper.PlayerMapper;
 
 @Controller
 @RequestMapping("/match")
@@ -26,6 +27,8 @@ public class MatchController {
   GameRoom gameRoom;
   @Autowired
   MatchChecker matchChecker;
+  @Autowired
+  PlayerMapper playerMapper;
 
   @GetMapping
   public String match(Principal principal, Model model) {
@@ -55,23 +58,33 @@ public class MatchController {
 
   // 対戦リクエストを送信する
   @PostMapping("/sendRequest")
-  public String sendRequest(Principal principal, Model model, @RequestParam String player1Name) {
-    String player2Name = principal.getName();
-    waitRoom.sendRequest(player2Name, player1Name);
-    model.addAttribute("playerName", player2Name);
+  public String sendRequest(Principal principal, Model model, @RequestParam String Player1Name) {
+    String Player2Name = principal.getName();
+    Integer selectedDeckId = playerMapper.getSelectedDeckIdByName(Player2Name);
+    Game room = waitRoom.getRoomByName(Player1Name);
+    if (room != null && selectedDeckId != null) {
+      room.setDeckIdPlayer2(selectedDeckId);
+    }
+
+    waitRoom.sendRequest(Player2Name, Player1Name);
+    model.addAttribute("playerName", Player2Name);
     return "match.html";
   }
 
   // 対戦リクエストを承認する
   @PostMapping("/accept")
   public String acceptMatch(Principal principal) {
-    String player1Name = principal.getName();
-    Game room = waitRoom.getRoomByName(player1Name);
+    String Player1Name = principal.getName();
+    Game room = waitRoom.getRoomByName(Player1Name);
 
     if (room != null && room.getPlayer2() != null) {
-      String player2Name = room.getPlayer2().getName();
-      gameRoom.addGame(room, player2Name);
-      waitRoom.rmRoom(player1Name);
+      Integer selectedDeckId1 = playerMapper.getSelectedDeckIdByName(Player1Name);
+      if (selectedDeckId1 != null) {
+        room.setDeckIdPlayer1(selectedDeckId1);
+      }
+      String Player2Name = room.getPlayer2().getName();
+      gameRoom.addGame(room, Player2Name);
+      waitRoom.rmRoom(Player1Name);
       return "redirect:/game/start";
     }
     // リクエストがない場合は待機画面に戻る

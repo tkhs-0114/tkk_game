@@ -88,6 +88,11 @@ INSERT INTO KomaRule (koma_id, rule) VALUES (13, 'LINE_DOWN');
 INSERT INTO KomaRule (koma_id, rule) VALUES (13, 'LINE_LEFT');
 INSERT INTO KomaRule (koma_id, rule) VALUES (13, 'LINE_RIGHT');
 
+INSERT INTO Player (username) VALUES ('user1');
+INSERT INTO Player (username) VALUES ('user2');
+INSERT INTO Player (username) VALUES ('user3');
+INSERT INTO Player (username) VALUES ('user4');
+
 INSERT INTO KomaRule (koma_id, rule) VALUES (14, 'UP');
 INSERT INTO KomaRule (koma_id, rule) VALUES (14, 'UP_LEFT');
 INSERT INTO KomaRule (koma_id, rule) VALUES (14, 'UP_RIGHT');
@@ -97,4 +102,4 @@ INSERT INTO KomaRule (koma_id, rule) VALUES (14, 'DOWN_RIGHT');
 -- komaテーブルのAUTO_INCREMENTシーケンスを次のIDに設定
 ALTER TABLE koma ALTER COLUMN id RESTART WITH 15;
 
-INSERT INTO Deck (name, sfen) VALUES ('sample', '5/2[0]2');
+INSERT INTO Deck (name, sfen, cost) VALUES ('sample', '5/2[0]2', 8);
