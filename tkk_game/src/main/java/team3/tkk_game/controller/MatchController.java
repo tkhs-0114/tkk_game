@@ -41,9 +41,7 @@ public class MatchController {
   // SSE用
   @GetMapping("/waitRoom")
   public SseEmitter waitRoom() {
-    SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
-    matchChecker.checkMatch(emitter, waitRoom);
-    return emitter;
+    return matchChecker.registerMatchEmitter(waitRoom);
   }
 
   // 部屋作成
@@ -96,9 +94,9 @@ public class MatchController {
   // 対戦リクエストを拒否する
   @PostMapping("/reject")
   public String rejectMatch(Principal principal, Model model) {
-    String Player1Name = principal.getName();
-    waitRoom.clearRequest(Player1Name);
-    model.addAttribute("playerName", Player1Name);
+    String player1Name = principal.getName();
+    waitRoom.clearRequest(player1Name);
+    model.addAttribute("playerName", player1Name);
     return "waiting.html";
   }
 

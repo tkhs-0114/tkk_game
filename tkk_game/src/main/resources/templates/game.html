@@ -5,6 +5,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link th:href="@{/global.css}" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Yuji+Boku&display=swap" rel="stylesheet">
   <title>ゲーム</title>
   <script th:inline="javascript">
     const ban = /*[[${ban}]]*/ null;
@@ -13,12 +16,18 @@
     const errMessage = /*[[${errMessage}]]*/ null;
     const game = /*[[${game}]]*/ null;
     const loginPlayerName = /*[[${#authentication.name}]]*/ null;
+    const haveKoma = /*[[${haveKoma}]]*/ null;
+    const enemyHaveKoma = /*[[${enemyHaveKoma}]]*/ null;
+    const GAME_END = /*[[${GAME_END}]]*/ false;
 
     console.log(game);
     console.log(ban);
+    console.log(haveKoma);
 
     let selectedX = null;
     let selectedY = null;
+    let selectedHaveKoma = false;
+    let haveKomaIndex = null;
 
     // 配列のインデックスを盤面の座標に変換
     function Xa2b(arrayIndex) {
@@ -27,19 +36,125 @@
     function Ya2b(arrayIndex) {
       return arrayIndex - (ban.board[0].length - 1) / 2;
     }
+    function b2Xa(boardX) {
+      return boardX + (ban.board.length - 1) / 2;
+    }
+    function b2Ya(boardY) {
+      return boardY + (ban.board[0].length - 1) / 2;
+    }
 
-    function setSelectdCell(x, y) {
+    function setSelectedCell(x, y) {
       selectedX = x;
       selectedY = y;
+      selectedHaveKoma = false;
       console.log(`Selected cell: (${x}, ${y})`);
+
+      // 持ち駒のハイライトをクリア
+      document.querySelectorAll('#haveKoma-container .cell').forEach(cell => {
+        cell.classList.remove('selected');
+      });
+
+      highlightMovableCells(x, y);
     }
     function sendMove(x, y) {
-      if (selectedX === null || selectedY === null) {
-        alert('セルが選択されていません');
+      if (selectedHaveKoma) {
+        window.location.href = `/game/putKoma?index=${haveKomaIndex}&toX=${x}&toY=${y}`;
+      } else {
+        if (selectedX === null || selectedY === null) {
+          alert('セルが選択されていません');
+          return;
+        } else {
+          let willUpdate = false;
+          // 成れる場合
+          // 敵陣の1段目（盤面の端）に入る場合のみ成れる
+          const enemyAreaBoundary = -Math.floor(ban.board.length / 2);
+          const canUpdate = (selectedY === enemyAreaBoundary || y === enemyAreaBoundary) && ban.board[b2Xa(selectedX)][b2Ya(selectedY)].updateKoma !== -1;
+          if (canUpdate) {
+            willUpdate = window.confirm('駒を成りますか？\nOK: 成る\nキャンセル: 成らない');
+          }
+          window.location.href = `/game/move?fromX=${selectedX}&fromY=${selectedY}&toX=${x}&toY=${y}&isUpdate=${willUpdate}`;
+        }
+      }
+
+    }
+    // サーバーAPIから移動可能マスを取得してハイライト
+    async function highlightMovableCells(fromX, fromY) {
+      // 既存のハイライトをクリア
+      document.querySelectorAll('#board-container .cells').forEach(cell => {
+        cell.classList.remove('selected', 'movable');
+      });
+
+      // 選択中のセルをハイライト
+      const selectedCell = document.querySelector(`#board-container [data-x="${fromX}"][data-y="${fromY}"]`);
+      if (selectedCell) selectedCell.classList.add('selected');
+
+      // サーバーから移動可能マスを取得
+      const response = await fetch(`/game/movable?x=${fromX}&y=${fromY}`);
+      const movableCells = await response.json();
+
+      for (const [x, y] of movableCells) {
+        const cell = document.querySelector(`#board-container [data-x="${x}"][data-y="${y}"]`);
+        if (cell) cell.classList.add('movable');
+      }
+    }
+
+    // 駒の詳細を表示
+    function showKomaDetail(cell) {
+      const komaView = document.getElementById('koma-view');
+      if (!cell || !cell.name) {
+        komaView.innerHTML = '';
         return;
       }
-      window.location.href = `/game/move?fromX=${selectedX}&fromY=${selectedY}&toX=${x}&toY=${y}`;
+      console.log('Showing koma detail:', cell);
+      const owner = cell.owner?.name === loginPlayerName ? '自分' : '相手';
+
+      // ルールを日本語に変換
+      const ruleNameMap = {
+        'UP': '上',
+        'DOWN': '下',
+        'LEFT': '左',
+        'RIGHT': '右',
+        'UP_LEFT': '左上',
+        'UP_RIGHT': '右上',
+        'DOWN_LEFT': '左下',
+        'DOWN_RIGHT': '右下',
+        'LINE_UP': '上(直線)',
+        'LINE_DOWN': '下(直線)',
+        'LINE_LEFT': '左(直線)',
+        'LINE_RIGHT': '右(直線)',
+        'LINE_UP_LEFT': '左上(直線)',
+        'LINE_UP_RIGHT': '右上(直線)',
+        'LINE_DOWN_LEFT': '左下(直線)',
+        'LINE_DOWN_RIGHT': '右下(直線)',
+        'JUMP_UP_LEFT': '上左(飛び越え)',
+        'JUMP_UP_RIGHT': '上右(飛び越え)',
+        'JUMP_DOWN_LEFT': '下左(飛び越え)',
+        'JUMP_DOWN_RIGHT': '下右(飛び越え)',
+        'JUMP_LEFT_UP': '左上(飛び越え)',
+        'JUMP_LEFT_DOWN': '左下(飛び越え)',
+        'JUMP_RIGHT_UP': '右上(飛び越え)',
+        'JUMP_RIGHT_DOWN': '右下(飛び越え)'
+      };
+      const rules = cell.rules?.map(r => ruleNameMap[r] || r).join('<br>・') || 'なし';
+
+      // スキルを日本語に変換
+      const skillNameMap = {
+        'NULL': 'なし',
+        'STEALTH': '動きが１ターン遅れて見える',
+      };
+      const skill = cell.skill ? (skillNameMap[cell.skill] || cell.skill) : 'なし';
+
+      console.log('cell:', cell);
+      komaView.innerHTML = `
+        <div class="koma-detail">
+          <p><strong>${cell.name}</strong></p>
+          <p>所有者: ${owner}</p>
+          <p>スキル: ${skill}</p>
+          <p>移動方向:<br>・${rules}</p>
+        </div>
+      `;
     }
+
     function drawBoard() {
       const boardContainer = document.getElementById('board-container');
       if (!ban || !ban.board) {
@@ -55,9 +170,23 @@
         html += '<tr>';
         for (let x = 0; x < boardLength; x++) {
           const cell = ban.board[x][y];
-          const cellContent = (cell && cell.name) ?
-            `<div class="cell" onClick="setSelectdCell(${Xa2b(x)}, ${Ya2b(y)})">${cell.name}</div>`
-            : `<div class="cell" onClick="sendMove(${Xa2b(x)}, ${Ya2b(y)})">　</div>`;
+
+          // GAME_ENDの場合はクリックイベントを設定しない
+          let cellContent;
+          const hover = `onmouseenter="showKomaDetail(ban.board[${x}][${y}])" onmouseleave="showKomaDetail(null)"`;
+          if (GAME_END) {
+            cellContent = (cell && cell.name) ?
+              `<div class="cell koma${cell.owner.name !== loginPlayerName ? ' enemy' : ''}" ${hover}>${cell.name}</div>`
+              : `<div class="cell">　</div>`;
+          } else {
+            const boardX = Xa2b(x);
+            const boardY = Ya2b(y);
+            cellContent = (cell && cell.name && (cell.owner.name === loginPlayerName)) ?
+              `<div class="cell koma" data-x="${boardX}" data-y="${boardY}" onClick="setSelectedCell(${boardX}, ${boardY})" ${hover}>${cell.name}</div>`
+              : (cell && cell.name) ?
+                `<div class="cell koma enemy" data-x="${boardX}" data-y="${boardY}" onClick="sendMove(${boardX}, ${boardY})" ${hover}>${cell.name}</div>`
+                : `<div class="cell" data-x="${boardX}" data-y="${boardY}" onClick="sendMove(${boardX}, ${boardY})">　</div>`;
+          }
           html += `<td>${cellContent}</td>`;
         }
         html += '</tr>';
@@ -67,10 +196,53 @@
       boardContainer.innerHTML = html;
     }
 
+    function selectHaveKoma(index) {
+      selectedHaveKoma = true;
+      haveKomaIndex = index;
+
+      // 盤面のハイライトをクリア
+      document.querySelectorAll('#board-container .cells').forEach(cell => {
+        cell.classList.remove('selected', 'movable');
+      });
+
+      // 持ち駒のハイライトをクリア
+      document.querySelectorAll('#haveKoma-container .cells').forEach(cell => {
+        cell.classList.remove('selected');
+      });
+
+      // 選択した持ち駒をハイライト
+      const selectedCell = document.querySelector(`#haveKoma-container .cells[data-index="${index}"]`);
+      if (selectedCell) selectedCell.classList.add('selected');
+    }
+    function drawHaveKoma(komaData, containerId, isClickable = false) {
+      const komaContainer = document.getElementById(containerId);
+      if (!komaData) {
+        komaContainer.innerHTML = '<p>盤面データがありません</p>';
+        return;
+      }
+
+      let html = '<table>';
+      html += '<tr>';
+      for (let i = 0; i < komaData.length; i++) {
+        const cell = komaData[i];
+        const hover = `onmouseenter="showKomaDetail(${containerId === 'haveKoma-container' ? 'haveKoma' : 'enemyHaveKoma'}[${i}])" onmouseleave="showKomaDetail(null)"`;
+        const cellContent = (isClickable && !GAME_END)
+          ? `<div class="cell koma" data-index="${i}" onClick="selectHaveKoma(${i})" ${hover}>${cell.name}</div>`
+          : `<div class="cell koma" ${hover}>${cell.name}</div>`;
+        html += `<td>${cellContent}</td>`;
+      }
+      html += '</tr>';
+      html += '</table>';
+      komaContainer.innerHTML = html;
+    }
+
+
 
     window.onload = function () {
       // 盤面を描画
       drawBoard();
+      drawHaveKoma(haveKoma, 'haveKoma-container', true);
+      drawHaveKoma(enemyHaveKoma, 'haveKoma_E-container', false);
 
       // エラーメッセージがあれば表示
       if (errMessage) {
@@ -79,7 +251,7 @@
 
       console.log('Player Status:', playerStatus);
 
-      if (playerStatus === 'GAME_WAITING') {
+      if (playerStatus === 'GAME_WAITING' || playerStatus === 'GAME_STARTING') {
         // SSE接続でターン情報を受信
         const sse = new EventSource(`/game/turn?gameId=${gameId}`);
         sse.onmessage = function (event) {
@@ -89,8 +261,6 @@
             window.location.href = `/game`;
           }
         };
-      } else {
-
       }
 
     };
@@ -102,9 +272,35 @@
   <p>ゲームID:[[${gameId}]]</p>
   <p>プレイヤーステータス: [[${playerStatus}]]</p>
 
-  <div id="board-container">
-    <!-- 盤面がここに表示されます -->
+  <div>
+    <div class="frame">
+      <p>相手の持ち駒</p>
+      <div id="haveKoma_E-container">
+        <!-- 相手の持ち駒がここに表示されます -->
+      </div>
+    </div>
+    <br>
+    <div style="display: flex; gap: 20px;">
+      <div id="board-container">
+        <!-- 盤面がここに表示されます -->
+      </div>
+      <div class="frame" id="koma-view">
+        <!-- 駒の詳細がここに表示されます -->
+      </div>
+    </div>
+    <br>
+    <div class="frame">
+      <p>自分の持ち駒</p>
+      <div id="haveKoma-container">
+        <!-- 持ち駒がここに表示されます -->
+      </div>
+    </div>
   </div>
+  <br>
+  <div>
+    <a th:if="${GAME_END}" href="/home">ホームに戻る</a>
+  </div>
+
 </body>
 
 </html>

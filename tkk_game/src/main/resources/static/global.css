@@ -30,6 +30,10 @@ a:hover {
   text-decoration: underline;
 }
 
+.frame {
+  border: 1px solid #202020;
+}
+
 /* ===========================================
    フォーム要素
    =========================================== */
@@ -69,7 +73,7 @@ button:hover {
   margin-top: 16px;
 }
 
-.cell {
+#board .cell {
   border: 1px solid #333;
   display: flex;
   align-items: center;
@@ -80,13 +84,28 @@ button:hover {
   font-weight: 600;
 }
 
-.cell.empty {
+#board .cell.empty {
   color: #999;
 }
 
 /* ===========================================
    ゲーム盤面スタイル
    =========================================== */
+
+.game-frame {
+  border: 2px solid #202020;
+  padding: 15px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  align-items: center;
+  justify-content: center;
+  max-width: 80%;
+  min-width: 50%;
+  max-height: 80%;
+  min-height: 50%;
+  display: flex;
+  flex-direction: column;
+}
 
 #board-container table {
   border-collapse: collapse;
@@ -96,9 +115,6 @@ button:hover {
 #board-container td {
   width: 60px;
   height: 60px;
-  text-align: center;
-  vertical-align: middle;
-  cursor: pointer;
 }
 
 #board-container td:hover {
@@ -108,6 +124,61 @@ button:hover {
 #board-container .cell {
   width: 100%;
   height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.koma {
+  font-family: "Yuji Boku", serif;
+  font-weight: 80%;
+  font-style: normal;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  writing-mode: vertical-rl;
+  background-image: url("/image/koma.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+#board-container .enemy {
+  transform: rotate(180deg);
+}
+
+#board-container .cell.selected {
+  background-color: #ffeb3b;
+  border: 2px solid #ffc107;
+  box-sizing: border-box;
+}
+
+#board-container .cell.movable {
+  background-color: #c8e6c9;
+  border: 2px solid #4caf50;
+  box-sizing: border-box;
+}
+
+#haveKoma-container {
+  overflow-y: auto;
+}
+
+#haveKoma-container .cell {
+  user-select: none;
+  cursor: pointer;
+  position: relative;
+}
+
+#haveKoma-container .cell.selected {
+  outline: 3px solid #ffc107;
+  outline-offset: -3px;
+  z-index: 1;
+}
+
+#haveKoma_E-container .cell {
+  user-select: none;
 }
 
 /* ===========================================
@@ -124,4 +195,27 @@ button:hover {
 #waitingMessage {
   color: #666;
   font-style: italic;
+}
+
+/* ===========================================
+   駒詳細表示スタイル
+   =========================================== */
+
+#koma-view {
+  min-height: 80px;
+  margin-top: 10px;
+  width: 25%;
+  background-color: #f5f5f5;
+}
+
+.koma-detail {
+  background-color: #f5f5f5;
+}
+
+.koma-detail p {
+  margin: 5px 0;
+}
+
+.koma-detail strong {
+  font-size: 1.2em;
 }

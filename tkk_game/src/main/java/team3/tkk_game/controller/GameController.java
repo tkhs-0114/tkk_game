@@ -9,20 +9,25 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import team3.tkk_game.mapper.DeckMapper;
 import team3.tkk_game.mapper.KomaMapper;
+
+import team3.tkk_game.model.GameRoom;
+import team3.tkk_game.model.Player;
+import team3.tkk_game.model.PlayerStatus;
 import team3.tkk_game.model.Ban;
 import team3.tkk_game.model.Game;
-import team3.tkk_game.model.GameRoom;
+import team3.tkk_game.model.WaitRoom;
+import team3.tkk_game.services.GameEventEmitterManager;
+import team3.tkk_game.services.MoveValidator;
+import team3.tkk_game.services.TurnChecker;
+
 import team3.tkk_game.model.Koma.Koma;
 import team3.tkk_game.model.Koma.KomaDB;
 import team3.tkk_game.model.Koma.KomaRule;
-import team3.tkk_game.model.Player;
-import team3.tkk_game.model.PlayerStatus;
-import team3.tkk_game.model.WaitRoom;
-import team3.tkk_game.services.TurnChecker;
 
 @Controller
 @RequestMapping("/game")
@@ -38,6 +43,10 @@ public class GameController {
   KomaMapper komaMapper;
   @Autowired
   DeckMapper deckMapper;
+  @Autowired
+  MoveValidator moveValidator;
+  @Autowired
+  GameEventEmitterManager gameEventEmitterManager;
 
   private boolean isMyTurn(Game game, String playerName) {
     return game.getPlayerByName(playerName).getStatus() == PlayerStatus.GAME_THINKING;
@@ -57,7 +66,10 @@ public class GameController {
       }
     }
     model.addAttribute("playerStatus", game.getPlayerByName(playerName).getStatus());
-    //デバック用
+
+    model.addAttribute("haveKoma", game.getHaveKomaByName(playerName));
+    model.addAttribute("enemyHaveKoma", game.getEnemyHaveKomaByName(playerName));
+    // デバッグ用
     model.addAttribute("game", game);
     return "game.html";
   }
@@ -87,6 +99,12 @@ public class GameController {
     // 表示用盤面に反映
     game.getDisplayBan().applyBan(game.getBan());
 
+    // P2に通知
+    game.getPlayer1().setStatus(PlayerStatus.GAME_WAITING);
+    game.getPlayer2().setStatus(PlayerStatus.GAME_THINKING);
+    String currentTurnPlayerName = getCurrentTurnPlayerName(game);
+    gameEventEmitterManager.notifyTurnChange(game.getId(), currentTurnPlayerName);
+
     return "redirect:/game";
   }
 
@@ -98,12 +116,16 @@ public class GameController {
     if (game == null) {
       return "redirect:/match";
     }
+    // ゲームが終了している場合は結果画面へ
+    if (game.getIsFinished()) {
+      return "redirect:/game/result";
+    }
     return returnGame(model, game, loginPlayerName, null);
   }
 
   @GetMapping("/move")
   public String gameMove(Principal principal, Model model, @RequestParam int fromX, @RequestParam int fromY,
-      @RequestParam int toX, @RequestParam int toY) {
+      @RequestParam int toX, @RequestParam int toY, @RequestParam boolean isUpdate) {
     String loginPlayerName = principal.getName();
     Game game = gameRoom.getGameByPlayerName(loginPlayerName);
 
@@ -112,25 +134,113 @@ public class GameController {
       return returnGame(model, game, loginPlayerName, null, "自分のターンではありません");
     }
 
-    // 自分の駒か確認（LocalBanには自分の駒しかない）
+    // 自分の駒か確認
     Koma koma = game.getBan().getKomaAt(fromX, fromY);
     if (koma != null && koma.getOwner() != game.getPlayerByName(loginPlayerName)) {
       return returnGame(model, game, loginPlayerName, game.getBan(), "自分の駒ではありません");
     }
 
     // 移動ルールを確認
-    Boolean canMove = koma.canMove(fromX, fromY, toX, toY);
-    System.out.println("canMove:" + canMove);
+    boolean canMove = moveValidator.canMove(game.getBan(), fromX, fromY, toX, toY);
     if (!canMove) {
       return returnGame(model, game, loginPlayerName, game.getBan(), "不正な手です");
     }
 
-    // 相手の駒を取る場合の処理
-    // 未実装
+    // 移動先に駒がある時の処理
+    Koma targetKoma = game.getBan().getKomaAt(toX, toY);
+    if (targetKoma != null) {
+      targetKoma.setOwner(game.getPlayerByName(loginPlayerName));
+      game.addHaveKomaByName(loginPlayerName, targetKoma);
+    }
 
-    // 駒を移動
+    // 駒の成り処理
+    if (isUpdate) {
+      if (fromY <= -1 * (Ban.BAN_LENGTH / 2) || toY <= -1 * (Ban.BAN_LENGTH / 2)) {
+        KomaDB updatedKomaDB = komaMapper.selectKomaById(koma.getUpdateKoma());
+        List<KomaRule> updatedKomaRules = komaMapper.selectKomaRuleById(koma.getUpdateKoma());
+        Koma updatedKoma = new Koma(updatedKomaDB, updatedKomaRules, koma.getOwner());
+        koma = updatedKoma;
+      } else {
+        return returnGame(model, game, loginPlayerName, game.getBan(), "成ることができません");
+      }
+    }
+
+    Ban myban = null;
+
+    switch (koma.getSkill()) {
+      default:
+
+        // 駒を移動
+        game.getBan().setKomaAt(toX, toY, koma);
+        game.getBan().setKomaAt(fromX, fromY, null);
+
+        // 自分視点の盤面を保存
+        myban = new Ban(game.getBan());
+
+        // 相手視点の盤面を保存
+        game.getDisplayBan().applyBan(game.getBan());
+
+        break;
+      case STEALTH:
+        System.out.println("STEALTHスキル発動");
+
+        // 相手視点の盤面を保存
+        game.getDisplayBan().applyBan(game.getBan());
+
+        // 駒を移動
+        game.getBan().setKomaAt(toX, toY, koma);
+        game.getBan().setKomaAt(fromX, fromY, null);
+
+        // 自分視点の盤面を保存
+        myban = new Ban(game.getBan());
+
+        break;
+    }
+
+    // 勝利判定
+    if (!game.getBan().isHaveKing(game.getEnemyPlayerByName(loginPlayerName))) {
+      game.getPlayerByName(loginPlayerName).setStatus(PlayerStatus.GAME_WIN);
+      game.setIsFinished();
+
+      // 勝者を結果画面にリダイレクト
+      return "redirect:/game/result";
+    }
+
+    // ターンを交代
+    game.switchTurn();
+    // ターン変更をSSEで通知
+    String currentTurnPlayerName = getCurrentTurnPlayerName(game);
+    gameEventEmitterManager.notifyTurnChange(game.getId(), currentTurnPlayerName);
+
+    return returnGame(model, game, loginPlayerName, myban);
+  }
+
+  @GetMapping("/putKoma")
+  public String gamePutKoma(Principal principal, Model model, @RequestParam int index, @RequestParam int toX,
+      @RequestParam int toY) {
+    String loginPlayerName = principal.getName();
+    Game game = gameRoom.getGameByPlayerName(loginPlayerName);
+
+    // 自分のターンか確認
+    if (!isMyTurn(game, loginPlayerName)) {
+      return returnGame(model, game, loginPlayerName, null, "自分のターンではありません");
+    }
+
+    // 持ち駒のインデックス確認
+    List<Koma> haveKoma = game.getHaveKomaByName(loginPlayerName);
+    if (index < 0 || index >= haveKoma.size()) {
+      return returnGame(model, game, loginPlayerName, game.getBan(), "その持ち駒は存在しません");
+    }
+
+    // 移動先に駒がないか確認
+    if (game.getBan().getKomaAt(toX, toY) != null) {
+      return returnGame(model, game, loginPlayerName, game.getBan(), "その位置には駒が存在します");
+    }
+
+    // 駒を盤面に置く
+    Koma koma = haveKoma.get(index);
     game.getBan().setKomaAt(toX, toY, koma);
-    game.getBan().setKomaAt(fromX, fromY, null);
+    haveKoma.remove(index);
 
     // 自分視点の盤面を保存
     Ban myban = new Ban(game.getBan());
@@ -138,16 +248,112 @@ public class GameController {
     // 相手視点の盤面を保存
     game.getDisplayBan().applyBan(game.getBan());
 
+    // 勝利判定
+    if (!game.getBan().isHaveKing(game.getEnemyPlayerByName(loginPlayerName))) {
+      game.getPlayerByName(loginPlayerName).setStatus(PlayerStatus.GAME_WIN);
+      game.setIsFinished();
+
+      // 勝者を結果画面にリダイレクト
+      return "redirect:/game/result";
+    }
+
     // ターンを交代
     game.switchTurn();
+
+    // ターン変更をSSEで通知
+    String currentTurnPlayerName = getCurrentTurnPlayerName(game);
+    gameEventEmitterManager.notifyTurnChange(game.getId(), currentTurnPlayerName);
+
     return returnGame(model, game, loginPlayerName, myban);
   }
 
   @GetMapping("/turn")
   public SseEmitter game(Principal principal, @RequestParam String gameId) {
-    SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
-    turnChecker.checkTurn(emitter, gameRoom.getGameById(gameId), principal.getName());
-    return emitter;
+    Game game = gameRoom.getGameById(gameId);
+    return turnChecker.registerTurnEmitter(game, principal.getName());
+  }
+
+  @GetMapping("/result")
+  public String gameEnd(Principal principal, Model model) {
+    String loginPlayerName = principal.getName();
+    Game game = gameRoom.getGameByPlayerName(loginPlayerName);
+
+    // ゲームが見つからない場合はホームへ
+    if (game == null) {
+      return "redirect:/home";
+    }
+
+    // ゲームが終了していない場合はゲーム画面へ
+    if (!game.getIsFinished()) {
+      return "redirect:/game";
+    }
+
+    Player player = game.getPlayerByName(loginPlayerName);
+    Player enemyPlayer = game.getEnemyPlayerByName(loginPlayerName);
+    Ban myBan = new Ban(game.getBan());
+
+    // ステータスをGAME_ENDに変更（得点調整等の処理もここで行う）
+    if (player.getStatus() == PlayerStatus.GAME_WIN) {
+
+      /*
+       * ここに勝者の得点調整等の処理を追加
+       */
+
+      // ターンを交代して相手に最後の盤面を見せる
+      player.setStatus(PlayerStatus.GAME_THINKING);
+      game.switchTurn();
+      String currentTurnPlayerName = getCurrentTurnPlayerName(game);
+      gameEventEmitterManager.notifyTurnChange(game.getId(), currentTurnPlayerName);
+
+      player.setStatus(PlayerStatus.GAME_END);
+    } else if (player.getStatus() != PlayerStatus.GAME_END) {
+
+      if (enemyPlayer.getStatus() == PlayerStatus.GAME_WIN) {
+        // 勝者の処理が完了してないので、ゲーム画面に戻して待機させる
+        return "redirect:/game";
+      }
+
+      /*
+       * ここに敗者の得点調整等の処理を追加
+       */
+
+      player.setStatus(PlayerStatus.GAME_END);
+
+      gameEventEmitterManager.removePlayerEmittersByGameId(game.getId());
+      gameRoom.rmGameByName(loginPlayerName);
+    }
+
+    // モデルに最終盤面情報を追加
+    model.addAttribute("GAME_END", true);
+    return returnGame(model, game, loginPlayerName, myBan);
+  }
+
+  // 指定した駒の移動可能なマスを取得するAPI
+  @GetMapping("/movable")
+  @ResponseBody
+  public List<int[]> getMovableCells(Principal principal, @RequestParam int x, @RequestParam int y) {
+    String loginPlayerName = principal.getName();
+    Game game = gameRoom.getGameByPlayerName(loginPlayerName);
+
+    if (game == null || !isMyTurn(game, loginPlayerName)) {
+      return List.of();
+    }
+
+    return moveValidator.getMovableCells(game.getDisplayBan(), x, y);
+  }
+
+  /**
+   * 現在のターンのプレイヤー名を取得する
+   *
+   * @param game ゲームオブジェクト
+   * @return 現在のターン（GAME_THINKING）のプレイヤー名
+   */
+  private String getCurrentTurnPlayerName(Game game) {
+    if (game.getPlayer1().getStatus() == PlayerStatus.GAME_THINKING) {
+      return game.getPlayer1().getName();
+    } else {
+      return game.getPlayer2().getName();
+    }
   }
 
   /**

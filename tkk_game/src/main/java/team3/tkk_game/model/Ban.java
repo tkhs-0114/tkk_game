@@ -3,7 +3,8 @@ package team3.tkk_game.model;
 import team3.tkk_game.model.Koma.Koma;
 
 public class Ban {
-  static final int BAN_LENGTH = 5;
+  public static final int BAN_LENGTH = 5;
+  private static final int KING_ID = 0;
 
   // board[x][y]で盤面のマスを表す.左下が(0,0)
   Koma[][] board = new Koma[BAN_LENGTH][BAN_LENGTH];
@@ -17,15 +18,36 @@ public class Ban {
   }
 
   public Ban(Ban otherBan) {
-    this.board = otherBan.getBoard();
+    for (int x = 0; x < BAN_LENGTH; x++) {
+      for (int y = 0; y < BAN_LENGTH; y++) {
+        this.board[x][y] = otherBan.getBoard()[x][y];
+      }
+    }
   }
 
   public Koma[][] getBoard() {
     return board;
   }
 
+  public boolean isHaveKing(Player player) {
+    Koma koma;
+    for (int x = 0; x < BAN_LENGTH; x++) {
+      for (int y = 0; y < BAN_LENGTH; y++) {
+        koma = this.board[x][y];
+        if (koma != null && koma.getId() == KING_ID  && koma.getOwner().equals(player)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   public void applyBan(Ban otherBan) {
-    this.board = otherBan.getBoard();
+    for (int x = 0; x < BAN_LENGTH; x++) {
+      for (int y = 0; y < BAN_LENGTH; y++) {
+        this.board[x][y] = otherBan.getBoard()[x][y];
+      }
+    }
   }
 
   // board配列のインデックスに変換する
@@ -38,7 +60,7 @@ public class Ban {
   }
 
   public boolean setKomaAt(int x, int y, Koma koma) {
-    if (board[b2a(x)][b2a(y)] != null && koma != null) {
+    if (b2a(x) >= BAN_LENGTH || b2a(y) >= BAN_LENGTH || b2a(x) < 0 || b2a(y) < 0) {
       return false;
     }
     board[b2a(x)][b2a(y)] = koma;

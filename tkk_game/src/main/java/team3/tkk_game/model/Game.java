@@ -1,24 +1,32 @@
 package team3.tkk_game.model;
 
 import java.util.Date;
+import java.util.ArrayList;
+import team3.tkk_game.model.Koma.Koma;
 
 public class Game {
   // デバッグ用にpublicに変更
-  public String id;
-  public Date lastActivity;
+  String id;
+  Date lastActivity;
   Player player1;
   Player player2;
-  Ban Ban;
+  Ban ban;
   Ban displayBan;
   int deckIdPlayer1;
   int deckIdPlayer2;
+  ArrayList<Koma> haveKoma1;
+  ArrayList<Koma> haveKoma2;
+  Boolean isFinished = false;
+
 
   public Game(String id, String player1Name) {
     this.id = id;
-    this.player1 = new Player(player1Name, PlayerStatus.GAME_WAITING);
+    this.player1 = new Player(player1Name, PlayerStatus.WAITING);
     this.lastActivity = new Date();
-    this.Ban = new Ban();
+    this.ban = new Ban();
     this.displayBan = new Ban();
+    this.haveKoma1 = new ArrayList<Koma>();
+    this.haveKoma2 = new ArrayList<Koma>();
   }
 
   public String getId() {
@@ -34,7 +42,7 @@ public class Game {
   }
 
   public void setPlayer2(String player2Name) {
-    this.player2 = new Player(player2Name, PlayerStatus.GAME_THINKING);
+    this.player2 = new Player(player2Name, PlayerStatus.GAME_STARTING);
   }
 
   public void clearPlayer2() {
@@ -42,7 +50,7 @@ public class Game {
   }
 
   public Ban getBan() {
-    return Ban;
+    return ban;
   }
 
   public Ban getDisplayBan() {
@@ -75,11 +83,59 @@ public class Game {
     this.deckIdPlayer2 = deckIdPlayer2;
   }
 
+  public Player getEnemyPlayerByName(String playerName) {
+    if (player1.getName().equals(playerName)) {
+      return player2;
+    } else if (player2.getName().equals(playerName)) {
+      return player1;
+    } else {
+      return null;
+    }
+  }
+
+  public ArrayList<Koma> getHaveKomaByName(String playerName) {
+    if (player1.getName().equals(playerName)) {
+      return haveKoma1;
+    } else if (player2.getName().equals(playerName)) {
+      return haveKoma2;
+    } else {
+      return null;
+    }
+  }
+
+  public ArrayList<Koma> getEnemyHaveKomaByName(String playerName) {
+    if (player1.getName().equals(playerName)) {
+      return haveKoma2;
+    } else if (player2.getName().equals(playerName)) {
+      return haveKoma1;
+    } else {
+      return null;
+    }
+  }
+
+  public void addHaveKomaByName(String playerName, Koma koma) {
+    if (player1.getName().equals(playerName)) {
+      haveKoma1.add(getHaveKomaIndex(haveKoma1, koma), koma);
+    } else if (player2.getName().equals(playerName)) {
+      haveKoma2.add(getHaveKomaIndex(haveKoma2, koma), koma);
+    }
+  }
+
+  private int getHaveKomaIndex(ArrayList<Koma> haveKoma, Koma koma) {
+    if (haveKoma.isEmpty())
+      return 0;
+    for (int i = 0; i < haveKoma.size(); i++) {
+      if (haveKoma.get(i).getId() > koma.getId())
+        return i;
+    }
+    return haveKoma.size();
+  }
+
   public void switchTurn() {
     updateLastActivity();
     // 盤面を相手視点に回転
     this.displayBan.rotate180();
-    this.Ban.rotate180();
+    this.ban.rotate180();
     // プレイヤーステータスを入れ替え
     if (player1.getStatus() == PlayerStatus.GAME_THINKING) {
       player1.setStatus(PlayerStatus.GAME_WAITING);
@@ -90,7 +146,15 @@ public class Game {
     }
   }
 
-  // 用修正、SSE時に更新処理として動作させるようにすることを検討中
+  public Boolean getIsFinished() {
+    return isFinished;
+  }
+
+  public void setIsFinished() {
+    this.isFinished = true;
+  }
+
+  // 要修正、SSE時に更新処理として動作させるようにすることを検討中
   private void updateLastActivity() {
     this.lastActivity = new Date();
   }

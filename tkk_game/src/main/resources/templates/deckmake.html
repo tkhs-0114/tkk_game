@@ -11,24 +11,44 @@
 <body>
   <h1>デッキ作成</h1>
 
-  <p><a href="/home">ホームに戻る</a></p>
+  <p><a href="/home">ホームに戻る</a><a href="/deck/make/koma">駒を作る</a></p>
+
+  <!-- エラー・成功メッセージ表示 -->
+  <div th:if="${error}" th:text="${error}" style="color:red; font-weight:bold; margin:10px 0;"></div>
+  <div th:if="${success}" th:text="${success}" style="color:green; font-weight:bold; margin:10px 0;"></div>
 
   <form th:action="@{/deck/save}" method="post" id="deck-form">
     <label for="deck-name">デッキ名：</label>
     <input id="deck-name" name="deckName" type="text" required />
 
     <label for="koma-select">駒を選択：</label>
-    <!-- komas を受け取り、value に id、表示は name にする -->
+    <!-- komas を受け取り、value に id、表示は「コスト: 駒名」形式にする -->
     <select id="koma-select" name="komaId">
       <option value="" disabled selected>選んでください</option>
-      <option th:each="k : ${komas}" th:value="${k.id}" th:text="${k.name}">駒名</option>
+      <option th:each="k : ${komas}" th:value="${k.id}" th:text="${komaCosts[k.id]} + ': ' + ${k.name}"
+        th:attr="data-cost=${komaCosts[k.id]}">コスト: 駒名
+      </option>
     </select>
+
+    <span id="selected-koma-cost"></span>
 
     <!-- SFEN を入れる hidden -->
     <input type="hidden" id="sfen-input" name="sfen" />
 
     <button type="submit">保存</button>
   </form>
+
+  <div>
+    <strong>コスト上限：</strong>
+    <span id="cost-limit-display" th:text="${costLimit}">50</span>
+  </div>
+
+  <div>
+    <strong>デッキの合計コスト：</strong>
+    <span id="total-deck-cost">0</span>
+  </div>
+
+  <div id="cost-warning" style="display:none; color:red; font-weight:bold; margin:10px 0;"></div>
 
   <!-- 5x2 マス目 -->
   <div class="board" id="board">
@@ -46,6 +66,46 @@
   </div>
 
   <script>
+    // 駒選択時にコストを表示
+    document.getElementById('koma-select').addEventListener('change', function () {
+      const selectedOption = this.options[this.selectedIndex];
+      const cost = selectedOption.getAttribute('data-cost');
+      const costDisplay = document.getElementById('selected-koma-cost');
+      if (cost) {
+        costDisplay.textContent = `コスト: ${cost}`;
+        costDisplay.style.color = '#0066cc';
+      } else {
+        costDisplay.textContent = '';
+      }
+    });
+
+    // デッキの合計コストを計算して表示
+    function updateTotalCost() {
+      let totalCost = 0;
+      document.querySelectorAll('.cell').forEach(cell => {
+        const cost = cell.dataset.cost;
+        if (cost) {
+          totalCost += parseInt(cost, 10);
+        }
+      });
+      document.getElementById('total-deck-cost').textContent = totalCost;
+      checkCostLimit(totalCost);
+    }
+
+    // コスト上限チェック
+    function checkCostLimit(totalCost) {
+      const costLimit = parseInt(document.getElementById('cost-limit-display').textContent, 10);
+      const warning = document.getElementById('cost-warning');
+      if (totalCost > costLimit) {
+        warning.textContent = `警告: デッキコストが上限を超えています (${totalCost}/${costLimit})`;
+        warning.style.display = 'block';
+        return false;
+      } else {
+        warning.style.display = 'none';
+        return true;
+      }
+    }
+
     // セルに駒を配置：value=id を dataset.komaId に、表示は選択肢のテキスト（駒名）
     document.querySelectorAll('.cell').forEach(cell => {
       cell.addEventListener('click', () => {
@@ -53,9 +113,12 @@
         const id = sel.value;
         if (!id) { alert('先に駒を選んでください'); return; }
         const name = sel.options[sel.selectedIndex].text;
+        const cost = sel.options[sel.selectedIndex].getAttribute('data-cost');
         cell.textContent = name;
         cell.classList.remove('empty');
         cell.dataset.komaId = id;
+        cell.dataset.cost = cost;
+        updateTotalCost();
       });
     });
 
@@ -96,6 +159,13 @@
       }
       if (!kingcheckSfen(buildSfen())) {
         e.preventDefault(); alert('デッキに王が含まれていません');
+        return;
+      }
+      // コスト上限チェック
+      const totalCost = parseInt(document.getElementById('total-deck-cost').textContent, 10);
+      if (!checkCostLimit(totalCost)) {
+        e.preventDefault();
+        alert('デッキのコストが上限を超えています。駒を減らしてください。');
         return;
       }
       document.getElementById('sfen-input').value = buildSfen();
