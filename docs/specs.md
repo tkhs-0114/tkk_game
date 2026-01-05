@@ -191,8 +191,10 @@ Spring Boot を用いた Web アプリケーション。将棋風のボードゲ
 - 移動先に自分の駒がある場合は移動不可
 - 駒の移動ルール (`KomaRule`) に基づいて移動可否を判定
 - 直線移動の場合、経路上に駒がある場合は移動不可（飛び越え不可）
-- 対応ルール: `UP`, `DOWN`, `LEFT`, `RIGHT`, `UP_LEFT`, `UP_RIGHT`, `DOWN_LEFT`, `DOWN_RIGHT`, `LINE_UP`, `LINE_DOWN`, `LINE_LEFT`, `LINE_RIGHT`, `LINE_UP_LEFT`, `LINE_UP_RIGHT`, `LINE_DOWN_LEFT`, `LINE_DOWN_RIGHT`
-- 未対応ルール: `JUMP_UP_LEFT`, `JUMP_UP_RIGHT` 等（桂馬のジャンプ移動）
+- 対応ルール: 
+  - 単マス移動: `UP`, `DOWN`, `LEFT`, `RIGHT`, `UP_LEFT`, `UP_RIGHT`, `DOWN_LEFT`, `DOWN_RIGHT`
+  - 直線移動: `LINE_UP`, `LINE_DOWN`, `LINE_LEFT`, `LINE_RIGHT`, `LINE_UP_LEFT`, `LINE_UP_RIGHT`, `LINE_DOWN_LEFT`, `LINE_DOWN_RIGHT`
+  - ジャンプ移動: `JUMP_UP_LEFT`, `JUMP_UP_RIGHT`, `JUMP_DOWN_LEFT`, `JUMP_DOWN_RIGHT`, `JUMP_LEFT_UP`, `JUMP_LEFT_DOWN`, `JUMP_RIGHT_UP`, `JUMP_RIGHT_DOWN`（桂馬用）
 
 #### `GameEventEmitterManager` サービス
 - ゲームイベントのSSE配信を管理するクラス
@@ -393,7 +395,7 @@ Spring Boot を用いた Web アプリケーション。将棋風のボードゲ
   - ✅ 単マス移動: UP, DOWN, LEFT, RIGHT, UP_LEFT, UP_RIGHT, DOWN_LEFT, DOWN_RIGHT
   - ✅ 直線移動: LINE_UP, LINE_DOWN, LINE_LEFT, LINE_RIGHT, LINE_UP_LEFT, LINE_UP_RIGHT, LINE_DOWN_LEFT, LINE_DOWN_RIGHT
   - ✅ 経路ブロック判定 (直線移動時に途中に駒がある場合は移動不可)
-  - ⚠️ ジャンプ移動: JUMP_UP_LEFT, JUMP_UP_RIGHT 等 (桂馬用、未実装)
+  - ✅ ジャンプ移動: JUMP_UP_LEFT, JUMP_UP_RIGHT, JUMP_DOWN_LEFT, JUMP_DOWN_RIGHT, JUMP_LEFT_UP, JUMP_LEFT_DOWN, JUMP_RIGHT_UP, JUMP_RIGHT_DOWN (桂馬用)
 - ✅ 移動可能マス表示機能 (`/game/movable` APIでマス一覧を取得、フロントエンドでハイライト表示)
 - ✅ 駒を取る処理 (相手の駒を取って持ち駒に追加)
 - ✅ 持ち駒機能 (取った駒を保持、盤面に置く)
@@ -416,6 +418,72 @@ Spring Boot を用いた Web アプリケーション。将棋風のボードゲ
 - ✅ SSEイベント駆動化 (`GameEventEmitterManager`, `WaitRoomEventEmitterManager`)
   - ✅ ポーリング方式から直接通知方式に移行
   - ✅ ゲーム終了時のリソース解放機能
+- ✅ 駒作成機能のバックエンド実装 (`/deck/make/koma`, `/deck/make/koma/save`)
+
+## 未実装タスク一覧
+
+### 必須タスク（優先度: 最高）
+- **デッキの実際の反映**
+  - 現在 `/game/start` で固定の駒配置（王将と歩兵）のみ
+  - セッションの `selectedDeck` からSFENを読み込んで盤面に配置する処理が必要
+  - 関連ファイル: `GameController.java` の `gameStart()` メソッド
+
+- **切断処理の実装**
+  - SSE切断時の適切なクリーンアップ
+  - 切断時の対戦相手への通知
+  - ゲーム中断時の処理
+
+- **駒のスキル関連**
+  - 新たにスキルを追加
+  - デッキ作成でスキルを選べるように
+
+- **ゲーム画面のUI改善**
+  - 配置のデザイン
+
+- **駒作成画面のUI改善**
+  - バックエンドは実装済み（`/deck/make/koma`）
+  - フロントエンドの `komamake.html` の機能強化
+  - 選択中のルールの合計コストをリアルタイム表示
+  - スキル選択機能の追加
+
+- **戦績機能**
+  - ユーザーテーブルの作成（現在インメモリ認証のみ）
+  - 勝敗・レーティングの記録
+  - 戦績表示画面の作成
+
+### 優先度: 高（実装検討中）
+
+- **マッチング・待機画面のUI改善**
+  - より見やすいレイアウト
+  - プレイヤー情報の充実
+
+- **ゲーム画面のUI改善**
+  - サウンドエフェクトの追加（駒を動かす音、取る音など）
+
+- **デッキ選択画面のUI改善**
+  - デッキプレビュー機能（盤面の視覚化）
+  - デッキの編集機能（現在は削除のみ）
+
+- **ランキング機能**
+  - レーティングシステム
+  - ランキング表示画面
+
+- **駒の編集・削除機能**
+  - 自作駒の編集機能
+  - 自作駒の削除機能（現在insertのみ実装済み）
+  - Mapper に `updateKoma()`, `deleteKoma()` の追加が必要
+
+### 優先度: 中（余裕があれば実装）
+- **エラーハンドリング強化**
+  - 異常系のテストとエラー処理
+  - タイムアウト処理
+
+- **観戦機能**
+  - 対局中のゲームを観戦できる機能
+
+- **チャット機能**
+  - 対局中のコミュニケーション機能
+
 
 ## コストシステム仕様
 
