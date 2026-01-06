@@ -1,80 +1,73 @@
 <div id="board"></div>
-<form th:action="@{/deck/make/koma/save}" method="post" onchange="updateRuleCost()">
+<form th:action="@{/deck/make/koma/save}" method="post" onchange="updateTotalCost()">
   <label for="name">駒の名前:<input type="text" id="name" name="name" required></label><br>
 
   <div style="margin:10px 0;">
-    <strong>選択中のルールのコスト：</strong><span id="rule-cost-display">0</span>
+    <strong>合計コスト：</strong><span id="total-cost-display">0</span>
+    <span style="margin-left: 15px;">(移動ルール: <span id="rule-cost-display">0</span> + 特殊スキル: <span
+        id="skill-cost-display">0</span>)</span>
   </div>
 
-  <label><input type="checkbox" class="rule-checkbox" id="UP" name="rules" value="UP">UP</label><br>
-  <label><input type="checkbox" class="rule-checkbox" id="DOWN" name="rules" value="DOWN">DOWN</label><br>
-  <label><input type="checkbox" class="rule-checkbox" id="LEFT" name="rules" value="LEFT">LEFT</label><br>
-  <label><input type="checkbox" class="rule-checkbox" id="RIGHT" name="rules" value="RIGHT">RIGHT</label><br>
-  <label><input type="checkbox" class="rule-checkbox" id="UP_LEFT" name="rules" value="UP_LEFT">UP_LEFT</label><br>
-  <label><input type="checkbox" class="rule-checkbox" id="UP_RIGHT" name="rules" value="UP_RIGHT">UP_RIGHT</label><br>
-  <label><input type="checkbox" class="rule-checkbox" id="DOWN_LEFT" name="rules"
-      value="DOWN_LEFT">DOWN_LEFT</label><br>
-  <label><input type="checkbox" class="rule-checkbox" id="DOWN_RIGHT" name="rules"
-      value="DOWN_RIGHT">DOWN_RIGHT</label><br>
-  <label><input type="checkbox" class="rule-checkbox" id="LINE_UP" name="rules" value="LINE_UP">LINE_UP</label><br>
-  <label><input type="checkbox" class="rule-checkbox" id="LINE_DOWN" name="rules"
-      value="LINE_DOWN">LINE_DOWN</label><br>
-  <label><input type="checkbox" class="rule-checkbox" id="LINE_LEFT" name="rules"
-      value="LINE_LEFT">LINE_LEFT</label><br>
-  <label><input type="checkbox" class="rule-checkbox" id="LINE_RIGHT" name="rules"
-      value="LINE_RIGHT">LINE_RIGHT</label><br>
-  <label><input type="checkbox" class="rule-checkbox" id="LINE_UP_LEFT" name="rules"
-      value="LINE_UP_LEFT">LINE_UP_LEFT</label><br>
-  <label><input type="checkbox" class="rule-checkbox" id="LINE_UP_RIGHT" name="rules"
-      value="LINE_UP_RIGHT">LINE_UP_RIGHT</label><br>
-  <label><input type="checkbox" class="rule-checkbox" id="LINE_DOWN_LEFT" name="rules"
-      value="LINE_DOWN_LEFT">LINE_DOWN_LEFT</label><br>
-  <label><input type="checkbox" class="rule-checkbox" id="LINE_DOWN_RIGHT" name="rules"
-      value="LINE_DOWN_RIGHT">LINE_DOWN_RIGHT</label><br>
-  <label><input type="checkbox" class="rule-checkbox" id="JUMP_UP_LEFT" name="rules"
-      value="JUMP_UP_LEFT">JUMP_UP_LEFT</label><br>
-  <label><input type="checkbox" class="rule-checkbox" id="JUMP_UP_RIGHT" name="rules"
-      value="JUMP_UP_RIGHT">JUMP_UP_RIGHT</label><br>
+  <div style="margin:10px 0; border: 1px solid #ccc; padding: 10px;">
+    <strong>移動ルール:</strong><br>
+    <div th:each="rule : ${availableRules}" style="margin:5px 0;">
+      <label>
+        <input type="checkbox" class="rule-checkbox" th:id="${rule.name()}" name="rules" th:value="${rule.name()}"
+          th:data-cost="${rule.cost}">
+        <span th:text="${rule.name()}">ルール名</span>
+        <span th:text="'(コスト: ' + ${rule.cost} + ')'" style="color: #666; font-size: 0.9em;">コスト</span>
+      </label>
+    </div>
+  </div>
+
+  <div style="margin:10px 0; border: 1px solid #ccc; padding: 10px;">
+    <strong>特殊スキル (1つのみ選択可能):</strong><br>
+    <div th:each="skill : ${availableSkills}" style="margin:5px 0;">
+      <label>
+        <input type="radio" class="skill-radio" th:id="${skill.name()}" name="skill" th:value="${skill.name()}"
+          th:data-cost="${skill.cost}" th:checked="${skill.name() == 'NULL'}">
+        <span th:text="${skill.name()}">スキル名</span>
+        <span th:text="'(コスト: ' + ${skill.cost} + ')'" style="color: #666; font-size: 0.9em;">コスト</span>
+      </label>
+    </div>
+  </div>
 
   <label>駒の成り先<select id="update" name="updateKomaId">
       <option value="-1" selected>成らない</option>
       <option th:each="k : ${canUpdateKomas}" th:value="${k.id}" th:text="${k.name}">駒名</option>
     </select></label><br>
-  <label><button type="submit">作成</button>
+  <label><button type="submit">作成</button></label>
 </form>
 
 <script>
-  // 各ルールのコスト定義
-  const ruleCosts = {
-    'UP': 1,
-    'DOWN': 1,
-    'LEFT': 1,
-    'RIGHT': 1,
-    'UP_LEFT': 1,
-    'UP_RIGHT': 1,
-    'DOWN_LEFT': 1,
-    'DOWN_RIGHT': 1,
-    'LINE_UP': 3,
-    'LINE_DOWN': 3,
-    'LINE_LEFT': 3,
-    'LINE_RIGHT': 3,
-    'LINE_UP_LEFT': 3,
-    'LINE_UP_RIGHT': 3,
-    'LINE_DOWN_LEFT': 3,
-    'LINE_DOWN_RIGHT': 3,
-    'JUMP_UP_LEFT': 2,
-    'JUMP_UP_RIGHT': 2
-  };
-
-  // 選択中のルールのコストを計算して表示
-  function updateRuleCost() {
-    let totalCost = 0;
+  // 選択中のルールとスキルのコストを計算して表示
+  function updateTotalCost() {
+    // 移動ルールのコスト計算
+    let ruleCost = 0;
     document.querySelectorAll('.rule-checkbox:checked').forEach(checkbox => {
-      const ruleName = checkbox.value;
-      if (ruleCosts[ruleName]) {
-        totalCost += ruleCosts[ruleName];
+      const cost = parseInt(checkbox.getAttribute('data-cost'));
+      if (!isNaN(cost)) {
+        ruleCost += cost;
       }
     });
-    document.getElementById('rule-cost-display').textContent = totalCost;
+    document.getElementById('rule-cost-display').textContent = ruleCost;
+
+    // スキルのコスト計算
+    let skillCost = 0;
+    const selectedSkill = document.querySelector('.skill-radio:checked');
+    if (selectedSkill) {
+      const cost = parseInt(selectedSkill.getAttribute('data-cost'));
+      if (!isNaN(cost)) {
+        skillCost = cost;
+      }
+    }
+    document.getElementById('skill-cost-display').textContent = skillCost;
+
+    // 合計コスト表示
+    const totalCost = ruleCost + skillCost;
+    document.getElementById('total-cost-display').textContent = totalCost;
   }
+
+  // ページ読み込み時に初期値を設定
+  window.addEventListener('DOMContentLoaded', updateTotalCost);
 </script>
