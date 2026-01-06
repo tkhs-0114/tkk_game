@@ -142,34 +142,35 @@ header h1 {
 /* 盤面スタイル */
 .board-container {
   margin: 2rem auto;
+  display: flex;
+  justify-content: center;
 }
 
-.board {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  grid-template-rows: repeat(2, 1fr);
-  width: 100%;
-  max-width: 600px;
-  margin: 0 auto;
+#board table {
+  border-collapse: collapse;
   border: 2px solid #8c6b52;
   background-color: #fff;
 }
 
+#board td {
+  padding: 0;
+  border: 1px solid #ddd;
+  width: 100px;
+  height: 100px;
+}
+
 .cell {
   width: 100%;
-  aspect-ratio: 1 / 1;
-  /* 正方形を維持 */
+  height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
-  border: 1px solid #ddd;
   cursor: pointer;
   font-size: 0.9rem;
   transition: background-color 0.2s;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  padding: 2px;
 }
 
 .cell:hover {
