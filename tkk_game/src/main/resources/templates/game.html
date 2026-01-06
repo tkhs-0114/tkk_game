@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link th:href="@{/global.css}" rel="stylesheet">
+  <link th:href="@{/css/game.css}" rel="stylesheet">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Yuji+Boku&display=swap" rel="stylesheet">
@@ -28,6 +28,7 @@
     let selectedY = null;
     let selectedHaveKoma = false;
     let haveKomaIndex = null;
+    let isDetailLocked = false; // 詳細表示の固定状態
 
     // 配列のインデックスを盤面の座標に変換
     function Xa2b(arrayIndex) {
@@ -99,12 +100,35 @@
     }
 
     // 駒の詳細を表示
-    function showKomaDetail(cell) {
+    function showKomaDetail(cell, isClick = false) {
       const komaView = document.getElementById('koma-view');
-      if (!cell || !cell.name) {
-        komaView.innerHTML = '';
+      
+      // クリック時は固定表示をトグル
+      if (isClick) {
+        if (isDetailLocked && komaView.dataset.currentKoma === JSON.stringify(cell)) {
+          // 同じ駒を再クリック → 固定解除
+          isDetailLocked = false;
+          komaView.innerHTML = '';
+          komaView.classList.remove('locked');
+          return;
+        }
+        isDetailLocked = true;
+        komaView.classList.add('locked');
+      }
+      
+      // 固定表示中はhoverを無視
+      if (isDetailLocked && !isClick) {
         return;
       }
+      
+      if (!cell || !cell.name) {
+        if (!isDetailLocked) {
+          komaView.innerHTML = '';
+        }
+        return;
+      }
+      
+      komaView.dataset.currentKoma = JSON.stringify(cell);
       console.log('Showing koma detail:', cell);
       const owner = cell.owner?.name === loginPlayerName ? '自分' : '相手';
 
@@ -145,12 +169,14 @@
       const skill = cell.skill ? (skillNameMap[cell.skill] || cell.skill) : 'なし';
 
       console.log('cell:', cell);
+      const lockHint = isDetailLocked ? '<p style="font-size: 0.8em; color: #999;">(固定表示中 - もう一度クリックで解除)</p>' : '<p style="font-size: 0.8em; color: #999;">(右クリックで固定表示)</p>';
       komaView.innerHTML = `
         <div class="koma-detail">
           <p><strong>${cell.name}</strong></p>
           <p>所有者: ${owner}</p>
           <p>スキル: ${skill}</p>
           <p>移動方向:<br>・${rules}</p>
+          ${lockHint}
         </div>
       `;
     }
@@ -173,7 +199,7 @@
 
           // GAME_ENDの場合はクリックイベントを設定しない
           let cellContent;
-          const hover = `onmouseenter="showKomaDetail(ban.board[${x}][${y}])" onmouseleave="showKomaDetail(null)"`;
+          const hover = `onmouseenter="showKomaDetail(ban.board[${x}][${y}])" onmouseleave="showKomaDetail(null)" oncontextmenu="event.preventDefault(); showKomaDetail(ban.board[${x}][${y}], true); return false;"`;
           if (GAME_END) {
             cellContent = (cell && cell.name) ?
               `<div class="cell koma${cell.owner.name !== loginPlayerName ? ' enemy' : ''}" ${hover}>${cell.name}</div>`
@@ -225,7 +251,8 @@
       html += '<tr>';
       for (let i = 0; i < komaData.length; i++) {
         const cell = komaData[i];
-        const hover = `onmouseenter="showKomaDetail(${containerId === 'haveKoma-container' ? 'haveKoma' : 'enemyHaveKoma'}[${i}])" onmouseleave="showKomaDetail(null)"`;
+        const komaArray = containerId === 'haveKoma-container' ? 'haveKoma' : 'enemyHaveKoma';
+        const hover = `onmouseenter="showKomaDetail(${komaArray}[${i}])" onmouseleave="showKomaDetail(null)" oncontextmenu="event.preventDefault(); showKomaDetail(${komaArray}[${i}], true); return false;"`;
         const cellContent = (isClickable && !GAME_END)
           ? `<div class="cell koma" data-index="${i}" onClick="selectHaveKoma(${i})" ${hover}>${cell.name}</div>`
           : `<div class="cell koma" ${hover}>${cell.name}</div>`;
@@ -273,14 +300,14 @@
   <p>プレイヤーステータス: [[${playerStatus}]]</p>
 
   <div>
-    <div class="frame">
+    <div class="frame have-koma-frame">
       <p>相手の持ち駒</p>
       <div id="haveKoma_E-container">
         <!-- 相手の持ち駒がここに表示されます -->
       </div>
     </div>
     <br>
-    <div style="display: flex; gap: 20px;">
+    <div class="game-board-layout">
       <div id="board-container">
         <!-- 盤面がここに表示されます -->
       </div>
@@ -289,7 +316,7 @@
       </div>
     </div>
     <br>
-    <div class="frame">
+    <div class="frame have-koma-frame">
       <p>自分の持ち駒</p>
       <div id="haveKoma-container">
         <!-- 持ち駒がここに表示されます -->
