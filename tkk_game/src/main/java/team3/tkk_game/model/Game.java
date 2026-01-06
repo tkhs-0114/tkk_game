@@ -12,9 +12,12 @@ public class Game {
   Player player2;
   Ban ban;
   Ban displayBan;
+  int deckIdPlayer1;
+  int deckIdPlayer2;
   ArrayList<Koma> haveKoma1;
   ArrayList<Koma> haveKoma2;
   Boolean isFinished = false;
+
 
   public Game(String id, String player1Name) {
     this.id = id;
@@ -62,6 +65,22 @@ public class Game {
     } else {
       return null;
     }
+  }
+
+  public int getDeckIdPlayer1() {
+    return deckIdPlayer1;
+  }
+
+  public void setDeckIdPlayer1(int deckIdPlayer1) {
+    this.deckIdPlayer1 = deckIdPlayer1;
+  }
+
+  public int getDeckIdPlayer2() {
+    return deckIdPlayer2;
+  }
+
+  public void setDeckIdPlayer2(int deckIdPlayer2) {
+    this.deckIdPlayer2 = deckIdPlayer2;
   }
 
   public Player getEnemyPlayerByName(String playerName) {

@@ -19,9 +19,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import jakarta.servlet.http.HttpSession;
 import team3.tkk_game.mapper.DeckMapper;
 import team3.tkk_game.mapper.KomaMapper;
+import team3.tkk_game.mapper.PlayerMapper;
 import team3.tkk_game.model.Deck;
 import team3.tkk_game.model.Koma.KomaDB;
 import team3.tkk_game.model.Koma.KomaRule;
@@ -37,6 +37,9 @@ public class DeckController {
 
   @Autowired
   DeckMapper deckMapper;
+
+  @Autowired
+  PlayerMapper playerMapper;
 
   @GetMapping("/make")
   public String deckmake(Principal principal, Model model) {
@@ -118,24 +121,20 @@ public class DeckController {
   }
 
   @PostMapping("/choose")
-  public String chooseDeck(@RequestParam int deckId, Principal principal, Model model) {
-    Deck selectedDeck = deckMapper.selectDeckById(deckId);
-    model.addAttribute("selectedDeck", selectedDeck);
+  public String chooseDeck(@RequestParam int deckId, Principal principal) {
+    playerMapper.updateSelectedDeckId(principal.getName(), deckId);
     return "redirect:/home";
   }
 
   @GetMapping("/load/{id}")
-  public String loadDeck(@PathVariable("id") int deckId, HttpSession session) {
-    Deck deck = deckMapper.selectDeckById(deckId);
-    if (deck != null) {
-      session.setAttribute("selectedDeck", deck);
-    }
-    // 選択後にホームへ戻す
+  public String loadDeck(@PathVariable("id") int deckId, Principal principal) {
+    playerMapper.updateSelectedDeckId(principal.getName(), deckId);
     return "redirect:/home";
   }
 
   @GetMapping("/delete/{id}")
   public String deleteDeck(@PathVariable("id") int deckId) {
+    playerMapper.clearSelectedDeckId(deckId);
     deckMapper.deleteDeckById(deckId);
     return "redirect:/deck/select";
   }

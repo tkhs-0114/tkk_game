@@ -98,3 +98,9 @@ INSERT INTO KomaRule (koma_id, rule) VALUES (14, 'DOWN_RIGHT');
 ALTER TABLE koma ALTER COLUMN id RESTART WITH 15;
 
 INSERT INTO Deck (name, sfen, cost) VALUES ('sample', '5/2[0]2', 8);
+
+INSERT INTO Player (username, selected_deck_id) VALUES ('user1', 1);
+INSERT INTO Player (username, selected_deck_id) VALUES ('user2', 1);
+INSERT INTO Player (username, selected_deck_id) VALUES ('user3', 1);
+-- デッキ未選択のユーザー
+INSERT INTO Player (username, selected_deck_id) VALUES ('user4', null);

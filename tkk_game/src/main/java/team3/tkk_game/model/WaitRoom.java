@@ -14,7 +14,6 @@ import team3.tkk_game.services.WaitRoomEventEmitterManager;
 @Component
 public class WaitRoom {
   ArrayList<Game> waitRoom = new ArrayList<>();
-
   @Autowired
   private WaitRoomEventEmitterManager waitRoomEventEmitterManager;
 
