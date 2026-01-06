@@ -146,39 +146,56 @@ header h1 {
   justify-content: center;
 }
 
-#board table {
+.board-container table {
   border-collapse: collapse;
   border: 2px solid #8c6b52;
   background-color: #fff;
 }
 
-#board td {
+.board-container td {
   padding: 0;
   border: 1px solid #ddd;
   width: 100px;
   height: 100px;
 }
 
-.cell {
+.board-container .cell {
   width: 100%;
   height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 1.2rem;
+  font-weight: bold;
   transition: background-color 0.2s;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.cell:hover {
+.board-container .cell:hover {
   background-color: #f0f0f0;
 }
 
-.cell.empty {
+.board-container .cell.empty {
   color: #aaa;
+  font-size: 0.9rem;
+  font-weight: normal;
+}
+
+.board-container .cell.koma {
+  font-family: "Yuji Boku", serif;
+  font-weight: 80%;
+  font-style: normal;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  writing-mode: vertical-rl;
+  background-image: url("/image/koma.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
 }
 
 /* メッセージ表示 */

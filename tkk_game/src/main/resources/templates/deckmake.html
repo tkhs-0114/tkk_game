@@ -199,6 +199,7 @@
         if (!id || id === '') {
           cell.textContent = '空';
           cell.classList.add('empty');
+          cell.classList.remove('koma');
           delete cell.dataset.komaId;
           delete cell.dataset.cost;
         } else {
@@ -207,6 +208,7 @@
           const cost = sel.options[sel.selectedIndex].getAttribute('data-cost');
           cell.textContent = name;
           cell.classList.remove('empty');
+          cell.classList.add('koma');
           cell.dataset.komaId = id;
           cell.dataset.cost = cost;
         }
