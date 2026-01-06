@@ -1,0 +1,165 @@
+@charset "UTF-8";
+
+/* 基本スタイル (home.cssと共通) */
+body {
+  background-color: #f3e9d2;
+  /* 和紙のような背景色 */
+  font-family: "Yu Mincho", "YuMincho", "Hiragino Mincho ProN", "MS PMincho", serif;
+  color: #333;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  margin: 0;
+  padding: 2rem 0;
+}
+
+.container {
+  width: 80%;
+  max-width: 800px;
+  text-align: center;
+  background-color: rgba(255, 255, 255, 0.5);
+  /* 少し透明な白背景 */
+  padding: 40px;
+  border-radius: 10px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+header h1 {
+  font-size: 3.5rem;
+  color: #5a3e2b;
+  /* 濃い茶色 */
+  margin-bottom: 2rem;
+  font-weight: normal;
+}
+
+/* ルームテーブルのスタイル */
+.room-table {
+  margin: 2rem 0;
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #fff;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+th,
+td {
+  padding: 15px;
+  text-align: center;
+  border-bottom: 1px solid #ddd;
+}
+
+thead {
+  background-color: #8c6b52;
+  /* 木札のような色 */
+  color: #fff;
+  font-size: 1.2rem;
+}
+
+tbody tr:hover {
+  background-color: #f5f5f5;
+}
+
+/* リクエスト送信済み・待機中のステータス表示 */
+td .status-text {
+  color: #666;
+  font-style: italic;
+}
+
+/* 対戦リクエストボタン */
+td form {
+  display: inline-block;
+  margin: 0;
+}
+
+td button {
+  padding: 10px 20px;
+  background-color: #5a3e2b;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border-bottom: 3px solid #3e2723;
+}
+
+td button:hover {
+  background-color: #3e2723;
+}
+
+td button:active {
+  transform: translateY(1px);
+  border-bottom: 1px solid #3e2723;
+}
+
+/* アクションセクション */
+.actions {
+  margin: 2rem 0;
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.action-button {
+  display: inline-block;
+  padding: 12px 30px;
+  text-decoration: none;
+  background-color: #8c6b52;
+  /* 木札のような色 */
+  color: #fff;
+  border-radius: 5px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border-bottom: 4px solid #5a3e2b;
+}
+
+.action-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.action-button:active {
+  transform: translateY(1px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* メニュースタイル (home.cssと共通) */
+.menu {
+  margin-top: 2rem;
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.menu-item {
+  display: inline-block;
+  padding: 15px 40px;
+  text-decoration: none;
+  background-color: #8c6b52;
+  /* 木札のような色 */
+  color: #fff;
+  border-radius: 5px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border-bottom: 4px solid #5a3e2b;
+}
+
+.menu-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.menu-item:active {
+  transform: translateY(1px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}

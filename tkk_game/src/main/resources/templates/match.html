@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link th:href="@{/global.css}" rel="stylesheet">
+  <link th:href="@{/css/match.css}" rel="stylesheet">
   <title>マッチング</title>
   <script th:inline="javascript">
     const playerName = /*[[${playerName}]]*/ 'defaultPlayer';
@@ -57,12 +57,12 @@
         html += `<td>${player.player1.name}</td>`;
         html += `<td>`;
         if (player.player2?.name === playerName) {
-          html += `[リクエスト送信済み]`;
+          html += `<span class="status-text">[リクエスト送信済み]</span>`;
         } else if (player.player2 !== null) {
-          html += `[他のプレイヤーがリクエスト中]`;
+          html += `<span class="status-text">[他のプレイヤーがリクエスト中]</span>`;
         }
         else if (myRequestTo !== null) {
-          html += `[他のプレイヤーにリクエスト中]`;
+          html += `<span class="status-text">[他のプレイヤーにリクエスト中]</span>`;
         } else {
           html += `<form action="/match/sendRequest?Player1Name=${player.player1.name}" method="post">`;
           html += `<input type="hidden" name="${csrfParameterName}" value="${csrfToken}">`;
@@ -78,20 +78,31 @@
 </head>
 
 <body>
-  <h1>マッチング画面</h1>
-  <table>
-    <tr>
-      <th>ルーム一覧</th>
-    </tr>
-    <tbody id="playerTableBody"></tbody>
-  </table>
+  <div class="container">
+    <header>
+      <h1>マッチング</h1>
+    </header>
 
-  <br>
+    <div class="room-table">
+      <table>
+        <thead>
+          <tr>
+            <th>ルーム一覧</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="playerTableBody"></tbody>
+      </table>
+    </div>
 
-  <a href="/match/makeRoom">ルーム作成</a>
+    <div class="actions">
+      <a href="/match/makeRoom" class="action-button">ルーム作成</a>
+    </div>
 
-  <br>
-  <a href="/home">ホームに戻る</a>
+    <nav class="menu">
+      <a href="/home" class="menu-item">ホームに戻る</a>
+    </nav>
+  </div>
 </body>
 
 </html>

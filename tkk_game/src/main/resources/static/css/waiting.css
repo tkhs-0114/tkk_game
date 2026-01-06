@@ -1,0 +1,216 @@
+@charset "UTF-8";
+
+/* 基本スタイル (home.cssと共通) */
+body {
+  background-color: #f3e9d2;
+  /* 和紙のような背景色 */
+  font-family: "Yu Mincho", "YuMincho", "Hiragino Mincho ProN", "MS PMincho", serif;
+  color: #333;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  margin: 0;
+  padding: 2rem 0;
+}
+
+.container {
+  width: 80%;
+  max-width: 700px;
+  text-align: center;
+  background-color: rgba(255, 255, 255, 0.5);
+  /* 少し透明な白背景 */
+  padding: 40px;
+  border-radius: 10px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+header h1 {
+  font-size: 3rem;
+  color: #5a3e2b;
+  /* 濃い茶色 */
+  margin-bottom: 1.5rem;
+  font-weight: normal;
+}
+
+/* プレイヤー情報 */
+.player-info {
+  background-color: #fff;
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+}
+
+.player-info p {
+  font-size: 1.2rem;
+  color: #5a3e2b;
+  margin: 0.5rem 0;
+}
+
+.player-info .player-name {
+  font-weight: bold;
+  color: #8c6b52;
+}
+
+/* 待機メッセージ */
+.waiting-message {
+  background-color: #fff;
+  padding: 2rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+.waiting-message p {
+  font-size: 1.3rem;
+  color: #666;
+  margin: 1rem 0;
+}
+
+/* アニメーション付きドット */
+.waiting-message .dots::after {
+  content: '';
+  animation: dots 1.5s steps(4, end) infinite;
+}
+
+@keyframes dots {
+
+  0%,
+  20% {
+    content: '.';
+  }
+
+  40% {
+    content: '..';
+  }
+
+  60% {
+    content: '...';
+  }
+
+  80%,
+  100% {
+    content: '';
+  }
+}
+
+/* リクエスト受信セクション */
+.request-section {
+  background-color: #fff;
+  padding: 2rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  border: 2px solid #8c6b52;
+}
+
+.request-section h2 {
+  font-size: 2rem;
+  color: #5a3e2b;
+  margin-bottom: 1rem;
+  font-weight: normal;
+}
+
+.request-section p {
+  font-size: 1.2rem;
+  color: #333;
+  margin-bottom: 1.5rem;
+}
+
+.request-section .requester-name {
+  font-weight: bold;
+  color: #8c6b52;
+  font-size: 1.3rem;
+}
+
+/* ボタンコンテナ */
+.button-container {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.button-container form {
+  display: inline-block;
+  margin: 0;
+}
+
+.button-container button {
+  padding: 12px 30px;
+  border: none;
+  border-radius: 5px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.btn-accept {
+  background-color: #5a3e2b;
+  color: #fff;
+  border-bottom: 4px solid #3e2723;
+}
+
+.btn-accept:hover {
+  background-color: #3e2723;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.btn-accept:active {
+  transform: translateY(1px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.btn-reject {
+  background-color: #a94442;
+  color: #fff;
+  border-bottom: 4px solid #8a1f11;
+}
+
+.btn-reject:hover {
+  background-color: #8a1f11;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.btn-reject:active {
+  transform: translateY(1px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* メニュースタイル (home.cssと共通) */
+.menu {
+  margin-top: 2rem;
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.menu-item {
+  display: inline-block;
+  padding: 15px 40px;
+  text-decoration: none;
+  background-color: #8c6b52;
+  /* 木札のような色 */
+  color: #fff;
+  border-radius: 5px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border-bottom: 4px solid #5a3e2b;
+}
+
+.menu-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.menu-item:active {
+  transform: translateY(1px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
