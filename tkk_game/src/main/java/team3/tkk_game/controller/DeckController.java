@@ -25,6 +25,7 @@ import team3.tkk_game.mapper.PlayerMapper;
 import team3.tkk_game.model.Deck;
 import team3.tkk_game.model.Koma.KomaDB;
 import team3.tkk_game.model.Koma.KomaRule;
+import team3.tkk_game.model.Koma.KomaSkill;
 
 @Controller
 @RequestMapping("/deck")
@@ -144,6 +145,13 @@ public class DeckController {
     List<KomaDB> komas = komaMapper.selectAllKoma();
     List<KomaDB> canUpdateKomas = komas.stream().filter(k -> k.getUpdateKoma() == -1).toList();
     model.addAttribute("canUpdateKomas", canUpdateKomas);
+
+    // 利用可能な移動ルールを追加
+    model.addAttribute("availableRules", KomaRule.values());
+
+    // 利用可能な特殊スキルを追加
+    model.addAttribute("availableSkills", KomaSkill.values());
+
     return "komamake.html";
   }
 
@@ -152,12 +160,13 @@ public class DeckController {
   public String saveKomaData(
       @RequestParam String name,
       @RequestParam(required = false) List<String> rules,
+      @RequestParam(required = false) String skill,
       @RequestParam(required = false) Integer updateKomaId,
       Principal principal) {
 
     try {
       // 1. KomaDBオブジェクトを作成
-      KomaDB newKoma = new KomaDB(name, null, updateKomaId);
+      KomaDB newKoma = new KomaDB(name, skill, updateKomaId);
 
       // 2. komaテーブルにInsert（IDが自動採番される）
       komaMapper.insertKoma(newKoma);
