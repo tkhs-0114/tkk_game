@@ -71,24 +71,31 @@ header h1 {
 
 #deck-form {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: 1fr 200px 200px 1fr;
   gap: 1.5rem;
   align-items: center;
   margin-bottom: 0;
 }
 
+#deck-form .deck-name-wrapper {
+  grid-column: 2 / 4;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+}
+
 #deck-form label {
   font-weight: bold;
   color: #5a3e2b;
-  text-align: right;
 }
 
 #deck-form input[type="text"] {
-  width: 100%;
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 4px;
   font-size: 1rem;
+  flex: 1;
 }
 
 #deck-form button {

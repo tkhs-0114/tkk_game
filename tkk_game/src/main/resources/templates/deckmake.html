@@ -94,9 +94,10 @@
 
     <div class="form-section">
       <form th:action="@{/deck/save}" method="post" id="deck-form">
-        <label for="deck-name">デッキ名：</label>
-        <input id="deck-name" name="deckName" type="text" required />
-
+        <div class="deck-name-wrapper">
+          <label for="deck-name">デッキ名：</label>
+          <input id="deck-name" name="deckName" type="text" required />
+        </div>
         <!-- SFEN を入れる hidden -->
         <input type="hidden" id="sfen-input" name="sfen" />
 
