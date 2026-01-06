@@ -21,6 +21,9 @@
       <div th:unless="${session.selectedDeck != null}">
         <p>デッキが選択されていません</p>
       </div>
+      <div th:if="${infoMessage != null}" style="color:red;border-radius:4px;">
+        <p th:text="${infoMessage}"></p>
+      </div>
     </div>
 
     <nav class="menu">
@@ -29,5 +32,10 @@
       <a href="/deck/select" class="menu-item">デッキ一覧</a>
     </nav>
   </div>
+  <a href="/match">マッチ</a><br />
+  <a href="/deck/make">デッキ作成</a><br />
+  <a href="/deck/select">デッキ一覧</a><br />
+  <a href="/logout">ログアウト</a>
 </body>
+
 </html>
