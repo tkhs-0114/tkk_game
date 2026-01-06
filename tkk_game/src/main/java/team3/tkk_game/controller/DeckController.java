@@ -25,6 +25,7 @@ import team3.tkk_game.mapper.PlayerMapper;
 import team3.tkk_game.model.Deck;
 import team3.tkk_game.model.Koma.KomaDB;
 import team3.tkk_game.model.Koma.KomaRule;
+import team3.tkk_game.model.Koma.KomaSkill;
 
 @Controller
 @RequestMapping("/deck")
@@ -149,7 +150,7 @@ public class DeckController {
     model.addAttribute("availableRules", KomaRule.values());
 
     // 利用可能な特殊スキルを追加
-    model.addAttribute("availableSkills", team3.tkk_game.model.Koma.KomaSkill.values());
+    model.addAttribute("availableSkills", KomaSkill.values());
 
     return "komamake.html";
   }
