@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import team3.tkk_game.model.Game;
 import team3.tkk_game.model.GameRoom;
@@ -31,7 +32,13 @@ public class MatchController {
   PlayerMapper playerMapper;
 
   @GetMapping
-  public String match(Principal principal, Model model) {
+  public String match(Principal principal, Model model, RedirectAttributes redirectAttributes) {
+    String playerName = principal.getName();
+    Integer selectedDeckId = playerMapper.getSelectedDeckIdByName(playerName);
+    if (selectedDeckId == null) {
+      redirectAttributes.addFlashAttribute("infoMessage", "デッキを選択してください。");
+      return "redirect:/home";
+    }
     waitRoom.rmRoom(principal.getName());
     model.addAttribute("playerName", principal.getName());
 
