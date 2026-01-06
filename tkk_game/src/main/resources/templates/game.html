@@ -80,7 +80,7 @@
     // サーバーAPIから移動可能マスを取得してハイライト
     async function highlightMovableCells(fromX, fromY) {
       // 既存のハイライトをクリア
-      document.querySelectorAll('#board-container .cells').forEach(cell => {
+      document.querySelectorAll('#board-container .cell').forEach(cell => {
         cell.classList.remove('selected', 'movable');
       });
 
@@ -201,17 +201,17 @@
       haveKomaIndex = index;
 
       // 盤面のハイライトをクリア
-      document.querySelectorAll('#board-container .cells').forEach(cell => {
+      document.querySelectorAll('#board-container .cell').forEach(cell => {
         cell.classList.remove('selected', 'movable');
       });
 
       // 持ち駒のハイライトをクリア
-      document.querySelectorAll('#haveKoma-container .cells').forEach(cell => {
+      document.querySelectorAll('#haveKoma-container .cell').forEach(cell => {
         cell.classList.remove('selected');
       });
 
       // 選択した持ち駒をハイライト
-      const selectedCell = document.querySelector(`#haveKoma-container .cells[data-index="${index}"]`);
+      const selectedCell = document.querySelector(`#haveKoma-container .cell[data-index="${index}"]`);
       if (selectedCell) selectedCell.classList.add('selected');
     }
     function drawHaveKoma(komaData, containerId, isClickable = false) {
