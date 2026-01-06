@@ -4,81 +4,113 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link th:href="@{/global.css}" rel="stylesheet">
+  <link th:href="@{/css/deckmake.css}" rel="stylesheet">
   <title>デッキ作成</title>
 </head>
 
 <body>
-  <h1>デッキ作成</h1>
+  <div class="container">
+    <header>
+      <h1>デッキ作成</h1>
+    </header>
 
-  <p><a href="/home">ホームに戻る</a><a href="/deck/make/koma">駒を作る</a></p>
+    <!-- エラー・成功メッセージ表示 -->
+    <div th:if="${error}" class="message error" th:text="${error}"></div>
+    <div th:if="${success}" class="message success" th:text="${success}"></div>
 
-  <!-- エラー・成功メッセージ表示 -->
-  <div th:if="${error}" th:text="${error}" style="color:red; font-weight:bold; margin:10px 0;"></div>
-  <div th:if="${success}" th:text="${success}" style="color:green; font-weight:bold; margin:10px 0;"></div>
 
-  <form th:action="@{/deck/save}" method="post" id="deck-form">
-    <label for="deck-name">デッキ名：</label>
-    <input id="deck-name" name="deckName" type="text" required />
 
-    <label for="koma-select">駒を選択：</label>
-    <!-- komas を受け取り、value に id、表示は「コスト: 駒名」形式にする -->
-    <select id="koma-select" name="komaId">
-      <option value="" disabled selected>選んでください</option>
-      <option th:each="k : ${komas}" th:value="${k.id}" th:text="${komaCosts[k.id]} + ': ' + ${k.name}"
-        th:attr="data-cost=${komaCosts[k.id]}">コスト: 駒名
-      </option>
-    </select>
 
-    <span id="selected-koma-cost"></span>
+    <div class="deck-info">
+      <div>
+        <strong>コスト上限：</strong>
+        <span id="cost-limit-display" th:text="${costLimit}">50</span>
+      </div>
+      <div>
+        <strong>デッキの合計コスト：</strong>
+        <span id="total-deck-cost">0</span>
+      </div>
+      <div>
+        <strong>選択中の駒：</strong>
+        <span id="selected-koma-cost"></span>
+      </div>
+    </div>
 
-    <!-- SFEN を入れる hidden -->
-    <input type="hidden" id="sfen-input" name="sfen" />
+    <div class="koma-selection">
+      <label for="koma-select">駒を選択：</label>
+      <!-- komas を受け取り、value に id、表示は「コスト: 駒名」形式にする -->
+      <select id="koma-select">
+        <option value="" disabled selected>配置する駒を選んでください</option>
+        <option value="">0: 空</option>
+        <option th:each="k : ${komas}" th:value="${k.id}" th:text="${komaCosts[k.id]} + ': ' + ${k.name}"
+          th:attr="data-cost=${komaCosts[k.id]}">コスト: 駒名
+        </option>
+      </select>
+    </div>
 
-    <button type="submit">保存</button>
-  </form>
+    <div id="cost-warning" style="display:none;"></div>
 
-  <div>
-    <strong>コスト上限：</strong>
-    <span id="cost-limit-display" th:text="${costLimit}">50</span>
-  </div>
+    <div class="board-container">
+      <!-- 5x2 マス目 -->
+      <div id="board">
+        <table border="1">
+          <tr>
+            <td>
+              <div class="cell empty" data-x="0" data-y="0">空</div>
+            </td>
+            <td>
+              <div class="cell empty" data-x="1" data-y="0">空</div>
+            </td>
+            <td>
+              <div class="cell empty" data-x="2" data-y="0">空</div>
+            </td>
+            <td>
+              <div class="cell empty" data-x="3" data-y="0">空</div>
+            </td>
+            <td>
+              <div class="cell empty" data-x="4" data-y="0">空</div>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <div class="cell empty" data-x="0" data-y="1">空</div>
+            </td>
+            <td>
+              <div class="cell empty" data-x="1" data-y="1">空</div>
+            </td>
+            <td>
+              <div class="cell empty" data-x="2" data-y="1">空</div>
+            </td>
+            <td>
+              <div class="cell empty" data-x="3" data-y="1">空</div>
+            </td>
+            <td>
+              <div class="cell empty" data-x="4" data-y="1">空</div>
+            </td>
+          </tr>
+        </table>
+      </div>
+    </div>
 
-  <div>
-    <strong>デッキの合計コスト：</strong>
-    <span id="total-deck-cost">0</span>
-  </div>
+    <div class="form-section">
+      <form th:action="@{/deck/save}" method="post" id="deck-form">
+        <div class="deck-name-wrapper">
+          <label for="deck-name">デッキ名：</label>
+          <input id="deck-name" name="deckName" type="text" required />
+        </div>
+        <!-- SFEN を入れる hidden -->
+        <input type="hidden" id="sfen-input" name="sfen" />
 
-  <div id="cost-warning" style="display:none; color:red; font-weight:bold; margin:10px 0;"></div>
-
-  <!-- 5x2 マス目 -->
-  <div class="board" id="board">
-    <div class="cell empty" data-x="0" data-y="0">空</div>
-    <div class="cell empty" data-x="1" data-y="0">空</div>
-    <div class="cell empty" data-x="2" data-y="0">空</div>
-    <div class="cell empty" data-x="3" data-y="0">空</div>
-    <div class="cell empty" data-x="4" data-y="0">空</div>
-
-    <div class="cell empty" data-x="0" data-y="1">空</div>
-    <div class="cell empty" data-x="1" data-y="1">空</div>
-    <div class="cell empty" data-x="2" data-y="1">空</div>
-    <div class="cell empty" data-x="3" data-y="1">空</div>
-    <div class="cell empty" data-x="4" data-y="1">空</div>
+        <button type="submit">デッキを保存</button>
+      </form>
+    </div>
+    <div class="menu">
+      <a href="/home" class="menu-item">ホームに戻る</a>
+      <a href="/deck/make/koma" class="menu-item">駒を作る</a>
+    </div>
   </div>
 
   <script>
-    // 駒選択時にコストを表示
-    document.getElementById('koma-select').addEventListener('change', function () {
-      const selectedOption = this.options[this.selectedIndex];
-      const cost = selectedOption.getAttribute('data-cost');
-      const costDisplay = document.getElementById('selected-koma-cost');
-      if (cost) {
-        costDisplay.textContent = `コスト: ${cost}`;
-        costDisplay.style.color = '#0066cc';
-      } else {
-        costDisplay.textContent = '';
-      }
-    });
-
     // デッキの合計コストを計算して表示
     function updateTotalCost() {
       let totalCost = 0;
@@ -99,28 +131,14 @@
       if (totalCost > costLimit) {
         warning.textContent = `警告: デッキコストが上限を超えています (${totalCost}/${costLimit})`;
         warning.style.display = 'block';
+        warning.classList.add('message', 'error');
         return false;
       } else {
         warning.style.display = 'none';
+        warning.classList.remove('message', 'error');
         return true;
       }
     }
-
-    // セルに駒を配置：value=id を dataset.komaId に、表示は選択肢のテキスト（駒名）
-    document.querySelectorAll('.cell').forEach(cell => {
-      cell.addEventListener('click', () => {
-        const sel = document.getElementById('koma-select');
-        const id = sel.value;
-        if (!id) { alert('先に駒を選んでください'); return; }
-        const name = sel.options[sel.selectedIndex].text;
-        const cost = sel.options[sel.selectedIndex].getAttribute('data-cost');
-        cell.textContent = name;
-        cell.classList.remove('empty');
-        cell.dataset.komaId = id;
-        cell.dataset.cost = cost;
-        updateTotalCost();
-      });
-    });
 
     // SFEN 生成: 連続空マスは数字、駒は [id] で表現。行は '/' 区切り。
     function buildSfen() {
@@ -145,20 +163,71 @@
       return rows.join('/');
     }
 
+    // 王がいるかチェック
     function kingcheckSfen(sfen) {
-      // 簡易的に王がいるかチェック
       const king_id = 0;
       return sfen.includes(`[${king_id}]`);
     }
+
+    // 駒選択時にコストを表示
+    document.getElementById('koma-select').addEventListener('change', function () {
+      const selectedOption = this.options[this.selectedIndex];
+      const cost = selectedOption.getAttribute('data-cost');
+      const costDisplay = document.getElementById('selected-koma-cost');
+      if (cost) {
+        costDisplay.textContent = `コスト: ${cost}`;
+        costDisplay.style.color = '#0066cc';
+      } else {
+        costDisplay.textContent = '';
+      }
+    });
+
+    // セルに駒を配置（空マス配置にも対応）
+    document.querySelectorAll('.cell').forEach(cell => {
+      cell.addEventListener('click', () => {
+        const sel = document.getElementById('koma-select');
+        const selectedIndex = sel.selectedIndex;
+
+        // 何も選択されていない場合のみアラート
+        if (selectedIndex === 0) {
+          alert('先に駒を選んでください');
+          return;
+        }
+
+        const id = sel.value;
+
+        // 空マスを選択した場合
+        if (!id || id === '') {
+          cell.textContent = '空';
+          cell.classList.add('empty');
+          cell.classList.remove('koma');
+          delete cell.dataset.komaId;
+          delete cell.dataset.cost;
+        } else {
+          // 駒を選択した場合
+          const name = sel.options[sel.selectedIndex].text.split(': ')[1]; // "コスト: 駒名" から駒名だけ取得
+          const cost = sel.options[sel.selectedIndex].getAttribute('data-cost');
+          cell.textContent = name;
+          cell.classList.remove('empty');
+          cell.classList.add('koma');
+          cell.dataset.komaId = id;
+          cell.dataset.cost = cost;
+        }
+        updateTotalCost();
+      });
+    });
 
     // フォーム送信時に sfen をセットして送る
     document.getElementById('deck-form').addEventListener('submit', (e) => {
       const deckName = document.getElementById('deck-name').value.trim();
       if (!deckName) {
-        e.preventDefault(); alert('デッキ名を入力してください'); return;
+        e.preventDefault();
+        alert('デッキ名を入力してください');
+        return;
       }
       if (!kingcheckSfen(buildSfen())) {
-        e.preventDefault(); alert('デッキに王が含まれていません');
+        e.preventDefault();
+        alert('デッキに王が含まれていません');
         return;
       }
       // コスト上限チェック
@@ -169,7 +238,6 @@
         return;
       }
       document.getElementById('sfen-input').value = buildSfen();
-      // 例: console.log(document.getElementById('sfen-input').value);
     });
   </script>
 </body>

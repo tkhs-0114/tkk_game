@@ -29,7 +29,7 @@ public class SecurityConfig {
         .logout(logout -> logout
             .logoutUrl("/logout").logoutSuccessUrl("/"))
         .csrf(csrf -> csrf
-            .ignoringRequestMatchers("/h2-console/**"))
+            .ignoringRequestMatchers("/h2-console/**", "/game/disconnect"))
         .headers(headers -> headers.frameOptions(frame -> frame.disable()))
         .authorizeHttpRequests(authz -> authz
             .requestMatchers("/h2-console/**", "/", "/index.html").permitAll()
