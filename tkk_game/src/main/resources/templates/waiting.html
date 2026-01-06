@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link th:href="@{/global.css}" rel="stylesheet">
+  <link th:href="@{/css/waiting.css}" rel="stylesheet">
   <title>対戦相手待機中</title>
   <script th:inline="javascript">
     const playerName = /*[[${playerName}]]*/ 'defaultPlayer';
@@ -42,28 +42,38 @@
 </head>
 
 <body>
-  <h1>対戦相手を待っています...</h1>
-  <p>プレイヤー名: <span th:text="${playerName}"></span></p>
+  <div class="container">
+    <header>
+      <h1>対戦相手を待っています</h1>
+    </header>
 
-  <!-- 待機中メッセージ -->
-  <div id="waitingMessage">
-    <p>対戦リクエストを待っています...</p>
+    <div class="player-info">
+      <p>プレイヤー名: <span class="player-name" th:text="${playerName}"></span></p>
+    </div>
+
+    <!-- 待機中メッセージ -->
+    <div id="waitingMessage" class="waiting-message">
+      <p>対戦リクエストを待っています<span class="dots"></span></p>
+    </div>
+
+    <!-- リクエストがある場合の表示 -->
+    <div id="haveRequest" class="request-section" style="display: none;">
+      <h2>対戦リクエストが届いています！</h2>
+      <p><span id="P2Name" class="requester-name"></span> さんから対戦リクエストがあります。</p>
+      <div class="button-container">
+        <form th:action="@{/match/accept}" method="post">
+          <button type="submit" class="btn-accept">承認する</button>
+        </form>
+        <form th:action="@{/match/reject}" method="post">
+          <button type="submit" class="btn-reject">拒否する</button>
+        </form>
+      </div>
+    </div>
+
+    <nav class="menu">
+      <a href="/match" class="menu-item">キャンセル</a>
+    </nav>
   </div>
-
-  <!-- リクエストがある場合の表示 -->
-  <div id="haveRequest" style="display: none;">
-    <h2>対戦リクエストが届いています！</h2>
-    <p><span id="P2Name"></span> さんから対戦リクエストがあります。</p>
-    <form th:action="@{/match/accept}" method="post" style="display: inline;">
-      <button type="submit">承認する</button>
-    </form>
-    <form th:action="@{/match/reject}" method="post" style="display: inline;">
-      <button type="submit">拒否する</button>
-    </form>
-  </div>
-
-  <br>
-  <a href="/match">キャンセル</a>
 </body>
 
 </html>
