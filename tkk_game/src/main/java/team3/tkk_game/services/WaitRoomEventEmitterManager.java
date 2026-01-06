@@ -27,7 +27,7 @@ public class WaitRoomEventEmitterManager {
    * @return 登録されたSseEmitter
    */
   public SseEmitter registerEmitter() {
-    SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
+    SseEmitter emitter = new SseEmitter(30000L); // タイムアウトは30秒
 
     // 切断時のクリーンアップ設定
     emitter.onCompletion(() -> removeEmitter(emitter));

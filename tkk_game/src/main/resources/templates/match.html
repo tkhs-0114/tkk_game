@@ -16,7 +16,16 @@
 
     window.onload = function () {
       console.log('Player Name:', playerName);
-      const sse = new EventSource('/match/waitRoom');
+
+      // ページ離脱時のSSE接続クリーンアップ
+      let sse = null;
+      window.addEventListener('beforeunload', function (event) {
+        if (sse) {
+          sse.close();
+        }
+      });
+
+      sse = new EventSource('/match/waitRoom');
       sse.onmessage = function (event) {
         const rooms = JSON.parse(event.data);
         console.log('待機中ルーム:', rooms);

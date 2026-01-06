@@ -251,6 +251,12 @@
 
       console.log('Player Status:', playerStatus);
 
+      // ページ離脱時の切断通知（ブラウザを閉じた時、他のページに移動した時）
+      window.addEventListener('beforeunload', function (event) {
+        // sendBeaconを使用して非同期でサーバーに通知
+        navigator.sendBeacon('/game/disconnect', new Blob([JSON.stringify({ reason: 'page_unload' })], { type: 'application/json' }));
+      });
+
       if (playerStatus === 'GAME_WAITING' || playerStatus === 'GAME_STARTING') {
         // SSE接続でターン情報を受信
         const sse = new EventSource(`/game/turn?gameId=${gameId}`);
@@ -260,6 +266,20 @@
           if (isNextTurn) {
             window.location.href = `/game`;
           }
+        };
+
+        // 相手プレイヤーの切断通知を受信
+        sse.addEventListener('disconnect', function (event) {
+          const disconnectedPlayer = event.data;
+          console.log('Player disconnected:', disconnectedPlayer);
+          alert(`${disconnectedPlayer} さんが切断しました。マッチング画面に戻ります。`);
+          sse.close();
+          window.location.href = '/match';
+        });
+
+        // SSE接続エラー時の処理
+        sse.onerror = function (event) {
+          console.error('SSE connection error:', event);
         };
       }
 
