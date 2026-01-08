@@ -97,11 +97,15 @@ INSERT INTO KomaRule (koma_id, rule) VALUES (14, 'DOWN_RIGHT');
 -- komaテーブルのAUTO_INCREMENTシーケンスを次のIDに設定
 ALTER TABLE koma ALTER COLUMN id RESTART WITH 15;
 
-INSERT INTO Deck (name, sfen, cost) VALUES ('sample', '5/2[0]2', 8);
-INSERT INTO Deck (name, sfen, cost) VALUES ('デバック用', '5/[7][3][0][1][14]	', 35);
+INSERT INTO Deck (name, sfen, cost, username) VALUES ('user1のデッキ', '5/2[0]2', 8, 'user1');
+INSERT INTO Deck (name, sfen, cost, username) VALUES ('デバック用', '5/[7][3][0][1][14]', 35, 'user1');
+INSERT INTO Deck (name, sfen, cost, username) VALUES ('user2のデッキ', '5/2[0]2', 8, 'user2');
+INSERT INTO Deck (name, sfen, cost, username) VALUES ('デバック用', '5/[7][3][0][1][14]', 35, 'user2');
+INSERT INTO Deck (name, sfen, cost, username) VALUES ('user3のデッキ', '5/2[0]2', 8, 'user3');
+INSERT INTO Deck (name, sfen, cost, username) VALUES ('user4のデッキ', '5/2[0]2', 8, 'user4');
 
 INSERT INTO Player (username, selected_deck_id) VALUES ('user1', 2);
-INSERT INTO Player (username, selected_deck_id) VALUES ('user2', 2);
-INSERT INTO Player (username, selected_deck_id) VALUES ('user3', 2);
+INSERT INTO Player (username, selected_deck_id) VALUES ('user2', 4);
+INSERT INTO Player (username, selected_deck_id) VALUES ('user3', 5);
 -- デッキ未選択のユーザー
-INSERT INTO Player (username, selected_deck_id) VALUES ('user4', null);
+INSERT INTO Player (username, selected_deck_id) VALUES ('user4', 6);

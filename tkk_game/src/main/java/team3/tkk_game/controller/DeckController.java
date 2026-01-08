@@ -91,6 +91,7 @@ public class DeckController {
     deck.setName(deckName);
     deck.setSfen(sfen);
     deck.setCost(totalCost);
+    deck.setUsername(principal.getName());
     deckMapper.insertDeck(deck);
 
     redirectAttributes.addFlashAttribute("success", "デッキを保存しました (コスト: " + totalCost + ")");
@@ -116,7 +117,7 @@ public class DeckController {
   @GetMapping("/select")
   public String selectDeck(Principal principal, Model model) {
     model.addAttribute("playerName", principal.getName());
-    List<Deck> decks = deckMapper.selectAllDecks();
+    List<Deck> decks = deckMapper.selectDecksByUsername(principal.getName());
     model.addAttribute("decks", decks);
     return "deckselect.html";
   }
@@ -134,9 +135,9 @@ public class DeckController {
   }
 
   @GetMapping("/delete/{id}")
-  public String deleteDeck(@PathVariable("id") int deckId) {
+  public String deleteDeck(@PathVariable("id") int deckId, Principal principal) {
     playerMapper.clearSelectedDeckId(deckId);
-    deckMapper.deleteDeckById(deckId);
+    deckMapper.deleteDeckByIdAndUsername(deckId, principal.getName());
     return "redirect:/deck/select";
   }
 
