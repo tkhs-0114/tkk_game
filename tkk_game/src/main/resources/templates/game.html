@@ -29,6 +29,7 @@
     let selectedHaveKoma = false;
     let haveKomaIndex = null;
     let isDetailLocked = false; // 詳細表示の固定状態
+    let isInternalNavigation = false; // ゲーム内での正当な遷移かどうかを判別
 
     // 配列のインデックスを盤面の座標に変換
     function Xa2b(arrayIndex) {
@@ -59,6 +60,7 @@
     }
     function sendMove(x, y) {
       if (selectedHaveKoma) {
+        isInternalNavigation = true;
         window.location.href = `/game/putKoma?index=${haveKomaIndex}&toX=${x}&toY=${y}`;
       } else {
         if (selectedX === null || selectedY === null) {
@@ -73,6 +75,7 @@
           if (canUpdate) {
             willUpdate = window.confirm('駒を成りますか？\nOK: 成る\nキャンセル: 成らない');
           }
+          isInternalNavigation = true;
           window.location.href = `/game/move?fromX=${selectedX}&fromY=${selectedY}&toX=${x}&toY=${y}&isUpdate=${willUpdate}`;
         }
       }
@@ -102,7 +105,7 @@
     // 駒の詳細を表示
     function showKomaDetail(cell, isClick = false) {
       const komaView = document.getElementById('koma-view');
-      
+
       // クリック時は固定表示をトグル
       if (isClick) {
         if (isDetailLocked && komaView.dataset.currentKoma === JSON.stringify(cell)) {
@@ -115,19 +118,19 @@
         isDetailLocked = true;
         komaView.classList.add('locked');
       }
-      
+
       // 固定表示中はhoverを無視
       if (isDetailLocked && !isClick) {
         return;
       }
-      
+
       if (!cell || !cell.name) {
         if (!isDetailLocked) {
           komaView.innerHTML = '';
         }
         return;
       }
-      
+
       komaView.dataset.currentKoma = JSON.stringify(cell);
       console.log('Showing koma detail:', cell);
       const owner = cell.owner?.name === loginPlayerName ? '自分' : '相手';
@@ -280,8 +283,11 @@
 
       // ページ離脱時の切断通知（ブラウザを閉じた時、他のページに移動した時）
       window.addEventListener('beforeunload', function (event) {
-        // sendBeaconを使用して非同期でサーバーに通知
-        navigator.sendBeacon('/game/disconnect', new Blob([JSON.stringify({ reason: 'page_unload' })], { type: 'application/json' }));
+        // ゲーム内での正当な遷移の場合は切断通知を送らない
+        if (!isInternalNavigation && !GAME_END) {
+          // sendBeaconを使用して非同期でサーバーに通知
+          navigator.sendBeacon('/game/disconnect', new Blob([JSON.stringify({ reason: 'page_unload' })], { type: 'application/json' }));
+        }
       });
 
       if (playerStatus === 'GAME_WAITING' || playerStatus === 'GAME_STARTING') {
@@ -291,6 +297,7 @@
           const isNextTurn = JSON.parse(event.data);
           console.log('Is next turn:', isNextTurn);
           if (isNextTurn) {
+            isInternalNavigation = true;
             window.location.href = `/game`;
           }
         };
@@ -301,6 +308,7 @@
           console.log('Player disconnected:', disconnectedPlayer);
           alert(`${disconnectedPlayer} さんが切断しました。マッチング画面に戻ります。`);
           sse.close();
+          isInternalNavigation = true;
           window.location.href = '/match';
         });
 
@@ -315,11 +323,17 @@
 </head>
 
 <body>
-  <h1>ゲーム画面</h1>
-  <p>ゲームID:[[${gameId}]]</p>
-  <p>プレイヤーステータス: [[${playerStatus}]]</p>
+  <div class="game-header">
+    <h1>対局中</h1>
+    <div class="game-status">
+      <span th:if="${playerStatus.name() == 'GAME_WAITING'}" class="status-text">相手の手番</span>
+      <span th:if="${playerStatus.name() == 'GAME_STARTING' or playerStatus.name() == 'GAME_THINKING'}"
+        class="status-text">あなたの手番</span>
+      <span th:if="${GAME_END}" class="status-text game-end">対局終了</span>
+    </div>
+  </div>
 
-  <div>
+  <div class="game-container">
     <div class="frame have-koma-frame">
       <p>相手の持ち駒</p>
       <div id="haveKoma_E-container">
@@ -342,11 +356,18 @@
         <!-- 持ち駒がここに表示されます -->
       </div>
     </div>
+    <br>
+    <div class="button-area">
+      <a th:if="${GAME_END}" href="/home">ホームに戻る</a>
+    </div>
   </div>
-  <br>
-  <div>
-    <a th:if="${GAME_END}" href="/home">ホームに戻る</a>
+
+
+
+  <div class="game-footer">
+    <p class="room-id">Room ID: [[${gameId}]]</p>
   </div>
+
 
 </body>
 
