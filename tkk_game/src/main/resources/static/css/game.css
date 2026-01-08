@@ -39,18 +39,62 @@ body {
 
 .status-text {
   display: inline-block;
-  padding: 8px 20px;
+  padding: 10px 25px;
   background-color: #8c6b52;
   color: #fff;
-  border-radius: 20px;
-  font-size: 1rem;
+  border-radius: 25px;
+  font-size: 1.1rem;
   font-weight: bold;
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
 }
 
+/* 自分の手番（深緑系、和風） */
+.status-text.your-turn {
+  background-color: #2e7d32;
+  color: #fff;
+  box-shadow: 0 3px 10px rgba(46, 125, 50, 0.3);
+  font-size: 1.2rem;
+}
+
+/* 相手の手番（茶褐色系、待機状態） */
+.status-text.waiting-turn {
+  background-color: #8b4513;
+  color: #fff;
+  box-shadow: 0 3px 10px rgba(139, 69, 19, 0.3);
+}
+
+/* 対局終了（落ち着いた金色） */
 .status-text.game-end {
-  background-color: #d4af37;
-  color: #5a3e2b;
+  background-color: #b8860b;
+  color: #fff;
+  box-shadow: 0 3px 10px rgba(184, 134, 11, 0.3);
+}
+
+/* 勝敗表示エリア */
+.game-result {
+  margin-top: 15px;
+}
+
+.result-text {
+  display: inline-block;
+  padding: 12px 30px;
+  border-radius: 25px;
+  font-size: 1.4rem;
+  font-weight: bold;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.result-text.win {
+  background-color: #ffd700;
+  color: #8b4513;
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.5);
+}
+
+.result-text.lose {
+  background-color: #4a4a5a;
+  color: #a0a0b0;
+  box-shadow: 0 4px 12px rgba(74, 74, 90, 0.4);
 }
 
 /* ゲーム全体を囲む大きな枠 */
@@ -379,4 +423,94 @@ a:active {
   padding-bottom: 3px;
   word-wrap: break-word;
   word-break: break-word;
+}
+
+/* ===========================================
+   勝利・敗北演出スタイル
+   =========================================== */
+
+.result-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: overlayFadeIn 0.8s ease-out;
+}
+
+.result-overlay.win {
+  background: linear-gradient(135deg, rgba(139, 90, 43, 0.95), rgba(184, 134, 11, 0.9));
+}
+
+.result-overlay.lose {
+  background: linear-gradient(135deg, rgba(60, 60, 80, 0.95), rgba(90, 62, 43, 0.9));
+}
+
+.result-overlay.fade-out {
+  animation: overlayFadeOut 1s ease-out forwards;
+}
+
+.result-content {
+  text-align: center;
+  animation: resultSlideIn 0.6s ease-out 0.2s backwards;
+}
+
+.result-text {
+  font-family: "Yuji Boku", serif;
+  font-size: 5rem;
+  color: #fff;
+  text-shadow: 3px 3px 10px rgba(0, 0, 0, 0.5);
+  margin-bottom: 20px;
+  writing-mode: horizontal-tb;
+}
+
+.result-overlay.win .result-text {
+  color: #ffd700;
+  text-shadow: 
+    3px 3px 10px rgba(0, 0, 0, 0.5),
+    0 0 30px rgba(255, 215, 0, 0.3);
+}
+
+.result-overlay.lose .result-text {
+  color: #a0a0b0;
+  text-shadow: 3px 3px 10px rgba(0, 0, 0, 0.5);
+}
+
+.result-subtext {
+  font-family: "Yu Mincho", serif;
+  font-size: 1.5rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+@keyframes overlayFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes overlayFadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes resultSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-50px) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
