@@ -102,6 +102,7 @@
         <input type="hidden" id="sfen-input" name="sfen" />
 
         <button type="submit">デッキを保存</button>
+        <button type="button" id="reset-button">リセット</button>
       </form>
     </div>
     <div class="menu">
@@ -238,6 +239,22 @@
         return;
       }
       document.getElementById('sfen-input').value = buildSfen();
+    });
+
+    // リセットボタン: すべての駒をクリア
+    document.getElementById('reset-button').addEventListener('click', () => {
+      if (confirm('配置した駒をすべてリセットしますか?')) {
+        document.querySelectorAll('.cell').forEach(cell => {
+          cell.textContent = '空';
+          cell.classList.add('empty');
+          cell.classList.remove('koma');
+          delete cell.dataset.komaId;
+          delete cell.dataset.cost;
+        });
+        updateTotalCost();
+        document.getElementById('koma-select').selectedIndex = 0;
+        document.getElementById('selected-koma-cost').textContent = '';
+      }
     });
   </script>
 </body>
