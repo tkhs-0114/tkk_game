@@ -282,6 +282,7 @@ public class GameController {
   public String gameEnd(Principal principal, Model model) {
     String loginPlayerName = principal.getName();
     Game game = gameRoom.getGameByPlayerName(loginPlayerName);
+    boolean isWinner = false;
 
     // ゲームが見つからない場合はホームへ
     if (game == null) {
@@ -303,6 +304,7 @@ public class GameController {
       /*
        * ここに勝者の得点調整等の処理を追加
        */
+      isWinner = true;
 
       // ターンを交代して相手に最後の盤面を見せる
       player.setStatus(PlayerStatus.GAME_THINKING);
@@ -330,6 +332,7 @@ public class GameController {
 
     // モデルに最終盤面情報を追加
     model.addAttribute("GAME_END", true);
+    model.addAttribute("isWinner", isWinner);
     return returnGame(model, game, loginPlayerName, myBan);
   }
 

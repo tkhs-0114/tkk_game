@@ -1,0 +1,515 @@
+@charset "UTF-8";
+
+/* ===========================================
+   ゲーム画面用スタイル（和風デザイン）
+   =========================================== */
+
+/* 基本スタイル */
+body {
+  background-color: #f3e9d2;
+  /* 和紙のような背景色 */
+  font-family: "Yu Mincho", "YuMincho", "Hiragino Mincho ProN", "MS PMincho", serif;
+  color: #5a3e2b;
+  /* 濃い茶色 */
+  margin: 0;
+  padding: 20px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ヘッダー */
+.game-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.game-header h1 {
+  margin-bottom: 5px;
+  font-size: 1.8rem;
+  color: #5a3e2b;
+  font-weight: normal;
+}
+
+.game-status {
+  margin-top: 10px;
+}
+
+.status-text {
+  display: inline-block;
+  padding: 10px 25px;
+  background-color: #8c6b52;
+  color: #fff;
+  border-radius: 25px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+/* 自分の手番（深緑系、和風） */
+.status-text.your-turn {
+  background-color: #2e7d32;
+  color: #fff;
+  box-shadow: 0 3px 10px rgba(46, 125, 50, 0.3);
+  font-size: 1.2rem;
+}
+
+/* 相手の手番（茶褐色系、待機状態） */
+.status-text.waiting-turn {
+  background-color: #8b4513;
+  color: #fff;
+  box-shadow: 0 3px 10px rgba(139, 69, 19, 0.3);
+}
+
+/* 対局終了（落ち着いた金色） */
+.status-text.game-end {
+  background-color: #b8860b;
+  color: #fff;
+  box-shadow: 0 3px 10px rgba(184, 134, 11, 0.3);
+}
+
+/* 勝敗表示エリア */
+.game-result {
+  margin-top: 10px;
+}
+
+.result-text {
+  display: inline-block;
+  padding: 6px 16px;
+  border-radius: 18px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+}
+
+.result-text.win {
+  background-color: #ffd700;
+  color: #8b4513;
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.5);
+}
+
+.result-text.lose {
+  background-color: #4a4a5a;
+  color: #a0a0b0;
+  box-shadow: 0 4px 12px rgba(74, 74, 90, 0.4);
+}
+
+/* ゲーム全体を囲む大きな枠 */
+.game-container {
+  background-color: rgba(255, 255, 255, 0.5);
+  /* 少し透明な白背景 */
+  min-width: 65%;
+  max-width: 75%;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  width: auto;
+}
+
+/* ゲームコンテンツエリア */
+.game-content {
+  background-color: rgba(255, 255, 255, 0.3);
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+/* ボタンエリア */
+.button-area {
+  text-align: center;
+  margin: 20px 0;
+}
+
+/* フッター */
+.game-footer {
+  text-align: center;
+  margin-top: 20px;
+  padding: 10px;
+}
+
+.room-id {
+  font-size: 0.8rem;
+  color: #999;
+  margin: 0;
+}
+
+h1 {
+  color: #5a3e2b;
+  border-bottom: 2px solid #8c6b52;
+  padding-bottom: 10px;
+  font-size: 2.5rem;
+  font-weight: normal;
+}
+
+p {
+  color: #5a3e2b;
+  font-size: 1.1rem;
+}
+
+a {
+  display: inline-block;
+  padding: 10px 30px;
+  text-decoration: none;
+  background-color: #8c6b52;
+  /* 木札のような色 */
+  color: #fff;
+  border-radius: 5px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border-bottom: 4px solid #5a3e2b;
+  margin-top: 10px;
+}
+
+a:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  text-decoration: none;
+}
+
+a:active {
+  transform: translateY(1px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* ===========================================
+   フレーム
+   =========================================== */
+
+.frame {
+  border: 2px solid #8c6b52;
+  background-color: rgba(255, 255, 255, 0.7);
+  padding: 8px;
+  border-radius: 8px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* 持ち駒用のフレーム */
+.frame.have-koma-frame {
+  max-width: 50%;
+  margin: 0 auto;
+}
+
+.frame.have-koma-frame p {
+  margin: 0 0 5px 0;
+  font-size: 0.9rem;
+}
+
+/* ===========================================
+   ゲーム盤面スタイル
+   =========================================== */
+
+.game-board-layout {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  align-items: flex-start;
+  width: 50%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+#board-container {
+  background-color: rgba(255, 255, 255, 0.5);
+  padding: 10px;
+  border-radius: 10px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  flex: 3;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+#board-container table {
+  border-collapse: collapse;
+  margin: 0 auto;
+  background-color: #e8dcc0;
+  /* 将棋盤のような色 */
+  border: 3px solid #5a3e2b;
+  display: block;
+  width: min(450px, 60vw);
+  aspect-ratio: 1 / 1;
+}
+
+#board-container tbody {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+#board-container tr {
+  display: flex;
+  flex: 1;
+}
+
+#board-container td {
+  flex: 1;
+  border: 1px solid #8c6b52;
+  background-color: #f5e6d3;
+  position: relative;
+  padding: 0;
+  aspect-ratio: 1 / 1;
+  box-sizing: border-box;
+}
+
+#board-container td:hover {
+  background-color: #ead5b8;
+}
+
+#board-container .cell {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* 駒のスタイル */
+.koma {
+  font-family: "Yuji Boku", serif;
+  font-weight: 80%;
+  font-style: normal;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  writing-mode: vertical-rl;
+  background-image: url("/image/koma.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  color: #2c1810;
+  /* 駒の文字色 */
+  width: 100%;
+  height: 100%;
+}
+
+#board-container .enemy {
+  transform: rotate(180deg);
+}
+
+#board-container .cell.selected {
+  background-color: #fff4cc;
+  border: 3px solid #d4af37;
+  /* 金色 */
+  box-sizing: border-box;
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+}
+
+#board-container .cell.movable {
+  background-color: #d4e8d4;
+  border: 3px solid #6b8e6b;
+  box-sizing: border-box;
+  box-shadow: 0 0 8px rgba(107, 142, 107, 0.4);
+}
+
+/* ===========================================
+   持ち駒スタイル
+   =========================================== */
+
+#haveKoma-container,
+#haveKoma_E-container {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 5px;
+  max-width: 100%;
+  white-space: nowrap;
+  min-height: 70px;
+  border: 2px solid #8c6b52;
+  background-color: #f5e6d3;
+  border-radius: 5px;
+  margin: 0 auto;
+}
+
+#haveKoma-container table,
+#haveKoma_E-container table {
+  border-collapse: collapse;
+  width: auto;
+  display: inline-table;
+}
+
+#haveKoma-container td,
+#haveKoma_E-container td {
+  width: 60px;
+  height: 60px;
+}
+
+#haveKoma-container .cell {
+  user-select: none;
+  cursor: pointer;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#haveKoma-container .cell.selected {
+  outline: 3px solid #d4af37;
+  /* 金色 */
+  outline-offset: -3px;
+  z-index: 1;
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+}
+
+#haveKoma_E-container .cell {
+  user-select: none;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ===========================================
+   駒詳細表示スタイル
+   =========================================== */
+
+#koma-view {
+  height: 100%;
+  max-height: 500px;
+  min-width: 200px;
+  min-height: 300px;
+  background-color: rgba(255, 255, 255, 0.8);
+  padding: 10px;
+  border-radius: 8px;
+  border: 2px solid #8c6b52;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  overflow-y: auto;
+  overflow-x: hidden;
+  transition: border-color 0.3s ease;
+  flex: 1;
+  align-self: flex-start;
+  word-wrap: break-word;
+  word-break: break-word;
+}
+
+#koma-view.locked {
+  border-color: #d4af37;
+  box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
+}
+
+.koma-detail {
+  background-color: transparent;
+  color: #5a3e2b;
+  font-size: clamp(0.7rem, 1.5vw, 0.9rem);
+}
+
+.koma-detail p {
+  margin: 5px 0;
+  line-height: 1.4;
+  word-wrap: break-word;
+  word-break: break-word;
+  white-space: normal;
+  overflow-wrap: break-word;
+  text-align: left;
+}
+
+.koma-detail strong {
+  font-size: clamp(1rem, 2vw, 1.3rem);
+  color: #5a3e2b;
+  display: block;
+  margin-bottom: 5px;
+  border-bottom: 1px solid #8c6b52;
+  padding-bottom: 3px;
+  word-wrap: break-word;
+  word-break: break-word;
+}
+
+/* ===========================================
+   勝利・敗北演出スタイル
+   =========================================== */
+
+.result-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: overlayFadeIn 0.8s ease-out;
+}
+
+.result-overlay.win {
+  background: linear-gradient(135deg, rgba(139, 90, 43, 0.95), rgba(184, 134, 11, 0.9));
+}
+
+.result-overlay.lose {
+  background: linear-gradient(135deg, rgba(60, 60, 80, 0.95), rgba(90, 62, 43, 0.9));
+}
+
+.result-overlay.fade-out {
+  animation: overlayFadeOut 1s ease-out forwards;
+}
+
+.result-content {
+  text-align: center;
+  animation: resultSlideIn 0.6s ease-out 0.2s backwards;
+}
+
+.result-text {
+  font-family: "Yuji Boku", serif;
+  font-size: 5rem;
+  color: #fff;
+  text-shadow: 3px 3px 10px rgba(0, 0, 0, 0.5);
+  margin-bottom: 20px;
+  writing-mode: horizontal-tb;
+}
+
+.result-overlay.win .result-text {
+  color: #ffd700;
+  text-shadow: 
+    3px 3px 10px rgba(0, 0, 0, 0.5),
+    0 0 30px rgba(255, 215, 0, 0.3);
+}
+
+.result-overlay.lose .result-text {
+  color: #a0a0b0;
+  text-shadow: 3px 3px 10px rgba(0, 0, 0, 0.5);
+}
+
+.result-subtext {
+  font-family: "Yu Mincho", serif;
+  font-size: 1.5rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+@keyframes overlayFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes overlayFadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes resultSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-50px) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
