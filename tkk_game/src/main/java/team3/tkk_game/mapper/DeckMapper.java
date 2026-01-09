@@ -10,22 +10,30 @@ import team3.tkk_game.model.Deck;
 
 @Mapper
 public interface DeckMapper {
-  @Insert("INSERT INTO Deck(name, sfen, cost, username) VALUES(#{name}, #{sfen}, #{cost}, #{username})")
+  @Insert("INSERT INTO Deck(name, sfen, cost) VALUES(#{name}, #{sfen}, #{cost})")
   @Options(useGeneratedKeys = true, keyProperty = "id")
   int insertDeck(Deck deck);
 
-  @Select("SELECT id, name, sfen, cost, username FROM Deck")
+  @Select("SELECT id, name, sfen, cost FROM Deck")
   java.util.List<Deck> selectAllDecks();
 
-  @Select("SELECT id, name, sfen, cost, username FROM Deck WHERE username = #{username}")
-  java.util.List<Deck> selectDecksByUsername(String username);
-
-  @Select("SELECT id, name, sfen, cost, username FROM Deck WHERE id = #{id}")
+  @Select("SELECT id, name, sfen, cost FROM Deck WHERE id = #{id}")
   Deck selectDeckById(int id);
 
   @Delete("DELETE FROM Deck WHERE id = #{id}")
   int deleteDeckById(int id);
 
-  @Delete("DELETE FROM Deck WHERE id = #{id} AND username = #{username}")
-  int deleteDeckByIdAndUsername(int id, String username);
+  /**
+   * プレイヤーが使用可能なデッキを取得（PlayerDeckテーブル経由）
+   * 
+   * @param username ユーザー名
+   * @return デッキのリスト
+   */
+  @Select("SELECT d.id, d.name, d.sfen, d.cost, pd.is_owner AS isOwner " +
+      "FROM Deck d " +
+      "INNER JOIN PlayerDeck pd ON d.id = pd.deck_id " +
+      "INNER JOIN Player p ON pd.player_id = p.id " +
+      "WHERE p.username = #{username} " +
+      "ORDER BY d.id ASC")
+  java.util.List<Deck> selectDecksByPlayerUsername(String username);
 }

@@ -97,15 +97,31 @@ INSERT INTO KomaRule (koma_id, rule) VALUES (14, 'DOWN_RIGHT');
 -- komaテーブルのAUTO_INCREMENTシーケンスを次のIDに設定
 ALTER TABLE koma ALTER COLUMN id RESTART WITH 15;
 
-INSERT INTO Deck (name, sfen, cost, username) VALUES ('user1のデッキ', '5/2[0]2', 8, 'user1');
-INSERT INTO Deck (name, sfen, cost, username) VALUES ('デバック用', '5/[7][3][0][1][14]', 35, 'user1');
-INSERT INTO Deck (name, sfen, cost, username) VALUES ('user2のデッキ', '5/2[0]2', 8, 'user2');
-INSERT INTO Deck (name, sfen, cost, username) VALUES ('デバック用', '5/[7][3][0][1][14]', 35, 'user2');
-INSERT INTO Deck (name, sfen, cost, username) VALUES ('user3のデッキ', '5/2[0]2', 8, 'user3');
-INSERT INTO Deck (name, sfen, cost, username) VALUES ('user4のデッキ', '5/2[0]2', 8, 'user4');
+INSERT INTO Deck (name, sfen, cost) VALUES ('共通デッキ(王のみ)', '5/2[0]2', 8);
+INSERT INTO Deck (name, sfen, cost) VALUES ('共通デッキ(デバッグ用)', '5/[7][3][0][1][14]', 35);
+INSERT INTO Deck (name, sfen, cost) VALUES ('user1のデッキ', '5/2[0]2', 8);
+INSERT INTO Deck (name, sfen, cost) VALUES ('user2のデッキ', '5/2[0]2', 8);
+INSERT INTO Deck (name, sfen, cost) VALUES ('user3のデッキ', '5/2[0]2', 8);
+INSERT INTO Deck (name, sfen, cost) VALUES ('user4のデッキ', '5/2[0]2', 8);
 
-INSERT INTO Player (username, selected_deck_id) VALUES ('user1', 2);
+INSERT INTO Player (username, selected_deck_id) VALUES ('user1', 3);
 INSERT INTO Player (username, selected_deck_id) VALUES ('user2', 4);
 INSERT INTO Player (username, selected_deck_id) VALUES ('user3', 5);
--- デッキ未選択のユーザー
 INSERT INTO Player (username, selected_deck_id) VALUES ('user4', 6);
+
+-- プレイヤーが使えるデッキを登録
+-- 共通デッキは全プレイヤーが使用可能（所有者なし）
+INSERT INTO PlayerDeck (player_id, deck_id, is_owner) VALUES (1, 1, FALSE);  -- user1 -> 共通デッキ(王のみ)
+INSERT INTO PlayerDeck (player_id, deck_id, is_owner) VALUES (1, 2, FALSE);  -- user1 -> 共通デッキ(デバッグ用)
+INSERT INTO PlayerDeck (player_id, deck_id, is_owner) VALUES (2, 1, FALSE);  -- user2 -> 共通デッキ(王のみ)
+INSERT INTO PlayerDeck (player_id, deck_id, is_owner) VALUES (2, 2, FALSE);  -- user2 -> 共通デッキ(デバッグ用)
+INSERT INTO PlayerDeck (player_id, deck_id, is_owner) VALUES (3, 1, FALSE);  -- user3 -> 共通デッキ(王のみ)
+INSERT INTO PlayerDeck (player_id, deck_id, is_owner) VALUES (3, 2, FALSE);  -- user3 -> 共通デッキ(デバッグ用)
+INSERT INTO PlayerDeck (player_id, deck_id, is_owner) VALUES (4, 1, FALSE);  -- user4 -> 共通デッキ(王のみ)
+INSERT INTO PlayerDeck (player_id, deck_id, is_owner) VALUES (4, 2, FALSE);  -- user4 -> 共通デッキ(デバッグ用)
+
+-- 各プレイヤーの個人デッキを登録（所有者として）
+INSERT INTO PlayerDeck (player_id, deck_id, is_owner) VALUES (1, 3, TRUE);  -- user1 -> user1のデッキ（所有者）
+INSERT INTO PlayerDeck (player_id, deck_id, is_owner) VALUES (2, 4, TRUE);  -- user2 -> user2のデッキ（所有者）
+INSERT INTO PlayerDeck (player_id, deck_id, is_owner) VALUES (3, 5, TRUE);  -- user3 -> user3のデッキ（所有者）
+INSERT INTO PlayerDeck (player_id, deck_id, is_owner) VALUES (4, 6, TRUE);  -- user4 -> user4のデッキ（所有者）

@@ -5,7 +5,7 @@ public class Deck {
   String name;
   String sfen;
   Integer cost;
-  String username;
+  Boolean isOwner;
 
   public Integer getId() {
     return id;
@@ -39,11 +39,11 @@ public class Deck {
     this.cost = cost;
   }
 
-  public String getUsername() {
-    return username;
+  public Boolean getIsOwner() {
+    return isOwner;
   }
 
-  public void setUsername(String username) {
-    this.username = username;
+  public void setIsOwner(Boolean isOwner) {
+    this.isOwner = isOwner;
   }
 }

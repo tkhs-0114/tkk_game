@@ -21,8 +21,10 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import team3.tkk_game.mapper.DeckMapper;
 import team3.tkk_game.mapper.KomaMapper;
+import team3.tkk_game.mapper.PlayerDeckMapper;
 import team3.tkk_game.mapper.PlayerMapper;
 import team3.tkk_game.model.Deck;
+import team3.tkk_game.model.PlayerDeck;
 import team3.tkk_game.model.Koma.KomaDB;
 import team3.tkk_game.model.Koma.KomaRule;
 import team3.tkk_game.model.Koma.KomaSkill;
@@ -41,6 +43,9 @@ public class DeckController {
 
   @Autowired
   PlayerMapper playerMapper;
+
+  @Autowired
+  PlayerDeckMapper playerDeckMapper;
 
   @GetMapping("/make")
   public String deckmake(Principal principal, Model model) {
@@ -91,8 +96,17 @@ public class DeckController {
     deck.setName(deckName);
     deck.setSfen(sfen);
     deck.setCost(totalCost);
-    deck.setUsername(principal.getName());
     deckMapper.insertDeck(deck);
+
+    // 作成者にデッキの使用権限を付与（所有者として）
+    Integer playerId = playerDeckMapper.selectPlayerIdByUsername(principal.getName());
+    if (playerId != null) {
+      PlayerDeck playerDeck = new PlayerDeck();
+      playerDeck.setPlayerId(playerId);
+      playerDeck.setDeckId(deck.getId());
+      playerDeck.setIsOwner(true);  // 作成者は所有者
+      playerDeckMapper.insertPlayerDeck(playerDeck);
+    }
 
     redirectAttributes.addFlashAttribute("success", "デッキを保存しました (コスト: " + totalCost + ")");
     return "redirect:/deck/make";
@@ -117,7 +131,8 @@ public class DeckController {
   @GetMapping("/select")
   public String selectDeck(Principal principal, Model model) {
     model.addAttribute("playerName", principal.getName());
-    List<Deck> decks = deckMapper.selectDecksByUsername(principal.getName());
+    // プレイヤーが使用可能なデッキを取得（PlayerDeckテーブル経由）
+    List<Deck> decks = deckMapper.selectDecksByPlayerUsername(principal.getName());
     model.addAttribute("decks", decks);
     return "deckselect.html";
   }
@@ -135,9 +150,29 @@ public class DeckController {
   }
 
   @GetMapping("/delete/{id}")
-  public String deleteDeck(@PathVariable("id") int deckId, Principal principal) {
+  public String deleteDeck(@PathVariable("id") int deckId, Principal principal, RedirectAttributes redirectAttributes) {
+    // プレイヤーIDを取得
+    Integer playerId = playerDeckMapper.selectPlayerIdByUsername(principal.getName());
+    if (playerId == null) {
+      redirectAttributes.addFlashAttribute("error", "プレイヤー情報が見つかりません");
+      return "redirect:/deck/select";
+    }
+
+    // 所有者かどうかをチェック
+    Boolean isOwner = playerDeckMapper.isOwner(playerId, deckId);
+    if (isOwner == null || !isOwner) {
+      redirectAttributes.addFlashAttribute("error", "このデッキは削除できません（所有者のみ削除可能）");
+      return "redirect:/deck/select";
+    }
+
+    // 選択中のデッキをクリア
     playerMapper.clearSelectedDeckId(deckId);
-    deckMapper.deleteDeckByIdAndUsername(deckId, principal.getName());
+
+    // PlayerDeckテーブルから紐づけを削除
+    playerDeckMapper.deletePlayerDecksByDeckId(deckId);
+
+    // デッキを削除
+    deckMapper.deleteDeckById(deckId);
     return "redirect:/deck/select";
   }
 
