@@ -191,7 +191,6 @@ a:active {
 
 /* 持ち駒用のフレーム */
 .frame.have-koma-frame {
-  /* display: inline-block; */
   max-width: 50%;
   margin: 0 auto;
 }
