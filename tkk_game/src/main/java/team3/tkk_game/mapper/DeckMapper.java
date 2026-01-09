@@ -22,4 +22,18 @@ public interface DeckMapper {
 
   @Delete("DELETE FROM Deck WHERE id = #{id}")
   int deleteDeckById(int id);
+
+  /**
+   * プレイヤーが使用可能なデッキを取得（PlayerDeckテーブル経由）
+   * 
+   * @param username ユーザー名
+   * @return デッキのリスト
+   */
+  @Select("SELECT d.id, d.name, d.sfen, d.cost, pd.is_owner AS isOwner " +
+      "FROM Deck d " +
+      "INNER JOIN PlayerDeck pd ON d.id = pd.deck_id " +
+      "INNER JOIN Player p ON pd.player_id = p.id " +
+      "WHERE p.username = #{username} " +
+      "ORDER BY d.id ASC")
+  java.util.List<Deck> selectDecksByPlayerUsername(String username);
 }

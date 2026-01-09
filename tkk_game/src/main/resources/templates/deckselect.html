@@ -30,7 +30,7 @@
             <td th:text="${deck.name}">デッキ名</td>
             <td class="actions">
               <a th:href="@{'/deck/load/' + ${deck.id}}" class="action-link">選択</a>
-              <a th:href="@{'/deck/delete/' + ${deck.id}}" class="action-link delete"
+              <a th:if="${deck.isOwner}" th:href="@{'/deck/delete/' + ${deck.id}}" class="action-link delete"
                 onclick="return confirm('削除してよいですか？');">削除</a>
             </td>
           </tr>

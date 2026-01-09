@@ -25,3 +25,13 @@ CREATE TABLE Player(
   selected_deck_id INT DEFAULT NULL,
   FOREIGN KEY (selected_deck_id) REFERENCES Deck(id)
 );
+
+CREATE TABLE PlayerDeck(
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  player_id INT NOT NULL,
+  deck_id INT NOT NULL,
+  is_owner BOOLEAN DEFAULT FALSE,
+  FOREIGN KEY (player_id) REFERENCES Player(id),
+  FOREIGN KEY (deck_id) REFERENCES Deck(id),
+  UNIQUE(player_id, deck_id)
+);

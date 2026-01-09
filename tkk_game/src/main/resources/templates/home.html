@@ -15,10 +15,10 @@
     </header>
 
     <div class="deck-info">
-      <div th:if="${session.selectedDeck != null}">
-        <p>使用中の配置：<span th:text="${session.selectedDeck.name}">デッキ名</span></p>
+      <div th:if="${deckname != null}">
+        <p>使用中のデッキ：<span th:text="${deckname}">デッキ名</span></p>
       </div>
-      <div th:unless="${session.selectedDeck != null}">
+      <div th:unless="${deckname != null}">
         <p>デッキが選択されていません</p>
       </div>
       <div th:if="${infoMessage != null}" style="color:red;border-radius:4px;">

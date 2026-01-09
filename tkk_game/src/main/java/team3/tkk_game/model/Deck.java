@@ -5,6 +5,7 @@ public class Deck {
   String name;
   String sfen;
   Integer cost;
+  Boolean isOwner;
 
   public Integer getId() {
     return id;
@@ -36,5 +37,13 @@ public class Deck {
 
   public void setCost(Integer cost) {
     this.cost = cost;
+  }
+
+  public Boolean getIsOwner() {
+    return isOwner;
+  }
+
+  public void setIsOwner(Boolean isOwner) {
+    this.isOwner = isOwner;
   }
 }
