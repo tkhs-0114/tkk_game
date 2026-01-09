@@ -203,7 +203,7 @@
 
           // GAME_ENDの場合はクリックイベントを設定しない
           let cellContent;
-          const hover = `onmouseenter="showKomaDetail(ban.board[${x}][${y}])" onmouseleave="showKomaDetail(null)" oncontextmenu="event.preventDefault(); showKomaDetail(ban.board[${x}][${y}], true); return false;"`;
+          const hover = `onmouseenter="showKomaDetail(ban.board[${x}][${y}])" onmouseleave="showKomaDetail(null)" oncontextmenu="event.preventDefault(); event.stopPropagation(); showKomaDetail(ban.board[${x}][${y}], true);"`;
           if (GAME_END) {
             cellContent = (cell && cell.name) ?
               `<div class="cell koma${cell.owner.name !== loginPlayerName ? ' enemy' : ''}" ${hover}>${cell.name}</div>`
