@@ -19,6 +19,8 @@
     const haveKoma = /*[[${haveKoma}]]*/ null;
     const enemyHaveKoma = /*[[${enemyHaveKoma}]]*/ null;
     const GAME_END = /*[[${GAME_END}]]*/ false;
+    const isWinner = /*[[${isWinner}]]*/ null;
+    const turnChanged = /*[[${turnChanged}]]*/ false;
 
     console.log(game);
     console.log(ban);
@@ -244,6 +246,12 @@
       drawHaveKoma(haveKoma, 'haveKoma-container', true);
       drawHaveKoma(enemyHaveKoma, 'haveKoma_E-container', false);
 
+      // ターン変更時に音を再生
+      if (turnChanged) {
+        const komaSound = new Audio('/sound/koma.mp3');
+        komaSound.play().catch(e => console.log('音声再生エラー:', e));
+      }
+
       // エラーメッセージがあれば表示
       if (errMessage) {
         alert(errMessage);
@@ -264,7 +272,8 @@
           const isNextTurn = JSON.parse(event.data);
           console.log('Is next turn:', isNextTurn);
           if (isNextTurn) {
-            window.location.href = `/game`;
+            isInternalNavigation = true;
+            window.location.href = `/game?turnChanged=true`;
           }
         };
 

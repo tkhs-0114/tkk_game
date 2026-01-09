@@ -84,6 +84,11 @@ public class GameController {
     return returnGame(model, game, playerName, ban);
   }
 
+  private String returnGame(Model model, Game game, String playerName, Ban ban, boolean turnChanged) {
+    model.addAttribute("turnChanged", turnChanged);
+    return returnGame(model, game, playerName, ban);
+  }
+
   @GetMapping("/start")
   public String gameStart(Principal principal, Model model) {
     String loginPlayerName = principal.getName();
@@ -114,7 +119,8 @@ public class GameController {
   }
 
   @GetMapping
-  public String gamePage(Principal principal, Model model) {
+  public String gamePage(Principal principal, Model model,
+      @RequestParam(required = false, defaultValue = "false") boolean turnChanged) {
     String loginPlayerName = principal.getName();
     Game game = gameRoom.getGameByPlayerName(loginPlayerName);
     // ゲームが見つからない場合はマッチング画面に戻る
@@ -124,6 +130,15 @@ public class GameController {
     // ゲームが終了している場合は結果画面へ
     if (game.getIsFinished()) {
       return "redirect:/game/result";
+    }
+    // ターン変更フラグを設定（SSE経由のリロード時に音を再生するため）
+    // ただし、ゲーム開始時（両プレイヤーとも持ち駒が0個の場合）は音を再生しない
+    if (turnChanged) {
+      boolean isGameStart = game.getHaveKomaByName(loginPlayerName).isEmpty()
+          && game.getEnemyHaveKomaByName(loginPlayerName).isEmpty();
+      if (!isGameStart) {
+        model.addAttribute("turnChanged", true);
+      }
     }
     return returnGame(model, game, loginPlayerName, null);
   }
@@ -217,7 +232,7 @@ public class GameController {
     String currentTurnPlayerName = getCurrentTurnPlayerName(game);
     gameEventEmitterManager.notifyTurnChange(game.getId(), currentTurnPlayerName);
 
-    return returnGame(model, game, loginPlayerName, myban);
+    return returnGame(model, game, loginPlayerName, myban, true);
   }
 
   @GetMapping("/putKoma")
@@ -269,7 +284,7 @@ public class GameController {
     String currentTurnPlayerName = getCurrentTurnPlayerName(game);
     gameEventEmitterManager.notifyTurnChange(game.getId(), currentTurnPlayerName);
 
-    return returnGame(model, game, loginPlayerName, myban);
+    return returnGame(model, game, loginPlayerName, myban, true);
   }
 
   @GetMapping("/turn")
