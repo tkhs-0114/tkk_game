@@ -256,7 +256,7 @@
       for (let i = 0; i < komaData.length; i++) {
         const cell = komaData[i];
         const komaArray = containerId === 'haveKoma-container' ? 'haveKoma' : 'enemyHaveKoma';
-        const hover = `onmouseenter="showKomaDetail(${komaArray}[${i}])" onmouseleave="showKomaDetail(null)" oncontextmenu="event.preventDefault(); showKomaDetail(${komaArray}[${i}], true); return false;"`;
+        const hover = `onmouseenter="showKomaDetail(${komaArray}[${i}])" onmouseleave="showKomaDetail(null)" oncontextmenu="event.preventDefault(); showKomaDetail(${komaArray}[${i}], true);"`;
         const cellContent = (isClickable && !GAME_END)
           ? `<div class="cell koma" data-index="${i}" onClick="selectHaveKoma(${i})" ${hover}>${cell.name}</div>`
           : `<div class="cell koma" ${hover}>${cell.name}</div>`;
