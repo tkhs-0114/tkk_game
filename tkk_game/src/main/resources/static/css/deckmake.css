@@ -1,0 +1,259 @@
+@charset "UTF-8";
+
+/* 基本スタイル (home.cssと共通) */
+body {
+  background-color: #f3e9d2;
+  /* 和紙のような背景色 */
+  font-family: "Yu Mincho", "YuMincho", "Hiragino Mincho ProN", "MS PMincho", serif;
+  color: #333;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  margin: 0;
+  padding: 2rem 0;
+}
+
+.container {
+  width: 90%;
+  max-width: 1000px;
+  text-align: center;
+  background-color: rgba(255, 255, 255, 0.5);
+  /* 少し透明な白背景 */
+  padding: 40px;
+  border-radius: 10px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+header h1 {
+  font-size: 3.5rem;
+  color: #5a3e2b;
+  /* 濃い茶色 */
+  margin-bottom: 2rem;
+  font-weight: normal;
+}
+
+/* 駒選択セクション */
+.koma-selection {
+  margin-bottom: 2rem;
+  background-color: #fff;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+}
+
+.koma-selection label {
+  font-weight: bold;
+  color: #5a3e2b;
+  font-size: 1.1rem;
+}
+
+.koma-selection select {
+  min-width: 250px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+/* フォームセクション */
+.form-section {
+  background-color: #fff;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  margin-bottom: 2rem;
+}
+
+#deck-form {
+  display: grid;
+  grid-template-columns: 1fr 200px 200px 1fr;
+  gap: 1.5rem;
+  align-items: center;
+  margin-bottom: 0;
+}
+
+#deck-form .deck-name-wrapper {
+  grid-column: 2 / 4;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+}
+
+#deck-form label {
+  font-weight: bold;
+  color: #5a3e2b;
+}
+
+#deck-form input[type="text"] {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+  flex: 1;
+}
+
+#deck-form button {
+  grid-column: 1 / -1;
+  /* ボタンを全幅に */
+  padding: 12px 20px;
+  background-color: #5a3e2b;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border-bottom: 4px solid #3e2723;
+}
+
+#deck-form button:hover {
+  background-color: #3e2723;
+}
+
+/* 情報表示エリア */
+.deck-info {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 2rem;
+  background-color: #f9f9f9;
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+.deck-info div {
+  font-size: 1.1rem;
+}
+
+.deck-info strong {
+  color: #5a3e2b;
+}
+
+#selected-koma-cost {
+  color: #0066cc;
+  font-weight: bold;
+}
+
+#cost-warning {
+  color: #a94442;
+  font-weight: bold;
+  margin-top: 1rem;
+}
+
+/* 盤面スタイル */
+.board-container {
+  margin: 2rem auto;
+  display: flex;
+  justify-content: center;
+}
+
+.board-container table {
+  border-collapse: collapse;
+  border: 2px solid #8c6b52;
+  background-color: #fff;
+}
+
+.board-container td {
+  padding: 0;
+  border: 1px solid #ddd;
+  width: 100px;
+  height: 100px;
+}
+
+.board-container .cell {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  font-size: 1.2rem;
+  font-weight: bold;
+  transition: background-color 0.2s;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.board-container .cell:hover {
+  background-color: #f0f0f0;
+}
+
+.board-container .cell.empty {
+  color: #aaa;
+  font-size: 0.9rem;
+  font-weight: normal;
+}
+
+.board-container .cell.koma {
+  font-family: "Yuji Boku", serif;
+  font-weight: 80%;
+  font-style: normal;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  writing-mode: vertical-rl;
+  background-image: url("/image/koma.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+/* メッセージ表示 */
+.message {
+  margin: 1rem 0;
+  font-weight: bold;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.message.error {
+  color: #a94442;
+  background-color: #f2dede;
+  border: 1px solid #ebccd1;
+}
+
+.message.success {
+  color: #3c763d;
+  background-color: #dff0d8;
+  border: 1px solid #d6e9c6;
+}
+
+/* メニュースタイル (home.cssと共通) */
+.menu {
+  margin-top: 2rem;
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.menu-item {
+  display: inline-block;
+  padding: 15px 40px;
+  text-decoration: none;
+  background-color: #8c6b52;
+  /* 木札のような色 */
+  color: #fff;
+  border-radius: 5px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border-bottom: 4px solid #5a3e2b;
+}
+
+.menu-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.menu-item:active {
+  transform: translateY(1px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}

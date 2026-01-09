@@ -2,11 +2,13 @@ package team3.tkk_game.controller;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -21,6 +23,7 @@ import team3.tkk_game.model.PlayerStatus;
 import team3.tkk_game.model.Ban;
 import team3.tkk_game.model.Game;
 import team3.tkk_game.model.WaitRoom;
+import team3.tkk_game.services.DisconnectionHandler;
 import team3.tkk_game.services.GameEventEmitterManager;
 import team3.tkk_game.services.MoveValidator;
 import team3.tkk_game.services.TurnChecker;
@@ -47,6 +50,8 @@ public class GameController {
   MoveValidator moveValidator;
   @Autowired
   GameEventEmitterManager gameEventEmitterManager;
+  @Autowired
+  DisconnectionHandler disconnectionHandler;
 
   private boolean isMyTurn(Game game, String playerName) {
     return game.getPlayerByName(playerName).getStatus() == PlayerStatus.GAME_THINKING;
@@ -277,6 +282,7 @@ public class GameController {
   public String gameEnd(Principal principal, Model model) {
     String loginPlayerName = principal.getName();
     Game game = gameRoom.getGameByPlayerName(loginPlayerName);
+    boolean isWinner = false;
 
     // ゲームが見つからない場合はホームへ
     if (game == null) {
@@ -298,6 +304,7 @@ public class GameController {
       /*
        * ここに勝者の得点調整等の処理を追加
        */
+      isWinner = true;
 
       // ターンを交代して相手に最後の盤面を見せる
       player.setStatus(PlayerStatus.GAME_THINKING);
@@ -325,6 +332,7 @@ public class GameController {
 
     // モデルに最終盤面情報を追加
     model.addAttribute("GAME_END", true);
+    model.addAttribute("isWinner", isWinner);
     return returnGame(model, game, loginPlayerName, myBan);
   }
 
@@ -444,5 +452,20 @@ public class GameController {
         i++;
       }
     }
+  }
+
+  /**
+   * プレイヤーの切断を通知するエンドポイント
+   * ブラウザクローズや他サイトへの遷移時に呼ばれる
+   * 
+   * @param principal ログイン中のプレイヤー情報
+   * @return 切断通知の結果
+   */
+  @PostMapping("/disconnect")
+  @ResponseBody
+  public Map<String, String> notifyDisconnection(Principal principal) {
+    String playerName = principal.getName();
+    disconnectionHandler.handlePlayerDisconnection(playerName, "INTENTIONAL");
+    return Map.of("message", "disconnection notified");
   }
 }
