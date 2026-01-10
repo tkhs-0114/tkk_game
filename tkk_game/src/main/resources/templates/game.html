@@ -338,16 +338,10 @@
       if (playerStatus === 'GAME_WAITING' || playerStatus === 'GAME_STARTING') {
         // SSE接続でターン情報を受信
         const sse = new EventSource(`/game/turn?gameId=${gameId}`);
-        // let isFirstSSEMessage = true; // SSE初回フラグ
-
         sse.onmessage = function (event) {
           const isNextTurn = JSON.parse(event.data);
           console.log('Is next turn:', isNextTurn);
           if (isNextTurn) {
-            // // 初回メッセージの場合は音なしでリロード、それ以降は音ありでリロード
-            // const soundParam = isFirstSSEMessage ? '' : '?turnChanged=true';
-            // isFirstSSEMessage = false;
-            
             isInternalNavigation = true;
             window.location.href = `/game?turnChanged=true`;
           }
