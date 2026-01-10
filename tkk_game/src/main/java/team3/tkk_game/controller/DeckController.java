@@ -24,7 +24,9 @@ import team3.tkk_game.mapper.KomaMapper;
 import team3.tkk_game.mapper.PlayerDeckMapper;
 import team3.tkk_game.mapper.PlayerMapper;
 import team3.tkk_game.model.Deck;
+import team3.tkk_game.model.Ban;
 import team3.tkk_game.model.PlayerDeck;
+import team3.tkk_game.model.Koma.Koma;
 import team3.tkk_game.model.Koma.KomaDB;
 import team3.tkk_game.model.Koma.KomaRule;
 import team3.tkk_game.model.Koma.KomaSkill;
@@ -177,6 +179,15 @@ public class DeckController {
     return "redirect:/deck/select";
   }
 
+  @GetMapping("/preview/{id}")
+  public String viewDeck(@PathVariable("id") int deckId, Principal principal, Model model) {
+    String sfen = deckMapper.selectDeckById(deckId).getSfen();
+    Ban ban = new Ban();
+    applySfenToBan(ban, sfen);
+    model.addAttribute("ban", ban);
+    return "preview.html";
+  }
+
   @GetMapping("make/koma")
   public String komaMake(Principal principal, Model model) {
     List<KomaDB> komas = komaMapper.selectAllKoma();
@@ -224,5 +235,86 @@ public class DeckController {
     }
 
     return "redirect:/deck/make";
+  }
+
+  private void applySfenToBan(Ban ban, String sfen) {
+    if (sfen == null || sfen.isBlank())
+      return;
+
+    String[] rows = sfen.split("/");
+    int half = (ban.getBoard().length - 1) / 2;
+    int startY = half - (rows.length - 1);
+    for (int row = 0; row < rows.length; row++) {
+      String token = rows[row];
+      int y = startY + row;
+      int x = -half;
+
+      int i = 0;
+      while (i < token.length()) {
+        char ch = token.charAt(i);
+        if (Character.isDigit(ch)) {
+          int j = i + 1;
+          while (j < token.length() && Character.isDigit(token.charAt(j)))
+            j++;
+          int empty = Integer.parseInt(token.substring(i, j));
+          x += empty;
+          i = j;
+          continue;
+        }
+
+        if (ch == '[') {
+          int j = token.indexOf(']', i + 1);
+          if (j == -1) {
+            System.out.println("Malformed SFEN: missing ']' in token: " + token);
+            break;
+          }
+          String idStr = token.substring(i + 1, j);
+          int komaId;
+          try {
+            komaId = Integer.parseInt(idStr);
+          } catch (NumberFormatException ex) {
+            System.out.println("Invalid koma id in SFEN: " + idStr);
+            i = j + 1;
+            continue;
+          }
+
+          KomaDB kdb = null;
+          try {
+            kdb = komaMapper.selectKomaById(komaId);
+          } catch (Exception ex) {
+            System.out.println("Failed to select Koma by id: " + komaId + " -> " + ex.getMessage());
+          }
+
+          if (kdb != null) {
+            List<KomaRule> rules = null;
+            try {
+              rules = komaMapper.selectKomaRuleById(komaId);
+            } catch (Exception ex) {
+              // ルール取得失敗はログ出力してフォールバック
+              System.out.println("Failed to select KomaRule for id: " + komaId + " -> " + ex.getMessage());
+            }
+            if (rules == null) {
+              rules = java.util.Collections.emptyList();
+            }
+
+            Koma koma = new Koma(kdb, rules, null);
+            try {
+              ban.setKomaAt(x, y, koma);
+            } catch (Exception ex) {
+              System.out
+                  .println("Failed to set Koma at x=" + x + " y=" + y + " id=" + komaId + " -> " + ex.getMessage());
+            }
+          } else {
+            System.out.println("Unknown piece id in SFEN: " + komaId);
+          }
+
+          x++;
+          i = j + 1;
+          continue;
+        }
+
+        i++;
+      }
+    }
   }
 }
