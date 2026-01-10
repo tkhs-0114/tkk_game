@@ -12,6 +12,7 @@ public class Koma {
   Player owner;
   KomaSkill skill;
   int updateKoma; // 変化後の駒ID. -1なら変化しない
+  int originalKoma;
 
   public Koma(KomaDB komaDB, List<KomaRule> rules, Player owner) {
     this.id = komaDB.getId();
@@ -20,6 +21,17 @@ public class Koma {
     this.owner = owner;
     this.skill = komaDB.getSkill() != null ? KomaSkill.valueOf(komaDB.getSkill()) : KomaSkill.NULL;
     this.updateKoma = komaDB.getUpdateKoma();
+    this.originalKoma = -1;
+  }
+
+  public Koma(KomaDB komaDB, List<KomaRule> rules, Player owner, int originalKoma) {
+    this.id = komaDB.getId();
+    this.name = komaDB.getName();
+    this.rules = new ArrayList<>(rules);
+    this.owner = owner;
+    this.skill = komaDB.getSkill() != null ? KomaSkill.valueOf(komaDB.getSkill()) : KomaSkill.NULL;
+    this.updateKoma = komaDB.getUpdateKoma();
+    this.originalKoma = originalKoma;
   }
 
   public int getId() {
@@ -48,6 +60,10 @@ public class Koma {
 
   public int getUpdateKoma() {
     return updateKoma;
+  }
+
+  public int getOriginalKoma() {
+    return originalKoma;
   }
 
   /**
