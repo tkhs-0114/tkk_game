@@ -155,6 +155,13 @@ public class GameController {
     Koma targetKoma = game.getBan().getKomaAt(toX, toY);
     if (targetKoma != null) {
       targetKoma.setOwner(game.getPlayerByName(loginPlayerName));
+      if (targetKoma.getOriginalKoma() != -1) {
+        KomaDB originalKomaDB = komaMapper.selectKomaById(targetKoma.getOriginalKoma());
+        List<KomaRule> originalKomaRules = komaMapper.selectKomaRuleById(targetKoma.getOriginalKoma());
+        Koma originalKoma = new Koma(originalKomaDB, originalKomaRules, targetKoma.getOwner(),
+            targetKoma.getOriginalKoma());
+        targetKoma = originalKoma;
+      }
       game.getBan().setKomaAt(toX, toY, null);
       game.addHaveKomaByName(loginPlayerName, targetKoma);
     }
@@ -164,7 +171,7 @@ public class GameController {
       if (fromY <= -1 * (Ban.BAN_LENGTH / 2) || toY <= -1 * (Ban.BAN_LENGTH / 2)) {
         KomaDB updatedKomaDB = komaMapper.selectKomaById(koma.getUpdateKoma());
         List<KomaRule> updatedKomaRules = komaMapper.selectKomaRuleById(koma.getUpdateKoma());
-        Koma updatedKoma = new Koma(updatedKomaDB, updatedKomaRules, koma.getOwner());
+        Koma updatedKoma = new Koma(updatedKomaDB, updatedKomaRules, koma.getOwner(), koma.getId());
         koma = updatedKoma;
       } else {
         return returnGame(model, game, loginPlayerName, game.getBan(), "成ることができません");
