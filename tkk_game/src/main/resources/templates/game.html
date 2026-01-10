@@ -20,6 +20,7 @@
     const enemyHaveKoma = /*[[${enemyHaveKoma}]]*/ null;
     const GAME_END = /*[[${GAME_END}]]*/ false;
     const isWinner = /*[[${isWinner}]]*/ null;
+    const turnChanged = /*[[${turnChanged}]]*/ false;
 
     console.log(game);
     console.log(ban);
@@ -284,6 +285,9 @@
       subText.className = 'result-subtext';
       subText.textContent = isWin ? 'おめでとうございます！' : 'また挑戦してください';
 
+      const endSound = isWin ? new Audio('/sound/win.mp3') : new Audio('/sound/lose.mp3');
+      endSound.play().catch(e => console.log('音声再生エラー:', e));
+
       content.appendChild(resultText);
       content.appendChild(subText);
       overlay.appendChild(content);
@@ -304,6 +308,12 @@
       drawBoard();
       drawHaveKoma(haveKoma, 'haveKoma-container', true);
       drawHaveKoma(enemyHaveKoma, 'haveKoma_E-container', false);
+
+      // ターン変更時に音を再生
+      if (turnChanged) {
+        const komaSound = new Audio('/sound/koma.mp3');
+        komaSound.play().catch(e => console.log('音声再生エラー:', e));
+      }
 
       // エラーメッセージがあれば表示
       if (errMessage) {
@@ -334,7 +344,7 @@
           console.log('Is next turn:', isNextTurn);
           if (isNextTurn) {
             isInternalNavigation = true;
-            window.location.href = `/game`;
+            window.location.href = `/game?turnChanged=true`;
           }
         };
 
