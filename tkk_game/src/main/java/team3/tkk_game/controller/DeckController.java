@@ -48,13 +48,13 @@ public class DeckController {
   @GetMapping("/make")
   public String deckmake(Principal principal, Model model) {
     model.addAttribute("playerName", principal.getName());
-    // プレイヤーが使用可能な駒のみ表示
     List<KomaDB> komas = komaMapper.selectKomasByPlayerUsername(principal.getName());
-    model.addAttribute("komas", komas);
+    List<KomaDB> cantUpdateKomas = komas.stream().filter(k -> k.getUpdateKoma() != -1).toList();
+    model.addAttribute("komas", cantUpdateKomas);
 
     // 各駒のコストを計算してモデルに追加
     Map<Integer, Integer> komaCosts = new HashMap<>();
-    for (KomaDB koma : komas) {
+    for (KomaDB koma : cantUpdateKomas) {
       List<KomaRule> rules = komaMapper.selectKomaRuleById(koma.getId());
       int cost = koma.calculateCost(rules);
       komaCosts.put(koma.getId(), cost);
@@ -103,7 +103,7 @@ public class DeckController {
       PlayerDeck playerDeck = new PlayerDeck();
       playerDeck.setPlayerId(playerId);
       playerDeck.setDeckId(deck.getId());
-      playerDeck.setIsOwner(true);  // 作成者は所有者
+      playerDeck.setIsOwner(true); // 作成者は所有者
       playerDeckMapper.insertPlayerDeck(playerDeck);
     }
 

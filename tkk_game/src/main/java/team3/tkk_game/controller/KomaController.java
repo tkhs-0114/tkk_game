@@ -111,13 +111,22 @@ public class KomaController {
       // スキルがNULLの場合はnullに変換
       String skillValue = (skill != null && skill.equals("NULL")) ? null : skill;
       
-      // 1. KomaDBオブジェクトを作成
-      KomaDB newKoma = new KomaDB(name, skillValue, updateKomaId);
+      // 1. 成り先が指定されていない場合は-1を設定（後で自身のIDに更新）
+      Integer tempUpdateKomaId = (updateKomaId == null || updateKomaId == -1) ? -1 : updateKomaId;
+      
+      // 2. KomaDBオブジェクトを作成
+      KomaDB newKoma = new KomaDB(name, skillValue, tempUpdateKomaId);
 
-      // 2. komaテーブルにInsert（IDが自動採番される）
+      // 3. komaテーブルにInsert（IDが自動採番される）
       komaMapper.insertKoma(newKoma);
 
-      // 3. komaruleテーブルへの挿入
+      // 4. 成り先が指定されていなかった場合、自身のIDで更新
+      if (tempUpdateKomaId == -1) {
+        newKoma.setUpdateKoma(newKoma.getId());
+        komaMapper.updateKoma(newKoma);
+      }
+
+      // 5. komaruleテーブルへの挿入
       if (rules != null && !rules.isEmpty()) {
         for (String ruleName : rules) {
           KomaRule komaRule = KomaRule.valueOf(ruleName);
@@ -125,7 +134,7 @@ public class KomaController {
         }
       }
 
-      // 4. 作成者に駒の使用権限を付与（所有者として）
+      // 6. 作成者に駒の使用権限を付与（所有者として）
       Integer playerId = playerKomaMapper.selectPlayerIdByUsername(principal.getName());
       if (playerId != null) {
         PlayerKoma playerKoma = new PlayerKoma();
