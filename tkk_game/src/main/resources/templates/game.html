@@ -73,7 +73,8 @@
           // 成れる場合
           // 敵陣の1段目（盤面の端）に入る場合のみ成れる
           const enemyAreaBoundary = -Math.floor(ban.board.length / 2);
-          const canUpdate = (selectedY === enemyAreaBoundary || y === enemyAreaBoundary) && ban.board[b2Xa(selectedX)][b2Ya(selectedY)].updateKoma !== -1;
+          const selectedCell = ban.board[b2Xa(selectedX)][b2Ya(selectedY)];
+          const canUpdate = (selectedY === enemyAreaBoundary || y === enemyAreaBoundary) && selectedCell.updateKoma !== -1 && selectedCell.updateKoma !== selectedCell.id;
           if (canUpdate) {
             willUpdate = window.confirm('駒を成りますか？\nOK: 成る\nキャンセル: 成らない');
           }
@@ -272,26 +273,26 @@
     function showResultOverlay(isWin) {
       const overlay = document.createElement('div');
       overlay.className = 'result-overlay ' + (isWin ? 'win' : 'lose');
-      
+
       const content = document.createElement('div');
       content.className = 'result-content';
-      
+
       const resultText = document.createElement('div');
       resultText.className = 'result-text';
       resultText.textContent = isWin ? '勝利' : '敗北';
-      
+
       const subText = document.createElement('div');
       subText.className = 'result-subtext';
       subText.textContent = isWin ? 'おめでとうございます！' : 'また挑戦してください';
 
       const endSound = isWin ? new Audio('/sound/win.mp3') : new Audio('/sound/lose.mp3');
       endSound.play().catch(e => console.log('音声再生エラー:', e));
-      
+
       content.appendChild(resultText);
       content.appendChild(subText);
       overlay.appendChild(content);
       document.body.appendChild(overlay);
-      
+
       // アニメーション後にフェードアウト
       setTimeout(() => {
         overlay.classList.add('fade-out');

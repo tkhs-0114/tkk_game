@@ -1,9 +1,9 @@
-INSERT INTO koma VALUES (0,'王将', NULL,  -1);
+INSERT INTO koma VALUES (0,'王将', NULL,  0);
 INSERT INTO koma VALUES (1,'歩兵', NULL,  8);
 INSERT INTO koma VALUES (2,'香車', NULL,  9);
 INSERT INTO koma VALUES (3,'桂馬', NULL,  10);
 INSERT INTO koma VALUES (4,'銀将', NULL,  11);
-INSERT INTO koma VALUES (5,'金将', NULL,  -1);
+INSERT INTO koma VALUES (5,'金将', NULL,  5);
 INSERT INTO koma VALUES (6,'角行', NULL,  12);
 INSERT INTO koma VALUES (7,'飛車', NULL,  13);
 INSERT INTO koma VALUES (8,'と金', NULL,  -1);
@@ -13,7 +13,7 @@ INSERT INTO koma VALUES (11,'成銀', NULL, -1);
 INSERT INTO koma VALUES (12,'馬', NULL, -1);
 INSERT INTO koma VALUES (13,'龍', NULL, -1);
 
-INSERT INTO koma VALUES (14,'忍び', 'STEALTH', -1);
+INSERT INTO koma VALUES (14,'忍び', 'STEALTH', 14);
 
 
 INSERT INTO KomaRule (koma_id, rule) VALUES (0, 'UP');
