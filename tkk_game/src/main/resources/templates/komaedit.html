@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link th:href="@{/css/komaedit.css}" rel="stylesheet">
+  <title>駒編集</title>
+</head>
+
+<body>
+  <div class="container">
+    <header>
+      <h1>駒編集</h1>
+    </header>
+
+    <form th:action="@{'/koma/update/' + ${koma.id}}" method="post" onchange="updateTotalCost()">
+      <div class="form-group">
+        <label for="name">駒の名前:</label>
+        <input type="text" id="name" name="name" th:value="${koma.name}" required>
+      </div>
+
+      <div class="cost-display">
+        <strong>合計コスト：</strong><span id="total-cost-display">0</span>
+        <span style="margin-left: 15px;">(移動ルール: <span id="rule-cost-display">0</span> + 特殊スキル: <span
+            id="skill-cost-display">0</span>)</span>
+      </div>
+
+      <div class="form-section">
+        <strong>移動ルール:</strong>
+        <div class="checkbox-group">
+          <div th:each="rule : ${availableRules}" class="checkbox-item">
+            <label>
+              <input type="checkbox" class="rule-checkbox" th:id="${rule.name()}" name="rules" th:value="${rule.name()}"
+                th:data-cost="${rule.cost}" th:checked="${#lists.contains(currentRules, rule)}">
+              <span th:text="${rule.name()}">ルール名</span>
+              <span th:text="'(コスト: ' + ${rule.cost} + ')'" class="cost-label">コスト</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <strong>特殊スキル (1つのみ選択可能):</strong>
+        <div class="radio-group">
+          <div th:each="skill : ${availableSkills}" class="radio-item">
+            <label>
+              <input type="radio" class="skill-radio" th:id="${skill.name()}" name="skill" th:value="${skill.name()}"
+                th:data-cost="${skill.cost}" th:checked="${koma.skill == skill.name() || (koma.skill == null && skill.name() == 'NULL')}">
+              <span th:text="${skill.name()}">スキル名</span>
+              <span th:text="'(コスト: ' + ${skill.cost} + ')'" class="cost-label">コスト</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="update">駒の成り先:</label>
+        <select id="update" name="updateKomaId">
+          <option value="-1" th:selected="${koma.updateKoma == -1}">成らない</option>
+          <option th:each="k : ${canUpdateKomas}" th:value="${k.id}" th:text="${k.name}"
+            th:selected="${koma.updateKoma == k.id}">駒名</option>
+        </select>
+      </div>
+
+      <div class="button-group">
+        <button type="submit" class="btn-primary">更新</button>
+        <a href="/koma/list" class="btn-secondary">キャンセル</a>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    // 移動ルール名を日本語にマッピング
+    const ruleNameMap = {
+      'UP': '上',
+      'DOWN': '下',
+      'LEFT': '左',
+      'RIGHT': '右',
+      'UP_LEFT': '左上',
+      'UP_RIGHT': '右上',
+      'DOWN_LEFT': '左下',
+      'DOWN_RIGHT': '右下',
+      'LINE_UP': '上(直線)',
+      'LINE_DOWN': '下(直線)',
+      'LINE_LEFT': '左(直線)',
+      'LINE_RIGHT': '右(直線)',
+      'LINE_UP_LEFT': '左上(直線)',
+      'LINE_UP_RIGHT': '右上(直線)',
+      'LINE_DOWN_LEFT': '左下(直線)',
+      'LINE_DOWN_RIGHT': '右下(直線)',
+      'JUMP_UP_LEFT': '上左(飛び越え)',
+      'JUMP_UP_RIGHT': '上右(飛び越え)',
+      'JUMP_DOWN_LEFT': '下左(飛び越え)',
+      'JUMP_DOWN_RIGHT': '下右(飛び越え)',
+      'JUMP_LEFT_UP': '左上(飛び越え)',
+      'JUMP_LEFT_DOWN': '左下(飛び越え)',
+      'JUMP_RIGHT_UP': '右上(飛び越え)',
+      'JUMP_RIGHT_DOWN': '右下(飛び越え)'
+    };
+
+    // スキル名を日本語にマッピング
+    const skillNameMap = {
+      'NULL': 'なし',
+      'STEALTH': '忍者',
+    };
+
+    // 選択中のルールとスキルのコストを計算して表示
+    function updateTotalCost() {
+      // 移動ルールのコスト計算
+      let ruleCost = 0;
+      document.querySelectorAll('.rule-checkbox:checked').forEach(checkbox => {
+        const cost = parseInt(checkbox.getAttribute('data-cost'));
+        if (!isNaN(cost)) {
+          ruleCost += cost;
+        }
+      });
+      document.getElementById('rule-cost-display').textContent = ruleCost;
+
+      // スキルのコスト計算
+      let skillCost = 0;
+      const selectedSkill = document.querySelector('.skill-radio:checked');
+      if (selectedSkill) {
+        const cost = parseInt(selectedSkill.getAttribute('data-cost'));
+        if (!isNaN(cost)) {
+          skillCost = cost;
+        }
+      }
+      document.getElementById('skill-cost-display').textContent = skillCost;
+
+      // 合計コスト表示
+      const totalCost = ruleCost + skillCost;
+      document.getElementById('total-cost-display').textContent = totalCost;
+    }
+
+    // ページ読み込み時にルールとスキルの表示名を日本語に更新
+    window.addEventListener('DOMContentLoaded', function() {
+      // 移動ルールの表示名を更新
+      document.querySelectorAll('.rule-checkbox').forEach(checkbox => {
+        const ruleName = checkbox.id;
+        const japaneseRuleName = ruleNameMap[ruleName] || ruleName;
+        const span = checkbox.nextElementSibling;
+        if (span) {
+          span.textContent = japaneseRuleName;
+        }
+      });
+
+      // スキルの表示名を更新
+      document.querySelectorAll('.skill-radio').forEach(radio => {
+        const skillName = radio.value;
+        const japaneseSkillName = skillNameMap[skillName] || skillName;
+        const span = radio.nextElementSibling;
+        if (span) {
+          span.textContent = japaneseSkillName;
+        }
+      });
+
+      updateTotalCost();
+    });
+  </script>
+</body>
+
+</html>

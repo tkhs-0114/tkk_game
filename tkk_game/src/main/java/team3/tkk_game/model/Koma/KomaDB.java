@@ -7,6 +7,7 @@ public class KomaDB {
   String name;
   String skill;
   Integer updateKoma;
+  Boolean isOwner;
 
   public KomaDB() {
   }
@@ -33,6 +34,10 @@ public class KomaDB {
     return updateKoma;
   }
 
+  public Boolean getIsOwner() {
+    return isOwner;
+  }
+
   public void setId(Integer id) {
     this.id = id;
   }
@@ -47,6 +52,10 @@ public class KomaDB {
 
   public void setUpdateKoma(Integer updateKoma) {
     this.updateKoma = updateKoma;
+  }
+
+  public void setIsOwner(Boolean isOwner) {
+    this.isOwner = isOwner;
   }
 
   /**

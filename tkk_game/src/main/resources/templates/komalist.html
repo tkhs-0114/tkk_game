@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link th:href="@{/css/komalist.css}" rel="stylesheet">
+  <title>自作駒一覧</title>
+</head>
+
+<body>
+  <div class="container">
+    <header>
+      <h1>自作駒一覧</h1>
+    </header>
+
+    <!-- エラー・成功メッセージ表示 -->
+    <div th:if="${error}" class="message error" th:text="${error}"></div>
+    <div th:if="${success}" class="message success" th:text="${success}"></div>
+
+    <div class="koma-table">
+      <table>
+        <thead>
+          <tr>
+            <th>駒名</th>
+            <th>コスト</th>
+            <th>スキル</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr th:if="${komas == null or #lists.isEmpty(komas)}">
+            <td colspan="4">駒がありません</td>
+          </tr>
+          <tr th:each="koma : ${komas}">
+            <td th:text="${koma.name}">駒名</td>
+            <td th:text="${komaCosts[koma.id]}">コスト</td>
+            <td th:text="${koma.skill != null ? koma.skill : '-'}">スキル</td>
+            <td class="actions">
+              <a th:href="@{'/koma/edit/' + ${koma.id}}" class="action-link">編集</a>
+              <a th:href="@{'/koma/delete/' + ${koma.id}}" class="action-link delete"
+                onclick="return confirm('この駒を削除してよいですか？');">削除</a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <nav class="menu">
+      <a href="/koma/make" class="menu-item">駒を作る</a>
+      <a href="/home" class="menu-item">ホームに戻る</a>
+    </nav>
+  </div>
+</body>
+
+</html>

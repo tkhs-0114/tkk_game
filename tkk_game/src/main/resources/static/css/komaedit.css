@@ -1,0 +1,172 @@
+@charset "UTF-8";
+
+/* 基本スタイル (deckselect.cssと共通) */
+body {
+  background-color: #f3e9d2;
+  /* 和紙のような背景色 */
+  font-family: "Yu Mincho", "YuMincho", "Hiragino Mincho ProN", "MS PMincho", serif;
+  color: #333;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  margin: 0;
+  padding: 2rem 0;
+}
+
+.container {
+  width: 80%;
+  max-width: 700px;
+  text-align: center;
+  background-color: rgba(255, 255, 255, 0.5);
+  /* 少し透明な白背景 */
+  padding: 40px;
+  border-radius: 10px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+header h1 {
+  font-size: 3rem;
+  color: #5a3e2b;
+  /* 濃い茶色 */
+  margin-bottom: 2rem;
+  font-weight: normal;
+}
+
+/* フォームスタイル */
+form {
+  text-align: left;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  color: #5a3e2b;
+}
+
+.form-group input[type="text"],
+.form-group select {
+  width: 100%;
+  padding: 10px;
+  border: 2px solid #8c6b52;
+  border-radius: 5px;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+
+.form-group input[type="text"]:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #5a3e2b;
+  box-shadow: 0 0 5px rgba(90, 62, 43, 0.3);
+}
+
+/* コスト表示 */
+.cost-display {
+  background-color: #fff;
+  padding: 15px;
+  border-radius: 5px;
+  margin-bottom: 1.5rem;
+  border: 1px solid #ddd;
+  text-align: center;
+}
+
+/* フォームセクション */
+.form-section {
+  margin-bottom: 1.5rem;
+  padding: 15px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #fff;
+}
+
+.form-section strong {
+  display: block;
+  margin-bottom: 1rem;
+  color: #5a3e2b;
+}
+
+/* チェックボックスグループ */
+.checkbox-group,
+.radio-group {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.5rem;
+}
+
+.checkbox-item,
+.radio-item {
+  padding: 5px 0;
+}
+
+.checkbox-item label,
+.radio-item label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.cost-label {
+  color: #666;
+  font-size: 0.9em;
+}
+
+/* ボタングループ */
+.button-group {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.btn-primary,
+.btn-secondary {
+  display: inline-block;
+  padding: 15px 40px;
+  text-decoration: none;
+  border-radius: 5px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background-color: #5a3e2b;
+  color: #fff;
+  border-bottom: 4px solid #3e2723;
+}
+
+.btn-primary:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.btn-primary:active {
+  transform: translateY(1px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.btn-secondary {
+  background-color: #8c6b52;
+  color: #fff;
+  border-bottom: 4px solid #5a3e2b;
+}
+
+.btn-secondary:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.btn-secondary:active {
+  transform: translateY(1px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}

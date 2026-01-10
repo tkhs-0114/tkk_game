@@ -10,7 +10,6 @@ import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,7 +26,6 @@ import team3.tkk_game.model.Deck;
 import team3.tkk_game.model.PlayerDeck;
 import team3.tkk_game.model.Koma.KomaDB;
 import team3.tkk_game.model.Koma.KomaRule;
-import team3.tkk_game.model.Koma.KomaSkill;
 
 @Controller
 @RequestMapping("/deck")
@@ -50,7 +48,8 @@ public class DeckController {
   @GetMapping("/make")
   public String deckmake(Principal principal, Model model) {
     model.addAttribute("playerName", principal.getName());
-    List<KomaDB> komas = komaMapper.selectAllKoma();
+    // プレイヤーが使用可能な駒のみ表示
+    List<KomaDB> komas = komaMapper.selectKomasByPlayerUsername(principal.getName());
     model.addAttribute("komas", komas);
 
     // 各駒のコストを計算してモデルに追加
@@ -176,52 +175,19 @@ public class DeckController {
     return "redirect:/deck/select";
   }
 
+  /**
+   * 駒作成画面へのリダイレクト（後方互換性のため）
+   */
   @GetMapping("make/koma")
-  public String komaMake(Principal principal, Model model) {
-    List<KomaDB> komas = komaMapper.selectAllKoma();
-    List<KomaDB> canUpdateKomas = komas.stream().filter(k -> k.getUpdateKoma() == -1).toList();
-    model.addAttribute("canUpdateKomas", canUpdateKomas);
-
-    // 利用可能な移動ルールを追加
-    model.addAttribute("availableRules", KomaRule.values());
-
-    // 利用可能な特殊スキルを追加
-    model.addAttribute("availableSkills", KomaSkill.values());
-
-    return "komamake.html";
+  public String komaMakeRedirect() {
+    return "redirect:/koma/make";
   }
 
+  /**
+   * 駒作成保存へのリダイレクト（後方互換性のため）
+   */
   @PostMapping("make/koma/save")
-  @Transactional
-  public String saveKomaData(
-      @RequestParam String name,
-      @RequestParam(required = false) List<String> rules,
-      @RequestParam(required = false) String skill,
-      @RequestParam(required = false) Integer updateKomaId,
-      Principal principal) {
-
-    try {
-      // 1. KomaDBオブジェクトを作成
-      KomaDB newKoma = new KomaDB(name, skill, updateKomaId);
-
-      // 2. komaテーブルにInsert（IDが自動採番される）
-      komaMapper.insertKoma(newKoma);
-
-      // 3. komaruleテーブルへの挿入
-      if (rules != null && !rules.isEmpty()) {
-        for (String ruleName : rules) {
-          KomaRule komaRule = KomaRule.valueOf(ruleName);
-          komaMapper.insertKomaRule(newKoma.getId(), komaRule);
-        }
-      }
-
-    } catch (RuntimeException e) {
-      // エラーログ出力（将来的にはログフレームワークを使用）
-      System.err.println("駒の保存に失敗しました: " + e.getMessage());
-      e.printStackTrace();
-      // トランザクションがロールバックされる
-    }
-
-    return "redirect:/deck/make";
+  public String saveKomaDataRedirect() {
+    return "redirect:/koma/make";
   }
 }
