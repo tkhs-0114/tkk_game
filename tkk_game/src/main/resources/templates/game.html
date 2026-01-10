@@ -20,6 +20,7 @@
     const enemyHaveKoma = /*[[${enemyHaveKoma}]]*/ null;
     const GAME_END = /*[[${GAME_END}]]*/ false;
     const isWinner = /*[[${isWinner}]]*/ null;
+    const turnChanged = /*[[${turnChanged}]]*/ false;
 
     console.log(game);
     console.log(ban);
@@ -282,6 +283,9 @@
       const subText = document.createElement('div');
       subText.className = 'result-subtext';
       subText.textContent = isWin ? 'おめでとうございます！' : 'また挑戦してください';
+
+      const endSound = isWin ? new Audio('/sound/win.mp3') : new Audio('/sound/lose.mp3');
+      endSound.play().catch(e => console.log('音声再生エラー:', e));
       
       content.appendChild(resultText);
       content.appendChild(subText);
@@ -303,6 +307,12 @@
       drawBoard();
       drawHaveKoma(haveKoma, 'haveKoma-container', true);
       drawHaveKoma(enemyHaveKoma, 'haveKoma_E-container', false);
+
+      // ターン変更時に音を再生
+      if (turnChanged) {
+        const komaSound = new Audio('/sound/koma.mp3');
+        komaSound.play().catch(e => console.log('音声再生エラー:', e));
+      }
 
       // エラーメッセージがあれば表示
       if (errMessage) {
@@ -328,12 +338,18 @@
       if (playerStatus === 'GAME_WAITING' || playerStatus === 'GAME_STARTING') {
         // SSE接続でターン情報を受信
         const sse = new EventSource(`/game/turn?gameId=${gameId}`);
+        // let isFirstSSEMessage = true; // SSE初回フラグ
+
         sse.onmessage = function (event) {
           const isNextTurn = JSON.parse(event.data);
           console.log('Is next turn:', isNextTurn);
           if (isNextTurn) {
+            // // 初回メッセージの場合は音なしでリロード、それ以降は音ありでリロード
+            // const soundParam = isFirstSSEMessage ? '' : '?turnChanged=true';
+            // isFirstSSEMessage = false;
+            
             isInternalNavigation = true;
-            window.location.href = `/game`;
+            window.location.href = `/game?turnChanged=true`;
           }
         };
 
