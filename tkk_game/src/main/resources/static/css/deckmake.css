@@ -193,8 +193,9 @@ header h1 {
 
 .board-container .cell.koma {
   font-family: "Yuji Boku", serif;
-  font-weight: 80%;
+  font-weight: 100%;
   font-style: normal;
+  font-size: 2rem;
   display: flex;
   align-items: center;
   justify-content: center;

@@ -275,8 +275,9 @@ a:active {
 /* 駒のスタイル */
 .koma {
   font-family: "Yuji Boku", serif;
-  font-weight: 80%;
+  font-weight: 100%;
   font-style: normal;
+  font-size: 2rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -375,7 +376,7 @@ a:active {
 
 #koma-view {
   height: 100%;
-  max-height: 500px;
+  max-height: 400px;
   min-width: 200px;
   min-height: 300px;
   background-color: rgba(255, 255, 255, 0.8);
