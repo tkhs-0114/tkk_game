@@ -31,6 +31,7 @@ import team3.tkk_game.services.TurnChecker;
 import team3.tkk_game.model.Koma.Koma;
 import team3.tkk_game.model.Koma.KomaDB;
 import team3.tkk_game.model.Koma.KomaRule;
+import team3.tkk_game.model.Koma.KomaSkill;
 
 @Controller
 @RequestMapping("/game")
@@ -161,6 +162,11 @@ public class GameController {
         Koma originalKoma = new Koma(originalKomaDB, originalKomaRules, targetKoma.getOwner(),
             targetKoma.getOriginalKoma());
         targetKoma = originalKoma;
+      }
+      if (koma.getSkill() == KomaSkill.COPY) {
+        // COPYスキル発動
+        List<KomaRule> copiedRules = new java.util.ArrayList<>(targetKoma.getRules());
+        koma.setRules(new java.util.ArrayList<>(copiedRules));
       }
       game.getBan().setKomaAt(toX, toY, null);
       game.addHaveKomaByName(loginPlayerName, targetKoma);

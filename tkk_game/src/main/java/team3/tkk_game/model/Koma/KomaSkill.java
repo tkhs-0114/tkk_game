@@ -2,7 +2,8 @@ package team3.tkk_game.model.Koma;
 
 public enum KomaSkill {
   NULL(0),
-  STEALTH(5);
+  STEALTH(5),
+  COPY(4);
 
   private final int cost;
 

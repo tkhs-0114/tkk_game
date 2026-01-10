@@ -46,6 +46,10 @@ public class Koma {
     return rules;
   }
 
+  public void setRules(ArrayList<KomaRule> rules) {
+    this.rules = rules;
+  }
+
   public Player getOwner() {
     return owner;
   }
