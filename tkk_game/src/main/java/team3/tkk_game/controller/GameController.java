@@ -155,6 +155,7 @@ public class GameController {
     Koma targetKoma = game.getBan().getKomaAt(toX, toY);
     if (targetKoma != null) {
       targetKoma.setOwner(game.getPlayerByName(loginPlayerName));
+      game.getBan().setKomaAt(toX, toY, null);
       game.addHaveKomaByName(loginPlayerName, targetKoma);
     }
 
@@ -457,7 +458,7 @@ public class GameController {
   /**
    * プレイヤーの切断を通知するエンドポイント
    * ブラウザクローズや他サイトへの遷移時に呼ばれる
-   * 
+   *
    * @param principal ログイン中のプレイヤー情報
    * @return 切断通知の結果
    */
