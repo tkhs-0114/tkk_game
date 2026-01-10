@@ -45,20 +45,16 @@ Spring Boot を用いた Web アプリケーション。将棋風のボードゲ
 | `/game/turn` | GET (SSE) | 認証必須 | ゲームターン情報をリアルタイム配信 |
 | `/game/result` | GET | 認証必須 | ゲーム結果画面表示 |
 | `/game/movable` | GET | 認証必須 | 指定した駒の移動可能なマスを取得するAPI (x, y パラメータ) |
-| `/deck/make` | GET | 認証必須 | デッキ作成画面 (自分が使用可能な駒一覧とコスト表示) |
+| `/game/disconnect` | POST | 認証必須 | ゲーム画面からの切断通知を受け付け |
+| `/match/disconnect` | POST | 認証必須 | 待機室/マッチング画面からの切断通知を受け付け |
+| `/deck/make` | GET | 認証必須 | デッキ作成画面 (駒一覧とコスト表示) |
 | `/deck/save` | POST | 認証必須 | デッキ保存 (deckName, sfen パラメータ、コスト上限チェック) |
 | `/deck/select` | GET | 認証必須 | デッキ選択画面 (デッキ名とコスト表示) |
 | `/deck/choose` | POST | 認証必須 | デッキ選択確定 (deckId パラメータ) |
 | `/deck/load/{id}` | GET | 認証必須 | デッキ読み込み (セッションに保存) |
 | `/deck/delete/{id}` | GET | 認証必須 | デッキ削除 |
-| `/deck/make/koma` | GET | 認証必須 | 駒作成画面へリダイレクト (後方互換性) |
-| `/deck/make/koma/save` | POST | 認証必須 | 駒作成保存へリダイレクト (後方互換性) |
-| `/koma/list` | GET | 認証必須 | 自作駒一覧画面 |
-| `/koma/make` | GET | 認証必須 | 駒作成画面 |
-| `/koma/make/save` | POST | 認証必須 | 駒作成保存 (name, rules, skill, updateKomaId パラメータ) |
-| `/koma/edit/{id}` | GET | 認証必須 | 駒編集画面 (所有者のみ) |
-| `/koma/update/{id}` | POST | 認証必須 | 駒更新 (所有者のみ) |
-| `/koma/delete/{id}` | GET | 認証必須 | 駒削除 (所有者のみ) |
+| `/deck/make/koma` | GET | 認証必須 | 駒作成画面 |
+| `/deck/make/koma/save` | POST | 認証必須 | 駒作成保存 (name, rules, skill, updateKomaId パラメータ) |
 
 ## 認証仕様
 - 認証方式: フォームログイン (Spring Security)
@@ -90,16 +86,19 @@ Spring Boot を用いた Web アプリケーション。将棋風のボードゲ
 - デッキ作成・選択画面へのリンクを提供
 - 自作駒一覧画面へのリンクを提供
 - ホーム画面にアクセス時、待機室から自動的に削除され、既存ゲームも削除される
+- 和風デザインのCSS適用（`home.css`）
 
 ### マッチング画面 (`tkk_game/src/main/resources/templates/match.html`)
 - Thymeleaf テンプレート
 - SSE により待機中のプレイヤー一覧をリアルタイム表示
 - 他プレイヤーへの対戦リクエスト送信機能
+- 和風デザインのCSS適用（`match.css`）
 
 ### 待機画面 (`tkk_game/src/main/resources/templates/waiting.html`)
 - Thymeleaf テンプレート
 - 部屋作成後の待機画面
 - 対戦リクエストの受信・承認・拒否機能
+- 和風デザインのCSS適用（`waiting.css`）
 
 ### デッキ作成画面 (`tkk_game/src/main/resources/templates/deckmake.html`)
 - Thymeleaf テンプレート
@@ -108,6 +107,8 @@ Spring Boot を用いた Web アプリケーション。将棋風のボードゲ
 - デッキの合計コストをリアルタイム表示
 - コスト上限（50）を超えると保存時にエラー
 - 駒作成画面へのリンク
+- リセットボタンで配置した駒をすべてクリア可能
+- 和風デザインのCSS適用（`deckmake.css`）
 
 ### 自作駒一覧画面 (`tkk_game/src/main/resources/templates/komalist.html`)
 - Thymeleaf テンプレート
@@ -120,7 +121,8 @@ Spring Boot を用いた Web アプリケーション。将棋風のボードゲ
 - Thymeleaf テンプレート
 - 駒名の入力フォーム
 - 移動ルールの選択（チェックボックス）
-- 特殊スキルの選択（ラジオボタン）
+- 特殊スキルの選択（ラジオボタン、1つのみ選択可能）
+- 合計コストのリアルタイム表示（移動ルールコスト + スキルコスト）
 - 成り先駒の選択（成らない駒のみ選択可能）
 - 駒をデータベースに保存する機能
 - 作成者に所有権を付与
@@ -134,8 +136,9 @@ Spring Boot を用いた Web アプリケーション。将棋風のボードゲ
 
 ### デッキ選択画面 (`tkk_game/src/main/resources/templates/deckselect.html`)
 - Thymeleaf テンプレート
-- 保存済みデッキ一覧の表示（デッキ名とコストを表示）
-- デッキの読み込み・削除機能
+- プレイヤーが使用可能なデッキ一覧の表示（デッキ名とコストを表示）
+- デッキの読み込み・削除機能（削除は所有者のみ可能）
+- 和風デザインのCSS適用（`deckselect.css`）
 
 ### ゲーム画面 (`tkk_game/src/main/resources/templates/game.html`)
 - Thymeleaf テンプレート
@@ -146,6 +149,8 @@ Spring Boot を用いた Web アプリケーション。将棋風のボードゲ
 - 自分のターンでない場合は待機状態
 - 駒の成り機能（成るボタン）
 - 持ち駒の表示と配置機能
+- 勝利・敗北時の演出表示
+- 和風デザインのCSS適用（`game.css`）
 
 ### 結果画面 (`/game/result`)
 - ゲーム終了時に表示される画面
@@ -237,8 +242,11 @@ Spring Boot を用いた Web アプリケーション。将棋風のボードゲ
 - イベント駆動型でクライアントにターン変更通知を送信
 - `registerPlayerEmitter(String playerName, String gameId)`: プレイヤーのEmitterを登録
 - `notifyTurnChange(String gameId, String currentTurnPlayerName)`: ターン変更を該当ゲームの全プレイヤーに通知
+- `notifyPlayerDisconnection(String gameId, String disconnectedPlayerName)`: 相手プレイヤーに切断を通知
 - `removeEmitter(String playerName)`: プレイヤーのEmitterを削除
 - `removePlayerEmittersByGameId(String gameId)`: 指定されたゲームIDに関連するすべてのEmitterを削除（ゲーム終了時に使用）
+- `sendHeartbeat()`: 5秒ごとにheartbeatを送信（`@Scheduled(fixedRate = 5000)`）
+- SSEタイムアウト設定: 30秒
 
 #### `TurnChecker` サービス
 - `@Async` による非同期処理（従来方式、現在は `GameEventEmitterManager` に移行）
@@ -253,6 +261,18 @@ Spring Boot を用いた Web アプリケーション。将棋風のボードゲ
 #### `WaitRoomEventEmitterManager` サービス
 - 待機室イベントのSSE配信を管理するクラス
 - イベント駆動型でクライアントにマッチング状態を通知
+- SSEタイムアウト設定: 30秒
+
+#### `DisconnectionHandler` サービス
+- プレイヤー切断時の処理を一元管理するクラス
+- `handlePlayerDisconnection(String playerName, String reason)`: ゲーム中の切断処理
+  - 相手プレイヤーへのSSE通知
+  - プレイヤーステータスをOFFLINEに変更
+  - Emitter削除
+  - ゲームの終了処理
+- `handleWaitRoomDisconnection(String playerName)`: 待機室での切断処理
+  - ルームオーナーの場合はルーム削除
+  - リクエスト送信者の場合はリクエストクリア
 
 ## コントローラー仕様
 
@@ -266,6 +286,7 @@ Spring Boot を用いた Web アプリケーション。将棋風のボードゲ
 - `/match/sendRequest`: 対戦リクエスト送信
 - `/match/accept`: 対戦リクエスト承認、ゲーム開始
 - `/match/reject`: 対戦リクエスト拒否
+- `/match/disconnect`: 待機室/マッチング画面からの切断通知を受け付け、`DisconnectionHandler.handleWaitRoomDisconnection()` を呼び出し
 
 ### `GameController`
 - `/game/start`: ゲーム開始処理、選択されたデッキから駒の初期配置を盤面に反映
@@ -275,16 +296,17 @@ Spring Boot を用いた Web アプリケーション。将棋風のボードゲ
 - `/game/turn`: SSE エンドポイント、ターン情報を配信（`TurnChecker` 経由で `GameEventEmitterManager` を使用）
 - `/game/result`: ゲーム結果画面表示、勝者・敗者の得点調整（コメントで記載、未実装）
 - `/game/movable`: 指定した駒の移動可能なマスを取得するAPI（JSONレスポンス）
+- `/game/disconnect`: ゲーム画面からの切断通知を受け付け、`DisconnectionHandler.handlePlayerDisconnection()` を呼び出し
 
 ### `DeckController`
 - `/deck/make`: デッキ作成画面表示、駒一覧取得、駒ごとのコスト計算、コスト上限設定
-- `/deck/save`: デッキ保存 (名前とSFEN)、コスト上限チェック、コスト値をDBに保存
-- `/deck/select`: デッキ選択画面表示（デッキ名とコストを表示）
+- `/deck/save`: デッキ保存 (名前とSFEN)、コスト上限チェック、コスト値をDBに保存、PlayerDeckに所有者として登録
+- `/deck/select`: デッキ選択画面表示（プレイヤーが使用可能なデッキのみ表示）
 - `/deck/choose`: デッキ選択確定
 - `/deck/load/{id}`: デッキ読み込み (セッション保存)
-- `/deck/delete/{id}`: デッキ削除
-- `/deck/make/koma`: 駒作成画面表示、成り先候補駒一覧取得
-- `/deck/make/koma/save`: 駒作成保存、トランザクション管理
+- `/deck/delete/{id}`: デッキ削除（所有者のみ削除可能、PlayerDeckの紐づけも削除）
+- `/deck/make/koma`: 駒作成画面表示、成り先候補駒一覧取得、利用可能な移動ルール・スキル一覧取得
+- `/deck/make/koma/save`: 駒作成保存（スキル含む）、トランザクション管理
 
 ## 非同期・スケジューリング設定
 - `@EnableAsync`: 非同期処理を有効化
@@ -326,6 +348,16 @@ Spring Boot を用いた Web アプリケーション。将棋風のボードゲ
 | username | VARCHAR(255) | ユーザー名（ユニーク制約） |
 | selected_deck_id | INT (FK, NULL可) | 選択中のデッキID（Deckテーブルへの外部キー） |
 
+#### PlayerDeck テーブル
+| カラム名 | 型 | 説明 |
+|----------|-----|------|
+| id | INT (PK, AUTO_INCREMENT) | レコードID |
+| player_id | INT (FK) | プレイヤーID（Playerテーブルへの外部キー） |
+| deck_id | INT (FK) | デッキID（Deckテーブルへの外部キー） |
+| is_owner | BOOLEAN | デッキの所有者かどうか（デフォルト: FALSE） |
+
+※ `PlayerDeck` テーブルはプレイヤーとデッキの多対多の関係を管理し、デッキの使用権限と所有者情報を保持する。
+
 ### 初期データ (駒マスタ)
 | ID | 名前 | スキル | 成り先ID |
 |----|------|--------|---------|
@@ -348,15 +380,32 @@ Spring Boot を用いた Web アプリケーション。将棋風のボードゲ
 ### 初期データ (デッキ)
 | ID | 名前 | SFEN | コスト |
 |----|------|------|--------|
-| 1 | sample | 5/2[0]2 | 8 |
+| 1 | 共通デッキ(王のみ) | 5/2[0]2 | 8 |
+| 2 | 共通デッキ(デバッグ用) | 5/[7][3][0][1][14] | 35 |
+| 3 | user1のデッキ | 5/2[0]2 | 8 |
+| 4 | user2のデッキ | 5/2[0]2 | 8 |
+| 5 | user3のデッキ | 5/2[0]2 | 8 |
+| 6 | user4のデッキ | 5/2[0]2 | 8 |
 
 ### 初期データ (プレイヤー)
 | ユーザー名 | 選択中のデッキID |
 |-----------|----------------|
-| user1 | 1 |
-| user2 | 1 |
-| user3 | 1 |
-| user4 | null (デッキ未選択) |
+| user1 | 3 |
+| user2 | 4 |
+| user3 | 5 |
+| user4 | 6 |
+
+### 初期データ (PlayerDeck - デッキ使用権限)
+| プレイヤー | 使用可能デッキ | 所有者 |
+|-----------|------------------------------|--------|
+| user1 | 共通デッキ(王のみ), 共通デッキ(デバッグ用) | No |
+| user1 | user1のデッキ | Yes |
+| user2 | 共通デッキ(王のみ), 共通デッキ(デバッグ用) | No |
+| user2 | user2のデッキ | Yes |
+| user3 | 共通デッキ(王のみ), 共通デッキ(デバッグ用) | No |
+| user3 | user3のデッキ | Yes |
+| user4 | 共通デッキ(王のみ), 共通デッキ(デバッグ用) | No |
+| user4 | user4のデッキ | Yes |
 
 ### 初期データ (駒移動ルール)
 | 駒ID | 駒名 | ルール |
@@ -391,11 +440,19 @@ Spring Boot を用いた Web アプリケーション。将棋風のボードゲ
 - `selectAllDecks()`: 全デッキを取得
 - `selectDeckById(int id)`: IDでデッキを取得
 - `deleteDeckById(int id)`: IDでデッキを削除
+- `selectDecksByPlayerUsername(String username)`: プレイヤーが使用可能なデッキを取得（PlayerDeckテーブル経由）
 
 ### `PlayerMapper`
 - `getSelectedDeckIdByName(String username)`: ユーザー名から選択中のデッキIDを取得
 - `updateSelectedDeckId(String username, Integer deckId)`: 選択中のデッキIDを更新
 - `clearSelectedDeckId(Integer deckId)`: 指定したデッキIDを選択しているプレイヤーの選択を解除
+
+### `PlayerDeckMapper`
+- `insertPlayerDeck(PlayerDeck playerDeck)`: プレイヤーにデッキの使用権限を付与
+- `selectPlayerIdByUsername(String username)`: ユーザー名からプレイヤーIDを取得
+- `deletePlayerDecksByDeckId(int deckId)`: 特定のデッキに紐づく全てのPlayerDeckを削除
+- `insertPlayerDeckForAllPlayers(int deckId)`: 全てのプレイヤーにデッキの使用権限を一括付与
+- `isOwner(int playerId, int deckId)`: 指定されたプレイヤーが指定されたデッキの所有者かチェック
 
 ## ディレクトリ構成
 | パス | 役割 |
@@ -417,15 +474,24 @@ Spring Boot を用いた Web アプリケーション。将棋風のボードゲ
 | `tkk_game/src/main/java/team3/tkk_game/model/PlayerStatus.java` | プレイヤーステータス列挙型 |
 | `tkk_game/src/main/java/team3/tkk_game/model/GameRoom.java` | ゲーム管理モデル |
 | `tkk_game/src/main/java/team3/tkk_game/model/WaitRoom.java` | 待機室管理モデル |
+| `tkk_game/src/main/java/team3/tkk_game/model/PlayerDeck.java` | プレイヤーデッキ紐づけモデル |
 | `tkk_game/src/main/java/team3/tkk_game/mapper/KomaMapper.java` | 駒マッパー (MyBatis) |
 | `tkk_game/src/main/java/team3/tkk_game/mapper/DeckMapper.java` | デッキマッパー (MyBatis) |
 | `tkk_game/src/main/java/team3/tkk_game/mapper/PlayerMapper.java` | プレイヤーマッパー (MyBatis) |
+| `tkk_game/src/main/java/team3/tkk_game/mapper/PlayerDeckMapper.java` | プレイヤーデッキ紐づけマッパー (MyBatis) |
 | `tkk_game/src/main/java/team3/tkk_game/services/TurnChecker.java` | ターンチェックサービス (SSE、従来方式) |
 | `tkk_game/src/main/java/team3/tkk_game/services/MatchChecker.java` | マッチングチェックサービス (SSE) |
 | `tkk_game/src/main/java/team3/tkk_game/services/MoveValidator.java` | 駒移動可否判定サービス |
-| `tkk_game/src/main/java/team3/tkk_game/services/GameEventEmitterManager.java` | ゲームイベントSSE配信管理サービス（イベント駆動型） |
+| `tkk_game/src/main/java/team3/tkk_game/services/GameEventEmitterManager.java` | ゲームイベントSSE配信管理サービス（イベント駆動型、heartbeat機能、切断通知） |
 | `tkk_game/src/main/java/team3/tkk_game/services/WaitRoomEventEmitterManager.java` | 待機室イベントSSE配信管理サービス |
+| `tkk_game/src/main/java/team3/tkk_game/services/DisconnectionHandler.java` | 切断処理統合サービス |
 | `tkk_game/src/main/resources/static/index.html` | トップページ (静的) |
+| `tkk_game/src/main/resources/static/css/game.css` | ゲーム画面用CSS（和風デザイン） |
+| `tkk_game/src/main/resources/static/css/home.css` | ホーム画面用CSS（和風デザイン） |
+| `tkk_game/src/main/resources/static/css/match.css` | マッチング画面用CSS（和風デザイン） |
+| `tkk_game/src/main/resources/static/css/waiting.css` | 待機画面用CSS（和風デザイン） |
+| `tkk_game/src/main/resources/static/css/deckmake.css` | デッキ作成画面用CSS（和風デザイン） |
+| `tkk_game/src/main/resources/static/css/deckselect.css` | デッキ選択画面用CSS（和風デザイン） |
 | `tkk_game/src/main/resources/templates/home.html` | ホーム画面テンプレート |
 | `tkk_game/src/main/resources/templates/match.html` | マッチング画面テンプレート |
 | `tkk_game/src/main/resources/templates/waiting.html` | 待機画面テンプレート |
@@ -441,15 +507,18 @@ Spring Boot を用いた Web アプリケーション。将棋風のボードゲ
 | `docs/tasks.md` | 現在の作業計画 |
 | `docs/reports/done/2025-11-11_ログイン機能最小実装.md` | 完了レポート (ログイン機能) |
 | `docs/reports/done/done_2026-01-05_コストシステム実装.md` | 完了レポート (コストシステム) |
+| `docs/reports/done/done_2026-01-05_切断処理基盤実装.md` | 完了レポート (切断処理基盤) |
 | `docs/reports/investigate/2025-11-11_ログイン機能実装方法調査.md` | 調査レポート (ログイン機能) |
 | `docs/reports/investigate/2025-12-23_canMoveサービス分離調査.md` | 調査レポート (canMoveサービス分離) |
 | `docs/reports/investigate/2026-01-04_駒作成フォームのDB保存実装方法調査.md` | 調査レポート (駒作成フォームのDB保存) |
 | `docs/reports/investigate/2026-01-05_コストシステム実装方法調査.md` | 調査レポート (コストシステム) |
 | `docs/reports/investigate/2026-01-05_コスト機能拡張実装方法調査.md` | 調査レポート (コスト機能拡張) |
+| `docs/reports/investigate/2026-01-05_切断処理基盤調査.md` | 調査レポート (切断処理基盤) |
 | `docs/reports/review/2025-11-11_最小ログイン機能.md` | レビューレポート (ログイン機能) |
 | `docs/reports/review/review_2025-12-23_canMoveサービス分離.md` | レビューレポート (canMoveサービス分離) |
 | `docs/reports/review/review_2025-12-23_SSEイベント駆動化.md` | レビューレポート (SSEイベント駆動化) |
 | `docs/reports/review/review_2026-01-04_駒作成機能実装.md` | レビューレポート (駒作成機能) |
+| `docs/reports/review/review_2026-01-05_切断処理基盤実装.md` | レビューレポート (切断処理基盤) |
 | `docs/reports/review/plan_2026-01-04_駒作成機能実装計画.md` | 実装計画 (駒作成機能) |
 
 ## 現状の実装状態
@@ -478,10 +547,17 @@ Spring Boot を用いた Web アプリケーション。将棋風のボードゲ
 - ✅ MyBatisによるデータアクセス層
 - ✅ デッキ作成・保存機能（コストシステム対応）
 - ✅ デッキ選択・読み込み・削除機能（コスト表示対応）
-- ✅ 駒作成機能（駒名、移動ルール、成り先の設定が可能）
+- ✅ デッキ所有者管理機能
+  - ✅ PlayerDeckテーブルによるデッキ使用権限管理
+  - ✅ デッキ作成者が所有者として登録
+  - ✅ 所有者のみデッキ削除可能
+  - ✅ 共通デッキは全プレイヤーが使用可能
+- ✅ 駒作成機能（駒名、移動ルール、スキル、スキル、成り先の設定が可能）
   - ✅ 駒名の入力
   - ✅ 移動ルールの選択（チェックボックス）
+  - ✅ 特殊スキルの選択（ラジオボタン）
   - ✅ 成り先駒の選択（成らない駒のみ選択可能）
+  - ✅ 合計コストのリアルタイム表示
   - ✅ データベースへの保存（トランザクション管理）
 - ✅ コストシステム実装
   - ✅ 駒の移動ルールとスキルにコスト値を設定
@@ -496,54 +572,68 @@ Spring Boot を用いた Web アプリケーション。将棋風のボードゲ
   - ✅ 移動ルールの保存
   - ✅ 成り先駒の設定
 - ✅ ゲーム開始時のデッキ配置機能（選択されたデッキを盤面に配置）
+- ✅ 切断処理基盤実装
+  - ✅ ブラウザを閉じる・他サイトに移動時の切断通知 (`beforeunload` + `sendBeacon`)
+  - ✅ SSEタイムアウト設定（30秒）
+  - ✅ Heartbeat機能（5秒ごと）
+  - ✅ 相手プレイヤーへの切断通知
+  - ✅ ゲーム中の切断処理（`DisconnectionHandler`）
+  - ✅ 待機室での切断処理（`DisconnectionHandler`）
+  - ✅ 切断エンドポイント（`/game/disconnect`, `/match/disconnect`）
+- ✅ UI改善（和風デザイン統一）
+  - ✅ 全画面に専用CSS適用（game.css, home.css, match.css, waiting.css, deckmake.css, deckselect.css）
+  - ✅ ゲーム画面に勝利・敗北演出を追加
+  - ✅ 和紙風背景と明朝体フォントで統一
+- ✅ デッキ作成画面の機能拡張
+  - ✅ リセットボタンで配置した駒をすべてクリア可能
 
 ## 未実装タスク一覧
 
 ### 必須タスク（優先度: 最高）
-- **切断処理の実装**
-  - SSE切断時の適切なクリーンアップ
-  - 切断時の対戦相手への通知
-  - ゲーム中断時の処理
-
 - **駒のスキル関連**
   - 新たにスキルを追加
-  - 駒作成画面でスキルを選べるように
-  - デッキ作成でスキルを選べるように
 
-- **ゲーム画面のUI改善**
-  - 配置のデザイン
-  - サウンドエフェクトの追加（駒を動かす音、取る音など）←これは優先度中
+- **ゲームルール改善**
+  - 持ち駒から王の再設置ができないようにする
 
-- **駒作成画面のUI改善**
-  - 選択中のルールの合計コストをリアルタイム表示
-  - スキル選択機能の追加
-  - 作成済み駒の一覧表示
+### 優先度: 高（実装検討中）
+
+- **ゲームルール改善**
+  - 成った駒を取得したら成る前の駒で取得したい
+  - 二重に成るのを禁止
+  - 成る用のコスト設定
+
+- **駒管理改善**
+  - 駒の文字数問題への対応
+  - 駒作成画面のUI改善（作成済み駒の一覧表示）
+  - 駒の編集・削除機能
+    - 自作駒の編集機能
+    - 自作駒の削除機能（現在insertのみ実装済み）
+    - Mapper に `updateKoma()`, `deleteKoma()` の追加が必要
+
+- **デッキ選択画面のUI改善**
+  - デッキプレビュー機能（盤面の視覚化）
+  - デッキの編集機能（現在は削除のみ）
+
+
+### 優先度: 中（余裕があれば実装）
 
 - **戦績機能**
   - ユーザーテーブルの拡張（現在は基本情報のみ）
   - 勝敗・レーティングの記録
   - 戦績表示画面の作成
 
-### 優先度: 高（実装検討中）
-
-- **マッチング・待機画面のUI改善**
-  - より見やすいレイアウト
-  - プレイヤー情報の充実
-
-- **デッキ選択画面のUI改善**
-  - デッキプレビュー機能（盤面の視覚化）
-  - デッキの編集機能（現在は削除のみ）
-
 - **ランキング機能**
   - レーティングシステム
   - ランキング表示画面
 
-- **駒の編集・削除機能**
-  - 自作駒の編集機能
-  - 自作駒の削除機能（現在insertのみ実装済み）
-  - Mapper に `updateKoma()`, `deleteKoma()` の追加が必要
+- **ゲーム画面の機能追加**
+  - サウンドエフェクトの追加（駒を動かす音、取る音など）
 
-### 優先度: 中（余裕があれば実装）
+- **セキュリティ・UX改善**
+  - RequestParamをURLから隠す（POST化など）
+  - ユーザーを自由に追加できる仕組み（現在はインメモリユーザー固定）
+
 - **エラーハンドリング強化**
   - 異常系のテストとエラー処理
   - タイムアウト処理
