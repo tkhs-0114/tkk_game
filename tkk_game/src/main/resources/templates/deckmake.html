@@ -5,6 +5,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link th:href="@{/css/deckmake.css}" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Yuji+Boku&display=swap" rel="stylesheet">
   <title>デッキ作成</title>
 </head>
 
@@ -111,6 +114,27 @@
   </div>
 
   <script>
+    // 駒の文字数に応じてフォントサイズを動的に調整する関数
+    function adjustKomaFontSize(element) {
+      if (!element) return;
+      const textContent = element.textContent.trim();
+      const charCount = textContent.length;
+      
+      // 文字数に応じてフォントサイズを決定
+      let fontSize;
+      if (charCount <= 2) {
+        fontSize = '2rem';
+      } else if (charCount <= 3) {
+        fontSize = '1.4rem';
+      } else if (charCount <= 4) {
+        fontSize = '1rem';
+      } else {
+        fontSize = '0.8rem';
+      }
+      
+      element.style.fontSize = fontSize;
+    }
+
     // デッキの合計コストを計算して表示
     function updateTotalCost() {
       let totalCost = 0;
@@ -212,6 +236,7 @@
           cell.classList.add('koma');
           cell.dataset.komaId = id;
           cell.dataset.cost = cost;
+          adjustKomaFontSize(cell);
         }
         updateTotalCost();
       });

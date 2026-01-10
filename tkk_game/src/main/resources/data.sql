@@ -14,6 +14,7 @@ INSERT INTO koma VALUES (12,'馬', NULL, -1);
 INSERT INTO koma VALUES (13,'龍', NULL, -1);
 
 INSERT INTO koma VALUES (14,'忍び', 'STEALTH', 14);
+INSERT INTO koma VALUES (15,'役者', 'COPY', 15);
 
 
 INSERT INTO KomaRule (koma_id, rule) VALUES (0, 'UP');
@@ -94,8 +95,10 @@ INSERT INTO KomaRule (koma_id, rule) VALUES (14, 'UP_RIGHT');
 INSERT INTO KomaRule (koma_id, rule) VALUES (14, 'DOWN_LEFT');
 INSERT INTO KomaRule (koma_id, rule) VALUES (14, 'DOWN_RIGHT');
 
+INSERT INTO KomaRule (koma_id, rule) VALUES (15, 'UP');
+
 -- komaテーブルのAUTO_INCREMENTシーケンスを次のIDに設定
-ALTER TABLE koma ALTER COLUMN id RESTART WITH 15;
+ALTER TABLE koma ALTER COLUMN id RESTART WITH 16;
 
 INSERT INTO Deck (name, sfen, cost) VALUES ('共通デッキ(王のみ)', '5/2[0]2', 8);
 INSERT INTO Deck (name, sfen, cost) VALUES ('共通デッキ(デバッグ用)', '5/[7][3][0][1][14]', 35);

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link th:href="@{/css/preview.css}" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Yuji+Boku&display=swap" rel="stylesheet">
+  <title>ゲーム</title>
+  <script th:inline="javascript">
+    const ban = /*[[${ban}]]*/ null;
+
+    function drawBoard() {
+      const boardContainer = document.getElementById('board-container');
+      if (!ban || !ban.board) {
+        boardContainer.innerHTML = '<p>盤面データがありません</p>';
+        return;
+      }
+
+      let html = '<table border="1">';
+
+      const boardLength = ban.board.length;
+
+      for (let y = 3; y < boardLength; y++) {
+        html += '<tr>';
+        for (let x = 0; x < boardLength; x++) {
+          const cell = ban.board[x][y];
+
+          let cellContent = (cell && cell.name) ?
+            `<div class="cell koma">${cell.name}</div>`
+            : `<div class="cell">　</div>`;
+          html += `<td>${cellContent}</td>`;
+        }
+        html += '</tr>';
+      }
+
+      html += '</table>';
+      boardContainer.innerHTML = html;
+    }
+    window.onload = function () {
+      // 盤面を描画
+      drawBoard();
+    };
+  </script>
+</head>
+
+<body>
+  <div class="game-board-layout">
+    <div id="board-container">
+      <!-- 盤面がここに表示されます -->
+    </div>
+  </div>
+</body>
+
+</html>

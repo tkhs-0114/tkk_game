@@ -193,8 +193,9 @@ header h1 {
 
 .board-container .cell.koma {
   font-family: "Yuji Boku", serif;
-  font-weight: 80%;
+  font-weight: 100%;
   font-style: normal;
+  font-size: clamp(0.8rem, 4vw, 2rem);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -203,6 +204,9 @@ header h1 {
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* メッセージ表示 */

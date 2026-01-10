@@ -29,6 +29,11 @@
           <tr th:each="deck : ${decks}">
             <td th:text="${deck.name}">デッキ名</td>
             <td class="actions">
+              <span class="action-link preview-trigger">確認
+                <div class="preview-popup">
+                  <iframe th:src="@{'/deck/preview/' + ${deck.id}}"></iframe>
+                </div>
+              </span>
               <a th:href="@{'/deck/load/' + ${deck.id}}" class="action-link">選択</a>
               <a th:if="${deck.isOwner}" th:href="@{'/deck/delete/' + ${deck.id}}" class="action-link delete"
                 onclick="return confirm('削除してよいですか？');">削除</a>
