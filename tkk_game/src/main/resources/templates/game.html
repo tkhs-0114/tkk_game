@@ -32,6 +32,43 @@
     let isDetailLocked = false; // 詳細表示の固定状態
     let isInternalNavigation = false; // ゲーム内での正当な遷移かどうかを判別
 
+    // 駒の文字数に応じてフォントサイズを動的に調整する関数
+    function adjustKomaFontSize(element) {
+      if (!element) return;
+      const textContent = element.textContent.trim();
+      const charCount = textContent.length;
+      
+      // 文字数に応じてフォントサイズを決定
+      let fontSize;
+      if (charCount <= 2) {
+        fontSize = '2rem';
+      } else if (charCount <= 3) {
+        fontSize = '1.4rem';
+      } else if (charCount <= 4) {
+        fontSize = '1rem';
+      } else {
+        fontSize = '0.8rem';
+      }
+      
+      element.style.fontSize = fontSize;
+    }
+
+    // すべての駒のサイズを調整する関数
+    function adjustAllKomaFontSizes() {
+      // 盤面の駒
+      document.querySelectorAll('#board-container .cell.koma').forEach(element => {
+        adjustKomaFontSize(element);
+      });
+      // 持ち駒
+      document.querySelectorAll('#haveKoma-container .cell.koma').forEach(element => {
+        adjustKomaFontSize(element);
+      });
+      // 相手の持ち駒
+      document.querySelectorAll('#haveKoma_E-container .cell.koma').forEach(element => {
+        adjustKomaFontSize(element);
+      });
+    }
+
     // 配列のインデックスを盤面の座標に変換
     function Xa2b(arrayIndex) {
       return arrayIndex - (ban.board.length - 1) / 2;
@@ -224,6 +261,7 @@
 
       html += '</table>';
       boardContainer.innerHTML = html;
+      adjustAllKomaFontSizes();
     }
 
     function selectHaveKoma(index) {
@@ -265,6 +303,7 @@
       html += '</tr>';
       html += '</table>';
       komaContainer.innerHTML = html;
+      adjustAllKomaFontSizes();
     }
 
     // 勝利・敗北演出を表示する関数
