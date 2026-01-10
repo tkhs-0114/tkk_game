@@ -155,12 +155,14 @@ public class GameController {
     Koma targetKoma = game.getBan().getKomaAt(toX, toY);
     if (targetKoma != null) {
       targetKoma.setOwner(game.getPlayerByName(loginPlayerName));
-      if(targetKoma.getOriginalKoma() != -1) {
+      if (targetKoma.getOriginalKoma() != -1) {
         KomaDB originalKomaDB = komaMapper.selectKomaById(targetKoma.getOriginalKoma());
         List<KomaRule> originalKomaRules = komaMapper.selectKomaRuleById(targetKoma.getOriginalKoma());
-        Koma originalKoma = new Koma(originalKomaDB, originalKomaRules, targetKoma.getOwner(), targetKoma.getOriginalKoma());
+        Koma originalKoma = new Koma(originalKomaDB, originalKomaRules, targetKoma.getOwner(),
+            targetKoma.getOriginalKoma());
         targetKoma = originalKoma;
       }
+      game.getBan().setKomaAt(toX, toY, null);
       game.addHaveKomaByName(loginPlayerName, targetKoma);
     }
 

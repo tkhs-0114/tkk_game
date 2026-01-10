@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import team3.tkk_game.model.Koma.Koma;
 
 public class Game {
+  private static final int KING_ID = 0;
   // デバッグ用にpublicに変更
   String id;
   Date lastActivity;
@@ -114,9 +115,9 @@ public class Game {
   }
 
   public void addHaveKomaByName(String playerName, Koma koma) {
-    if (player1.getName().equals(playerName)) {
+    if (player1.getName().equals(playerName) && koma.getId() != KING_ID) {
       haveKoma1.add(getHaveKomaIndex(haveKoma1, koma), koma);
-    } else if (player2.getName().equals(playerName)) {
+    } else if (player2.getName().equals(playerName) && koma.getId() != KING_ID) {
       haveKoma2.add(getHaveKomaIndex(haveKoma2, koma), koma);
     }
   }
