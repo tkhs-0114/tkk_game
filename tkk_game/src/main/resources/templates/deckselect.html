@@ -35,6 +35,7 @@
                 </div>
               </span>
               <a th:href="@{'/deck/load/' + ${deck.id}}" class="action-link">選択</a>
+              <a th:if="${deck.isOwner}" th:href="@{'/deck/edit/' + ${deck.id}}" class="action-link">編集</a>
               <a th:if="${deck.isOwner}" th:href="@{'/deck/delete/' + ${deck.id}}" class="action-link delete"
                 onclick="return confirm('削除してよいですか？');">削除</a>
             </td>

@@ -150,6 +150,106 @@ public class DeckController {
     return "redirect:/home";
   }
 
+  @GetMapping("/edit/{id}")
+  public String editDeck(@PathVariable("id") int deckId, Principal principal, Model model,
+      RedirectAttributes redirectAttributes) {
+    // プレイヤーIDを取得
+    Integer playerId = playerDeckMapper.selectPlayerIdByUsername(principal.getName());
+    if (playerId == null) {
+      redirectAttributes.addFlashAttribute("error", "プレイヤー情報が見つかりません");
+      return "redirect:/deck/select";
+    }
+
+    // 所有者かどうかをチェック
+    Boolean isOwner = playerDeckMapper.isOwner(playerId, deckId);
+    if (isOwner == null || !isOwner) {
+      redirectAttributes.addFlashAttribute("error", "このデッキは編集できません（所有者のみ編集可能）");
+      return "redirect:/deck/select";
+    }
+
+    // デッキ情報を取得
+    Deck deck = deckMapper.selectDeckById(deckId);
+    if (deck == null) {
+      redirectAttributes.addFlashAttribute("error", "デッキが見つかりません");
+      return "redirect:/deck/select";
+    }
+
+    model.addAttribute("deck", deck);
+    model.addAttribute("isEditMode", true);
+    model.addAttribute("playerName", principal.getName());
+
+    // 利用可能な駒を取得
+    List<KomaDB> komas = komaMapper.selectKomasByPlayerUsername(principal.getName());
+    List<KomaDB> cantUpdateKomas = komas.stream().filter(k -> k.getUpdateKoma() != -1).toList();
+    model.addAttribute("komas", cantUpdateKomas);
+
+    // 各駒のコストを計算してモデルに追加
+    Map<Integer, Integer> komaCosts = new HashMap<>();
+    Map<Integer, String> komaNames = new HashMap<>();
+    for (KomaDB koma : cantUpdateKomas) {
+      List<KomaRule> rules = komaMapper.selectKomaRuleById(koma.getId());
+      int cost = koma.calculateCost(rules);
+      komaCosts.put(koma.getId(), cost);
+      komaNames.put(koma.getId(), koma.getName());
+    }
+    model.addAttribute("komaCosts", komaCosts);
+    model.addAttribute("komaNames", komaNames);
+
+    // コスト上限をモデルに追加
+    model.addAttribute("costLimit", COST_LIMIT);
+
+    return "deckmake.html";
+  }
+
+  @PostMapping("/update/{id}")
+  public String updateDeck(@PathVariable("id") int deckId, @RequestParam String deckName, @RequestParam String sfen,
+      Principal principal, RedirectAttributes redirectAttributes) {
+    // プレイヤーIDを取得
+    Integer playerId = playerDeckMapper.selectPlayerIdByUsername(principal.getName());
+    if (playerId == null) {
+      redirectAttributes.addFlashAttribute("error", "プレイヤー情報が見つかりません");
+      return "redirect:/deck/select";
+    }
+
+    // 所有者かどうかをチェック
+    Boolean isOwner = playerDeckMapper.isOwner(playerId, deckId);
+    if (isOwner == null || !isOwner) {
+      redirectAttributes.addFlashAttribute("error", "このデッキは編集できません（所有者のみ編集可能）");
+      return "redirect:/deck/select";
+    }
+
+    // SFENから駒IDを抽出
+    List<Integer> komaIds = extractKomaIdsFromSfen(sfen);
+
+    // 各駒のコストを取得して合計を計算
+    int totalCost = 0;
+    for (Integer komaId : komaIds) {
+      KomaDB koma = komaMapper.selectKomaById(komaId);
+      if (koma != null) {
+        List<KomaRule> rules = komaMapper.selectKomaRuleById(komaId);
+        totalCost += koma.calculateCost(rules);
+      }
+    }
+
+    // コスト上限チェック
+    if (totalCost > COST_LIMIT) {
+      redirectAttributes.addFlashAttribute("error",
+          "デッキのコストが上限を超えています (" + totalCost + "/" + COST_LIMIT + ")");
+      return "redirect:/deck/edit/" + deckId;
+    }
+
+    // デッキを更新
+    Deck deck = new Deck();
+    deck.setId(deckId);
+    deck.setName(deckName);
+    deck.setSfen(sfen);
+    deck.setCost(totalCost);
+    deckMapper.updateDeck(deck);
+
+    redirectAttributes.addFlashAttribute("success", "デッキを更新しました (コスト: " + totalCost + ")");
+    return "redirect:/deck/select";
+  }
+
   @GetMapping("/delete/{id}")
   public String deleteDeck(@PathVariable("id") int deckId, Principal principal, RedirectAttributes redirectAttributes) {
     // プレイヤーIDを取得

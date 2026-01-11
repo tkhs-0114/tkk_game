@@ -14,7 +14,7 @@
 <body>
   <div class="container">
     <header>
-      <h1>デッキ作成</h1>
+      <h1 th:text="${isEditMode != null and isEditMode} ? 'デッキ編集' : 'デッキ作成'">デッキ作成</h1>
     </header>
 
     <!-- エラー・成功メッセージ表示 -->
@@ -96,15 +96,15 @@
     </div>
 
     <div class="form-section">
-      <form th:action="@{/deck/save}" method="post" id="deck-form">
+      <form th:action="${isEditMode != null and isEditMode} ? @{'/deck/update/' + ${deck.id}} : @{/deck/save}" method="post" id="deck-form">
         <div class="deck-name-wrapper">
           <label for="deck-name">デッキ名：</label>
-          <input id="deck-name" name="deckName" type="text" required />
+          <input id="deck-name" name="deckName" type="text" th:value="${deck != null} ? ${deck.name} : ''" required />
         </div>
         <!-- SFEN を入れる hidden -->
-        <input type="hidden" id="sfen-input" name="sfen" />
+        <input type="hidden" id="sfen-input" name="sfen" th:value="${deck != null} ? ${deck.sfen} : ''" />
 
-        <button type="submit">デッキを保存</button>
+        <button type="submit" th:text="${isEditMode != null and isEditMode} ? 'デッキを更新' : 'デッキを保存'">デッキを保存</button>
         <button type="button" id="reset-button">リセット</button>
       </form>
     </div>
@@ -113,7 +113,14 @@
     </div>
   </div>
 
-  <script>
+  <script th:inline="javascript">
+    /*<![CDATA[*/
+    // 編集モードの場合、サーバー側から渡されたSFENと駒情報を取得
+    const isEditMode = /*[[${isEditMode}]]*/ false;
+    const initialSfen = /*[[${deck != null ? deck.sfen : ''}]]*/ '';
+    const komaNames = /*[[${komaNames}]]*/ {};
+    /*]]>*/
+
     // 駒の文字数に応じてフォントサイズを動的に調整する関数
     function adjustKomaFontSize(element) {
       if (!element) return;
@@ -191,6 +198,66 @@
     function kingcheckSfen(sfen) {
       const king_id = 0;
       return sfen.includes(`[${king_id}]`);
+    }
+
+    // SFENからボードに駒を配置（編集モード用）
+    function loadSfenToBoard(sfen) {
+      if (!sfen) return;
+      
+      const rows = sfen.split('/');
+      const width = 5, height = 2;
+      
+      for (let y = 0; y < height && y < rows.length; y++) {
+        let x = 0;
+        const rowStr = rows[y];
+        let i = 0;
+        
+        while (i < rowStr.length && x < width) {
+          const ch = rowStr[i];
+          
+          // 数字の場合は空マス
+          if (ch >= '0' && ch <= '9') {
+            let j = i + 1;
+            while (j < rowStr.length && rowStr[j] >= '0' && rowStr[j] <= '9') {
+              j++;
+            }
+            const emptyCount = parseInt(rowStr.substring(i, j));
+            x += emptyCount;
+            i = j;
+            continue;
+          }
+          
+          // [id] 形式の駒
+          if (ch === '[') {
+            const closeIdx = rowStr.indexOf(']', i + 1);
+            if (closeIdx !== -1) {
+              const komaId = rowStr.substring(i + 1, closeIdx);
+              const cell = document.querySelector(`.cell[data-x="${x}"][data-y="${y}"]`);
+              if (cell) {
+                const komaName = komaNames[komaId] || '不明';
+                // select要素から駒のコストを取得
+                const selectElement = document.getElementById('koma-select');
+                const option = selectElement.querySelector(`option[value="${komaId}"]`);
+                const cost = option ? option.getAttribute('data-cost') : 0;
+                
+                cell.textContent = komaName;
+                cell.classList.remove('empty');
+                cell.classList.add('koma');
+                cell.dataset.komaId = komaId;
+                cell.dataset.cost = cost;
+                adjustKomaFontSize(cell);
+              }
+              x++;
+              i = closeIdx + 1;
+              continue;
+            }
+          }
+          
+          i++;
+        }
+      }
+      
+      updateTotalCost();
     }
 
     // 駒選択時にコストを表示
@@ -278,6 +345,13 @@
         updateTotalCost();
         document.getElementById('koma-select').selectedIndex = 0;
         document.getElementById('selected-koma-cost').textContent = '';
+      }
+    });
+    
+    // ページ読み込み時に編集モードの場合はSFENからボードに駒を配置
+    window.addEventListener('DOMContentLoaded', function() {
+      if (isEditMode && initialSfen) {
+        loadSfenToBoard(initialSfen);
       }
     });
   </script>
