@@ -79,7 +79,7 @@ public class AuthController {
       // ユーザー登録
       authService.registerUser(username.trim(), password);
       redirectAttributes.addFlashAttribute("success", "アカウントを作成しました。ログインしてください。");
-      return "redirect:/login";
+      return "redirect:/auth/register";
     } catch (IllegalArgumentException e) {
       redirectAttributes.addFlashAttribute("error", e.getMessage());
       return "redirect:/auth/register";
