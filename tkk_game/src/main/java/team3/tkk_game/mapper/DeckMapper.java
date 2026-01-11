@@ -5,6 +5,7 @@ import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Options;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
 
 import team3.tkk_game.model.Deck;
 
@@ -19,6 +20,9 @@ public interface DeckMapper {
 
   @Select("SELECT id, name, sfen, cost FROM Deck WHERE id = #{id}")
   Deck selectDeckById(int id);
+
+  @Update("UPDATE Deck SET name = #{name}, sfen = #{sfen}, cost = #{cost} WHERE id = #{id}")
+  int updateDeck(Deck deck);
 
   @Delete("DELETE FROM Deck WHERE id = #{id}")
   int deleteDeckById(int id);
