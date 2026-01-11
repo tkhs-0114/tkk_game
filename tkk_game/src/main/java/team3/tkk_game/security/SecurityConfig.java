@@ -6,19 +6,21 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
 /**
- * Spring Securityの最小設定クラス
- * TOPページからデフォルトログインフォームに遷移しユーザ takahashi/p@ss でログインできることのみを目的とする
+ * Spring Securityの設定クラス
+ * InMemoryUserDetailsManagerを使用し、動的にユーザーを追加可能
  */
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
   /**
-   * 認可設定: 全パス許可し formLogin の導線のみ確認
+   * 認可設定: formLoginと登録画面への許可
    * ログアウトは /logout で行い成功時 / に戻る
    */
   @Bean
@@ -32,33 +34,28 @@ public class SecurityConfig {
             .ignoringRequestMatchers("/h2-console/**", "/game/disconnect"))
         .headers(headers -> headers.frameOptions(frame -> frame.disable()))
         .authorizeHttpRequests(authz -> authz
-            .requestMatchers("/h2-console/**", "/", "/index.html").permitAll()
+            .requestMatchers("/h2-console/**", "/", "/index.html", "/register", "/auth/**", "/css/**", "/js/**").permitAll()
             .anyRequest().authenticated());
     return http.build();
   }
 
   /**
-   * インメモリユーザ定義
-   * ユーザ: takahashi / p@ss (BCryptハッシュ) ロール: USER
+   * パスワードエンコーダー（BCrypt）
+   */
+  @Bean
+  public PasswordEncoder passwordEncoder() {
+    return new BCryptPasswordEncoder();
+  }
+
+  /**
+   * InMemoryUserDetailsManager（初期ユーザーなし、動的追加用）
    */
   @Bean
   public InMemoryUserDetailsManager userDetailsService() {
-    UserDetails user1 = User.withUsername("user1")
-        .password("{bcrypt}$2y$10$ngxCDmuVK1TaGchiYQfJ1OAKkd64IH6skGsNw1sLabrTICOHPxC0e")
-        .roles("USER")
+    UserDetails admin = User.withUsername("admin")
+        .password("$2y$10$ngxCDmuVK1TaGchiYQfJ1OAKkd64IH6skGsNw1sLabrTICOHPxC0e")
+        .roles("ADMIN")
         .build();
-    UserDetails user2 = User.withUsername("user2")
-        .password("{bcrypt}$2y$10$ngxCDmuVK1TaGchiYQfJ1OAKkd64IH6skGsNw1sLabrTICOHPxC0e")
-        .roles("USER")
-        .build();
-    UserDetails user3 = User.withUsername("user3")
-        .password("{bcrypt}$2y$10$ngxCDmuVK1TaGchiYQfJ1OAKkd64IH6skGsNw1sLabrTICOHPxC0e")
-        .roles("USER")
-        .build();
-    UserDetails user4 = User.withUsername("user4")
-        .password("{bcrypt}$2y$10$ngxCDmuVK1TaGchiYQfJ1OAKkd64IH6skGsNw1sLabrTICOHPxC0e")
-        .roles("USER")
-        .build();
-    return new InMemoryUserDetailsManager(user1, user2, user3, user4);
+    return new InMemoryUserDetailsManager(admin);
   }
 }

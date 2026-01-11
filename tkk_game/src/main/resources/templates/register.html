@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link th:href="@{/css/register.css}" rel="stylesheet">
+  <title>アカウント登録</title>
+</head>
+
+<body>
+  <div class="container">
+    <header>
+      <h1>アカウント登録</h1>
+    </header>
+
+    <!-- エラー・成功メッセージ表示 -->
+    <div th:if="${error}" class="message error" th:text="${error}"></div>
+    <div th:if="${success}" class="message success" th:text="${success}"></div>
+
+    <form th:action="@{/auth/register}" method="post">
+      <div class="form-group">
+        <label for="username">ユーザー名:</label>
+        <input type="text" id="username" name="username" required minlength="3" maxlength="20"
+          placeholder="3〜20文字で入力">
+      </div>
+
+      <div class="form-group">
+        <label for="password">パスワード:</label>
+        <input type="password" id="password" name="password" required minlength="4" placeholder="4文字以上で入力">
+      </div>
+
+      <div class="form-group">
+        <label for="confirmPassword">パスワード（確認）:</label>
+        <input type="password" id="confirmPassword" name="confirmPassword" required>
+      </div>
+
+      <div class="button-group">
+        <button type="submit" class="btn-primary">登録</button>
+      </div>
+    </form>
+
+    <nav class="menu">
+      <a href="/login" class="menu-item">ログイン画面へ</a>
+      <a href="/" class="menu-item">トップに戻る</a>
+    </nav>
+
+    <div class="note">
+      <p>※ このゲームでは、サーバー再起動時にパスワード情報がリセットされます。</p>
+      <p>※ 登録したアカウントでログインできなくなった場合は、再度登録してください。</p>
+    </div>
+  </div>
+</body>
+
+</html>
