@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Yuji+Boku&display=swap" rel="stylesheet">
+  <script th:src="@{/js/komaUtils.js}"></script>
   <title>デッキ作成</title>
 </head>
 
@@ -120,27 +121,6 @@
     const initialSfen = /*[[${deck != null ? deck.sfen : ''}]]*/ '';
     const komaNames = /*[[${komaNames}]]*/ {};
     /*]]>*/
-
-    // 駒の文字数に応じてフォントサイズを動的に調整する関数
-    function adjustKomaFontSize(element) {
-      if (!element) return;
-      const textContent = element.textContent.trim();
-      const charCount = textContent.length;
-      
-      // 文字数に応じてフォントサイズを決定
-      let fontSize;
-      if (charCount <= 2) {
-        fontSize = '2rem';
-      } else if (charCount <= 3) {
-        fontSize = '1.4rem';
-      } else if (charCount <= 4) {
-        fontSize = '1rem';
-      } else {
-        fontSize = '0.8rem';
-      }
-      
-      element.style.fontSize = fontSize;
-    }
 
     // デッキの合計コストを計算して表示
     function updateTotalCost() {
