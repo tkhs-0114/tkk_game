@@ -4,11 +4,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link th:href="@{/css/preview.css}" rel="stylesheet">
+  <link th:href="@{/css/komamake.css}" rel="stylesheet">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Yuji+Boku&display=swap" rel="stylesheet">
-  <title>ゲーム</title>
+  <title>駒作成画面</title>
   <script th:inline="javascript">
 
     // 選択中のルールとスキルのコストを計算して表示
@@ -129,39 +129,68 @@
 </head>
 
 <body>
-  <form th:action="@{/koma/make/save}" method="post">
-    <label for="name">駒の名前:<input type="text" id="name" name="name" required onchange="update()"></label><br>
+  <div class="container">
+    <header class="header">
+      <h1>駒作成</h1>
+    </header>
 
-    <div>
-      <strong>合計コスト：</strong><span id="total-cost-display">0</span>
-    </div>
-
-    <div class="game-board-layout">
-      <div id="board-container">
-        <!-- 盤面がここに表示されます -->
+    <form th:action="@{/koma/make/save}" method="post">
+      <!-- 駒の名前入力 -->
+      <div class="form-section">
+        <div class="form-group">
+          <label for="name">駒の名前</label>
+          <input type="text" id="name" name="name" required onchange="update()" placeholder="駒の名前を入力してください">
+        </div>
       </div>
-    </div>
 
-    <div th:each="rule : ${availableRules}" style="display: none;">
-      <label>
-        <input type="checkbox" class="rule-checkbox" th:id="${rule.name()}" name="rules" th:value="${rule.name()}"
-          th:data-cost="${rule.cost}">
-        <span th:text="${rule.name()}">ルール名</span>
-        <span th:text="'(コスト: ' + ${rule.cost} + ')'">コスト</span>
-      </label>
-    </div>
+      <!-- コスト表示 -->
+      <div class="cost-display">
+        <strong>合計コスト：</strong><span id="total-cost-display">0</span>
+      </div>
 
-    <label>スキル<select id="skill" name="skill" onchange="update()">
-        <option th:each="skill : ${availableSkills}" th:value="${skill.name()}" th:selected="${skill.name() == 'NULL'}"
-          th:data-cost="${skill.cost}" th:text="${skill.name()} + ' (コスト: ' + ${skill.cost} + ')'">スキル名</option>
-      </select></label><br>
+      <!-- 盤面表示 -->
+      <div class="game-board-layout">
+        <div id="board-container">
+          <!-- 盤面がここに表示されます -->
+        </div>
+      </div>
 
-    <label>成り先<select id="updateKoma" name="updateKomaId">
-        <option value="-1" selected>成らない</option>
-        <option th:each="k : ${canUpdateKomas}" th:value="${k.id}" th:text="${k.name}">駒名</option>
-      </select></label><br>
-    <label><button type="submit">作成</button></label>
-  </form>
+      <!-- 隠しチェックボックス（移動ルール） -->
+      <div th:each="rule : ${availableRules}" style="display: none;">
+        <label>
+          <input type="checkbox" class="rule-checkbox" th:id="${rule.name()}" name="rules" th:value="${rule.name()}"
+            th:data-cost="${rule.cost}">
+          <span th:text="${rule.name()}">ルール名</span>
+          <span th:text="'(コスト: ' + ${rule.cost} + ')'">コスト</span>
+        </label>
+      </div>
+
+      <!-- スキルと成り先の選択 -->
+      <div class="form-section">
+        <div class="form-group">
+          <label for="skill">スキル</label>
+          <select id="skill" name="skill" onchange="update()">
+            <option th:each="skill : ${availableSkills}" th:value="${skill.name()}"
+              th:selected="${skill.name() == 'NULL'}" th:data-cost="${skill.cost}"
+              th:text="${skill.name()} + ' (コスト: ' + ${skill.cost} + ')'">スキル名</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="updateKoma">成り先</label>
+          <select id="updateKoma" name="updateKomaId">
+            <option value="-1" selected>成らない</option>
+            <option th:each="k : ${canUpdateKomas}" th:value="${k.id}" th:text="${k.name}">駒名</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 作成ボタン -->
+      <div class="button-area">
+        <button type="submit" class="submit-button">作成</button>
+      </div>
+    </form>
+  </div>
 </body>
 
 </html>
