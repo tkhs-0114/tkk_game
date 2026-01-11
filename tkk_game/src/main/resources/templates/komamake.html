@@ -21,7 +21,7 @@
           ruleCost += cost;
         }
       });
-      // document.getElementById('rule-cost-display').textContent = ruleCost;
+      document.getElementById('rule-cost-display').textContent = ruleCost;
 
       // スキルのコスト計算
       let skillCost = 0;
@@ -145,7 +145,7 @@
 
       <!-- コスト表示 -->
       <div class="cost-display">
-        <strong>合計コスト：</strong><span id="total-cost-display">0</span>
+        <strong>移動コスト：</strong><span id="rule-cost-display">0</span>
       </div>
 
       <!-- 盤面表示 -->
@@ -183,6 +183,11 @@
             <option th:each="k : ${canUpdateKomas}" th:value="${k.id}" th:text="${k.name}">駒名</option>
           </select>
         </div>
+      </div>
+
+      <!-- コスト表示 -->
+      <div class="cost-display">
+        <strong>合計コスト：</strong><span id="total-cost-display">0</span>
       </div>
 
       <!-- 作成ボタン -->
