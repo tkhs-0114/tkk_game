@@ -8,8 +8,14 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Yuji+Boku&display=swap" rel="stylesheet">
-  <title>駒作成画面</title>
+  <title th:text="${isEditMode != null and isEditMode} ? '駒編集' : '駒作成画面'">駒作成画面</title>
   <script th:inline="javascript">
+    /*<![CDATA[*/
+    // 編集モードフラグと駒データを取得
+    const isEditMode = /*[[${isEditMode}]]*/ false;
+    const editKoma = /*[[${koma}]]*/ null;
+    const currentRules = /*[[${currentRules}]]*/ [];
+    /*]]>*/
 
     // 選択中のルールとスキルのコストを計算して表示
     function updateTotalCost() {
@@ -131,15 +137,17 @@
 <body>
   <div class="container">
     <header class="header">
-      <h1>駒作成</h1>
+      <h1 th:text="${isEditMode != null and isEditMode} ? '駒編集' : '駒作成'">駒作成</h1>
     </header>
 
-    <form th:action="@{/koma/make/save}" method="post">
+    <form th:action="@{/koma/save}" method="post">
+      <!-- 編集モードの場合、駒IDをhiddenフィールドで送信 -->
+      <input type="hidden" name="komaId" th:if="${isEditMode != null and isEditMode}" th:value="${koma.id}" />
       <!-- 駒の名前入力 -->
       <div class="form-section">
         <div class="form-group">
           <label for="name">駒の名前</label>
-          <input type="text" id="name" name="name" required onchange="update()" placeholder="駒の名前を入力してください">
+          <input type="text" id="name" name="name" th:value="${koma?.name}" required onchange="update()" placeholder="駒の名前を入力してください">
         </div>
       </div>
 
@@ -159,7 +167,7 @@
       <div th:each="rule : ${availableRules}" style="display: none;">
         <label>
           <input type="checkbox" class="rule-checkbox" th:id="${rule.name()}" name="rules" th:value="${rule.name()}"
-            th:data-cost="${rule.cost}">
+            th:data-cost="${rule.cost}" th:checked="${#lists.contains(currentRules, rule)}">
           <span th:text="${rule.name()}">ルール名</span>
           <span th:text="'(コスト: ' + ${rule.cost} + ')'">コスト</span>
         </label>
@@ -171,16 +179,18 @@
           <label for="skill">スキル</label>
           <select id="skill" name="skill" onchange="update()">
             <option th:each="skill : ${availableSkills}" th:value="${skill.name()}"
-              th:selected="${skill.name() == 'NULL'}" th:data-cost="${skill.cost}"
-              th:text="${skill.name()} + ' (コスト: ' + ${skill.cost} + ')'">スキル名</option>
+              th:selected="${koma?.skill == skill.name() || (koma?.skill == null && skill.name() == 'NULL')}"
+              th:data-cost="${skill.cost}"
+              th:text="${skill.name() == 'NULL' ? 'なし' : skill.name()} + ' (コスト: ' + ${skill.cost} + ')'">スキル名</option>
           </select>
         </div>
 
         <div class="form-group">
           <label for="updateKoma">成り先</label>
           <select id="updateKoma" name="updateKomaId">
-            <option value="-1" selected>成らない</option>
-            <option th:each="k : ${canUpdateKomas}" th:value="${k.id}" th:text="${k.name}">駒名</option>
+            <option value="-1" th:selected="${koma?.updateKoma == null || koma?.updateKoma == -1}">成らない</option>
+            <option th:each="k : ${canUpdateKomas}" th:value="${k.id}" th:text="${k.name}"
+              th:selected="${koma?.updateKoma == k.id}">駒名</option>
           </select>
         </div>
       </div>
@@ -190,9 +200,10 @@
         <strong>合計コスト：</strong><span id="total-cost-display">0</span>
       </div>
 
-      <!-- 作成ボタン -->
+      <!-- 作成/更新ボタン -->
       <div class="button-area">
-        <button type="submit" class="submit-button">作成</button>
+        <button type="submit" class="submit-button" th:text="${isEditMode != null and isEditMode} ? '更新' : '作成'">作成</button>
+        <a href="/koma/list" class="cancel-button" th:if="${isEditMode != null and isEditMode}">キャンセル</a>
       </div>
     </form>
   </div>
