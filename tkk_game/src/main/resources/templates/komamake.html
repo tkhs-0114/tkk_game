@@ -10,7 +10,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Yuji+Boku&display=swap" rel="stylesheet">
   <title>ゲーム</title>
   <script th:inline="javascript">
-    const ban = /*[[${ban}]]*/ null;
 
     // 選択中のルールとスキルのコストを計算して表示
     function updateTotalCost() {
@@ -42,22 +41,18 @@
 
     function drawBoard() {
       const boardContainer = document.getElementById('board-container');
-      if (!ban || !ban.board) {
-        boardContainer.innerHTML = '<p>盤面データがありません</p>';
-        return;
-      }
+      const komaName = document.getElementById('name').value || '駒名';
+      console.log('Drawing board with koma name:', komaName);
 
       let html = '<table border="1">';
 
-      const boardLength = ban.board.length;
+      const boardLength = 5;
 
-      for (let y = 3; y < boardLength; y++) {
+      for (let y = 0; y < boardLength; y++) {
         html += '<tr>';
         for (let x = 0; x < boardLength; x++) {
-          const cell = ban.board[x][y];
-
-          let cellContent = (cell && cell.name) ?
-            `<div class="cell koma">${cell.name}</div>`
+          let cellContent = (x === 2 && y === 2) ?
+            `<div class="cell koma">${komaName}</div>`
             : `<div class="cell">　</div>`;
           html += `<td>${cellContent}</td>`;
         }
@@ -67,11 +62,16 @@
       html += '</table>';
       boardContainer.innerHTML = html;
     }
+    function update() {
+      drawBoard();
+      updateTotalCost();
+    }
     window.onload = function () {
       // 盤面を描画
-      drawBoard();
-      window.addEventListener('DOMContentLoaded', updateTotalCost);
+      update();
     };
+
+    // window.addEventListener('DOMContentLoaded', update);
   </script>
 </head>
 
@@ -81,7 +81,7 @@
       <!-- 盤面がここに表示されます -->
     </div>
   </div>
-  <form th:action="@{/deck/make/koma/save}" method="post" onchange="updateTotalCost()">
+  <form th:action="@{/deck/make/koma/save}" method="post" onchange="update()">
     <label for="name">駒の名前:<input type="text" id="name" name="name" required></label><br>
 
     <div>
@@ -113,7 +113,7 @@
       </div>
     </div>
 
-    <label>駒の成り先<select id="update" name="updateKomaId">
+    <label>駒の成り先<select id="updateKoma" name="updateKomaId">
         <option value="-1" selected>成らない</option>
         <option th:each="k : ${canUpdateKomas}" th:value="${k.id}" th:text="${k.name}">駒名</option>
       </select></label><br>
