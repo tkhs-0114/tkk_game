@@ -25,9 +25,10 @@
 
       // スキルのコスト計算
       let skillCost = 0;
-      const selectedSkill = document.querySelector('.skill-radio:checked');
-      if (selectedSkill) {
-        const cost = parseInt(selectedSkill.getAttribute('data-cost'));
+      const skillSelect = document.getElementById('skill');
+      if (skillSelect) {
+        const selectedOption = skillSelect.options[skillSelect.selectedIndex];
+        const cost = parseInt(selectedOption.getAttribute('data-cost'));
         if (!isNaN(cost)) {
           skillCost = cost;
         }
@@ -128,7 +129,7 @@
 </head>
 
 <body>
-  <form th:action="@{/deck/make/koma/save}" method="post">
+  <form th:action="@{/koma/make/save}" method="post">
     <label for="name">駒の名前:<input type="text" id="name" name="name" required onchange="update()"></label><br>
 
     <div>
@@ -150,19 +151,12 @@
       </label>
     </div>
 
-    <div>
-      <strong>特殊スキル (1つのみ選択可能):</strong><br>
-      <div th:each="skill : ${availableSkills}" style="margin:5px 0;">
-        <label>
-          <input type="radio" class="skill-radio" th:id="${skill.name()}" name="skill" th:value="${skill.name()}"
-            th:data-cost="${skill.cost}" th:checked="${skill.name() == 'NULL'}">
-          <span th:text="${skill.name()}">スキル名</span>
-          <span th:text="'(コスト: ' + ${skill.cost} + ')'">コスト</span>
-        </label>
-      </div>
-    </div>
+    <label>スキル<select id="skill" name="skill" onchange="update()">
+        <option th:each="skill : ${availableSkills}" th:value="${skill.name()}" th:selected="${skill.name() == 'NULL'}"
+          th:data-cost="${skill.cost}" th:text="${skill.name()} + ' (コスト: ' + ${skill.cost} + ')'">スキル名</option>
+      </select></label><br>
 
-    <label>駒の成り先<select id="updateKoma" name="updateKomaId">
+    <label>成り先<select id="updateKoma" name="updateKomaId">
         <option value="-1" selected>成らない</option>
         <option th:each="k : ${canUpdateKomas}" th:value="${k.id}" th:text="${k.name}">駒名</option>
       </select></label><br>
