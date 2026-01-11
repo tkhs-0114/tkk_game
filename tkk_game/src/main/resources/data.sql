@@ -107,8 +107,21 @@ INSERT INTO Deck (name, sfen, cost) VALUES ('共通デッキ(デバッグ用)', 
 -- 注: プレイヤー、PlayerDeck、PlayerKomaはアカウント登録時に動的に作成される
 -- 共通デッキ（ID 1）と共通駒（ID 0-15）は登録時にAuthServiceで自動付与される
 INSERT INTO Deck (name, sfen, cost) VALUES ('ADMINのデッキ', '5/2[0]2', 8);
+INSERT INTO Deck (name, sfen, cost) VALUES ('user1のデッキ', '5/2[0]2', 8);
+INSERT INTO Deck (name, sfen, cost) VALUES ('user2のデッキ', '5/2[0]2', 8);
+
 INSERT INTO Player (username, selected_deck_id) VALUES ('admin', 1);
-INSERT INTO PlayerDeck (player_id, deck_id, is_owner) VALUES (1, 1, FALSE);  -- admin -> 共通デッキ(王のみ)
+INSERT INTO Player (username, selected_deck_id) VALUES ('user1', 1);
+INSERT INTO Player (username, selected_deck_id) VALUES ('user2', 1);
+
+INSERT INTO PlayerDeck (player_id, deck_id, is_owner) VALUES (1, 1, FALSE);  -- admin -> 共通デッキ
 INSERT INTO PlayerDeck (player_id, deck_id, is_owner) VALUES (1, 2, FALSE);  -- admin -> 共通デッキ(デバッグ用)
 INSERT INTO PlayerDeck (player_id, deck_id, is_owner) VALUES (1, 3, TRUE);  -- admin -> ADMINのデッキ
+INSERT INTO PlayerDeck (player_id, deck_id, is_owner) VALUES (2, 1, FALSE);  -- user1 -> 共通デッキ
+INSERT INTO PlayerDeck (player_id, deck_id, is_owner) VALUES (2, 4, TRUE);  -- user1 -> user1のデッキ
+INSERT INTO PlayerDeck (player_id, deck_id, is_owner) VALUES (3, 1, FALSE);  -- user2 -> 共通デッキ
+INSERT INTO PlayerDeck (player_id, deck_id, is_owner) VALUES (3, 5, TRUE);  -- user2 -> user2のデッキ
+
 INSERT INTO PlayerKoma (player_id, koma_id, is_owner) SELECT 1, id, FALSE FROM koma WHERE id <= 14;
+INSERT INTO PlayerKoma (player_id, koma_id, is_owner) SELECT 2, id, FALSE FROM koma WHERE id <= 14;
+INSERT INTO PlayerKoma (player_id, koma_id, is_owner) SELECT 3, id, FALSE FROM koma WHERE id <= 14;
