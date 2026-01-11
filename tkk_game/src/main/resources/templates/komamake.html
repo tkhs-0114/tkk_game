@@ -1,73 +1,167 @@
-<div id="board"></div>
-<form th:action="@{/koma/make/save}" method="post" onchange="updateTotalCost()">
-  <label for="name">駒の名前:<input type="text" id="name" name="name" required></label><br>
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
 
-  <div style="margin:10px 0;">
-    <strong>合計コスト：</strong><span id="total-cost-display">0</span>
-    <span style="margin-left: 15px;">(移動ルール: <span id="rule-cost-display">0</span> + 特殊スキル: <span
-        id="skill-cost-display">0</span>)</span>
-  </div>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link th:href="@{/css/preview.css}" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Yuji+Boku&display=swap" rel="stylesheet">
+  <title>ゲーム</title>
+  <script th:inline="javascript">
 
-  <div style="margin:10px 0; border: 1px solid #ccc; padding: 10px;">
-    <strong>移動ルール:</strong><br>
-    <div th:each="rule : ${availableRules}" style="margin:5px 0;">
+    // 選択中のルールとスキルのコストを計算して表示
+    function updateTotalCost() {
+      // 移動ルールのコスト計算
+      let ruleCost = 0;
+      document.querySelectorAll('.rule-checkbox:checked').forEach(checkbox => {
+        const cost = parseInt(checkbox.getAttribute('data-cost'));
+        if (!isNaN(cost)) {
+          ruleCost += cost;
+        }
+      });
+      // document.getElementById('rule-cost-display').textContent = ruleCost;
+
+      // スキルのコスト計算
+      let skillCost = 0;
+      const skillSelect = document.getElementById('skill');
+      if (skillSelect) {
+        const selectedOption = skillSelect.options[skillSelect.selectedIndex];
+        const cost = parseInt(selectedOption.getAttribute('data-cost'));
+        if (!isNaN(cost)) {
+          skillCost = cost;
+        }
+      }
+      // document.getElementById('skill-cost-display').textContent = skillCost;
+
+      // 合計コスト表示
+      const totalCost = ruleCost + skillCost;
+      document.getElementById('total-cost-display').textContent = totalCost;
+    }
+
+    function isLineRule(str) {
+      return str.startsWith('LINE_');
+    }
+
+    function changeKomaRule(rule) {
+      const ruleCheckbox = document.getElementById(rule);
+      ruleCheckbox.checked = !ruleCheckbox.checked;
+      if (ruleCheckbox.checked) {
+        let toggleRule;
+        if (isLineRule(rule)) {
+          toggleRule = rule.substring(5); // 'LINE_'を削除して基本ルール名を取得
+        } else {
+          toggleRule = `LINE_${rule}`; // 'LINE_'を付加してLINEルール名を取得
+        }
+        const toggleCheckbox = document.getElementById(toggleRule);
+        if (toggleCheckbox) {
+          toggleCheckbox.checked = false; // 対応するルールのチェックを外す
+        }
+      }
+      update();
+    }
+
+    function drawBoard() {
+      const boardContainer = document.getElementById('board-container');
+      const komaName = document.getElementById('name').value || '駒名';
+
+      const ruleBoard = [
+        ['LINE_UP_LEFT', '', '', 'LINE_UP', '', '', 'LINE_UP_RIGHT'],
+        ['', 'LINE_UP_LEFT', 'JUMP_UP_LEFT', 'LINE_UP', 'JUMP_UP_RIGHT', 'LINE_UP_RIGHT', ''],
+        ['', 'JUMP_LEFT_UP', 'UP_LEFT', 'UP', 'UP_RIGHT', 'JUMP_RIGHT_UP', ''],
+        ['LINE_LEFT', 'LINE_LEFT', 'LEFT', '駒', 'RIGHT', 'LINE_RIGHT', 'LINE_RIGHT'],
+        ['', 'JUMP_LEFT_DOWN', 'DOWN_LEFT', 'DOWN', 'DOWN_RIGHT', 'JUMP_RIGHT_DOWN', ''],
+        ['', 'LINE_DOWN_LEFT', 'JUMP_DOWN_LEFT', 'LINE_DOWN', 'JUMP_DOWN_RIGHT', 'LINE_DOWN_RIGHT', ''],
+        ['LINE_DOWN_LEFT', '', '', 'LINE_DOWN', '', '', 'LINE_DOWN_RIGHT'],
+      ]
+
+
+
+      let html = '<table border="1">';
+
+      const boardLength = 7;
+
+      for (let y = 0; y < boardLength; y++) {
+        html += '<tr>';
+        for (let x = 0; x < boardLength; x++) {
+          let cellContent;
+          let rule = ruleBoard[y][x];
+          if (rule === '') {
+            cellContent = `<div class="cell">　</div>`;
+            html += `<td>${cellContent}</td>`;
+            continue;
+          }
+          if (x === 3 && y === 3) {
+            cellContent = `<div class="cell koma">${komaName}</div>`;
+            html += `<td>${cellContent}</td>`;
+            continue;
+          }
+
+          const onClick = rule ? `onClick="changeKomaRule('${rule}')" ` : '';
+
+          const checkbox = document.getElementById(rule);
+          let checked = (checkbox && checkbox.checked);
+          if (!isLineRule(rule) && !checked) {
+            const checkbox = document.getElementById(`LINE_${rule}`);
+            checked = (checkbox && checkbox.checked);
+          }
+          const movAble = checked ? 'movable' : '';
+
+          cellContent = `<div class="cell ${movAble}" ${onClick}>　</div>`;
+          html += `<td>${cellContent}</td>`;
+        }
+        html += '</tr>';
+      }
+
+      html += '</table>';
+      boardContainer.innerHTML = html;
+    }
+    function update() {
+      drawBoard();
+      updateTotalCost();
+    }
+    window.onload = function () {
+      // 盤面を描画
+      update();
+    };
+  </script>
+</head>
+
+<body>
+  <form th:action="@{/koma/make/save}" method="post">
+    <label for="name">駒の名前:<input type="text" id="name" name="name" required onchange="update()"></label><br>
+
+    <div>
+      <strong>合計コスト：</strong><span id="total-cost-display">0</span>
+    </div>
+
+    <div class="game-board-layout">
+      <div id="board-container">
+        <!-- 盤面がここに表示されます -->
+      </div>
+    </div>
+
+    <div th:each="rule : ${availableRules}" style="display: none;">
       <label>
         <input type="checkbox" class="rule-checkbox" th:id="${rule.name()}" name="rules" th:value="${rule.name()}"
           th:data-cost="${rule.cost}">
         <span th:text="${rule.name()}">ルール名</span>
-        <span th:text="'(コスト: ' + ${rule.cost} + ')'" style="color: #666; font-size: 0.9em;">コスト</span>
+        <span th:text="'(コスト: ' + ${rule.cost} + ')'">コスト</span>
       </label>
     </div>
-  </div>
 
-  <div style="margin:10px 0; border: 1px solid #ccc; padding: 10px;">
-    <strong>特殊スキル (1つのみ選択可能):</strong><br>
-    <div th:each="skill : ${availableSkills}" style="margin:5px 0;">
-      <label>
-        <input type="radio" class="skill-radio" th:id="${skill.name()}" name="skill" th:value="${skill.name()}"
-          th:data-cost="${skill.cost}" th:checked="${skill.name() == 'NULL'}">
-        <span th:text="${skill.name()}">スキル名</span>
-        <span th:text="'(コスト: ' + ${skill.cost} + ')'" style="color: #666; font-size: 0.9em;">コスト</span>
-      </label>
-    </div>
-  </div>
+    <label>スキル<select id="skill" name="skill" onchange="update()">
+        <option th:each="skill : ${availableSkills}" th:value="${skill.name()}" th:selected="${skill.name() == 'NULL'}"
+          th:data-cost="${skill.cost}" th:text="${skill.name()} + ' (コスト: ' + ${skill.cost} + ')'">スキル名</option>
+      </select></label><br>
 
-  <label>駒の成り先<select id="update" name="updateKomaId">
-      <option value="-1" selected>成らない</option>
-      <option th:each="k : ${canUpdateKomas}" th:value="${k.id}" th:text="${k.name}">駒名</option>
-    </select></label><br>
-  <label><button type="submit">作成</button></label>
-</form>
+    <label>成り先<select id="updateKoma" name="updateKomaId">
+        <option value="-1" selected>成らない</option>
+        <option th:each="k : ${canUpdateKomas}" th:value="${k.id}" th:text="${k.name}">駒名</option>
+      </select></label><br>
+    <label><button type="submit">作成</button></label>
+  </form>
+</body>
 
-<script>
-  // 選択中のルールとスキルのコストを計算して表示
-  function updateTotalCost() {
-    // 移動ルールのコスト計算
-    let ruleCost = 0;
-    document.querySelectorAll('.rule-checkbox:checked').forEach(checkbox => {
-      const cost = parseInt(checkbox.getAttribute('data-cost'));
-      if (!isNaN(cost)) {
-        ruleCost += cost;
-      }
-    });
-    document.getElementById('rule-cost-display').textContent = ruleCost;
-
-    // スキルのコスト計算
-    let skillCost = 0;
-    const selectedSkill = document.querySelector('.skill-radio:checked');
-    if (selectedSkill) {
-      const cost = parseInt(selectedSkill.getAttribute('data-cost'));
-      if (!isNaN(cost)) {
-        skillCost = cost;
-      }
-    }
-    document.getElementById('skill-cost-display').textContent = skillCost;
-
-    // 合計コスト表示
-    const totalCost = ruleCost + skillCost;
-    document.getElementById('total-cost-display').textContent = totalCost;
-  }
-
-  // ページ読み込み時に初期値を設定
-  window.addEventListener('DOMContentLoaded', updateTotalCost);
-</script>
+</html>
