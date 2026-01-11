@@ -186,23 +186,6 @@ public class DeckController {
     return "preview.html";
   }
 
-  /**
-   * 駒作成画面へのリダイレクト（後方互換性のため）
-   */
-
-  @GetMapping("make/koma")
-  public String komaMakeRedirect() {
-    return "redirect:/koma/make";
-  }
-
-  /**
-   * 駒作成保存へのリダイレクト（後方互換性のため）
-   */
-  @PostMapping("make/koma/save")
-  public String saveKomaDataRedirect() {
-    return "redirect:/koma/make";
-  }
-
   private void applySfenToBan(Ban ban, String sfen) {
     if (sfen == null || sfen.isBlank())
       return;
