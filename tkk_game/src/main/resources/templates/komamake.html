@@ -21,7 +21,7 @@
           ruleCost += cost;
         }
       });
-      document.getElementById('rule-cost-display').textContent = ruleCost;
+      // document.getElementById('rule-cost-display').textContent = ruleCost;
 
       // スキルのコスト計算
       let skillCost = 0;
@@ -32,28 +32,82 @@
           skillCost = cost;
         }
       }
-      document.getElementById('skill-cost-display').textContent = skillCost;
+      // document.getElementById('skill-cost-display').textContent = skillCost;
 
       // 合計コスト表示
       const totalCost = ruleCost + skillCost;
       document.getElementById('total-cost-display').textContent = totalCost;
     }
 
+    function isLineRule(str) {
+      return str.startsWith('LINE_');
+    }
+
+    function changeKomaRule(rule) {
+      const ruleCheckbox = document.getElementById(rule);
+      ruleCheckbox.checked = !ruleCheckbox.checked;
+      if (ruleCheckbox.checked) {
+        let toggleRule;
+        if (isLineRule(rule)) {
+          toggleRule = rule.substring(5); // 'LINE_'を削除して基本ルール名を取得
+        } else {
+          toggleRule = `LINE_${rule}`; // 'LINE_'を付加してLINEルール名を取得
+        }
+        const toggleCheckbox = document.getElementById(toggleRule);
+        if (toggleCheckbox) {
+          toggleCheckbox.checked = false; // 対応するルールのチェックを外す
+        }
+      }
+      update();
+    }
+
     function drawBoard() {
       const boardContainer = document.getElementById('board-container');
       const komaName = document.getElementById('name').value || '駒名';
-      console.log('Drawing board with koma name:', komaName);
+
+      const ruleBoard = [
+        ['LINE_UP_LEFT', '', '', 'LINE_UP', '', '', 'LINE_UP_RIGHT'],
+        ['', 'LINE_UP_LEFT', 'JUMP_UP_LEFT', 'LINE_UP', 'JUMP_UP_RIGHT', 'LINE_UP_RIGHT', ''],
+        ['', 'JUMP_LEFT_UP', 'UP_LEFT', 'UP', 'UP_RIGHT', 'JUMP_RIGHT_UP', ''],
+        ['LINE_LEFT', 'LINE_LEFT', 'LEFT', '駒', 'RIGHT', 'LINE_RIGHT', 'LINE_RIGHT'],
+        ['', 'JUMP_LEFT_DOWN', 'DOWN_LEFT', 'DOWN', 'DOWN_RIGHT', 'JUMP_RIGHT_DOWN', ''],
+        ['', 'LINE_DOWN_LEFT', 'JUMP_DOWN_LEFT', 'LINE_DOWN', 'JUMP_DOWN_RIGHT', 'LINE_DOWN_RIGHT', ''],
+        ['LINE_DOWN_LEFT', '', '', 'LINE_DOWN', '', '', 'LINE_DOWN_RIGHT'],
+      ]
+
+
 
       let html = '<table border="1">';
 
-      const boardLength = 5;
+      const boardLength = 7;
 
       for (let y = 0; y < boardLength; y++) {
         html += '<tr>';
         for (let x = 0; x < boardLength; x++) {
-          let cellContent = (x === 2 && y === 2) ?
-            `<div class="cell koma">${komaName}</div>`
-            : `<div class="cell">　</div>`;
+          let cellContent;
+          let rule = ruleBoard[y][x];
+          if (rule === '') {
+            cellContent = `<div class="cell">　</div>`;
+            html += `<td>${cellContent}</td>`;
+            continue;
+          }
+          if (x === 3 && y === 3) {
+            cellContent = `<div class="cell koma">${komaName}</div>`;
+            html += `<td>${cellContent}</td>`;
+            continue;
+          }
+
+          const onClick = rule ? `onClick="changeKomaRule('${rule}')" ` : '';
+
+          const checkbox = document.getElementById(rule);
+          let checked = (checkbox && checkbox.checked);
+          if (!isLineRule(rule) && !checked) {
+            const checkbox = document.getElementById(`LINE_${rule}`);
+            checked = (checkbox && checkbox.checked);
+          }
+          const movAble = checked ? 'movable' : '';
+
+          cellContent = `<div class="cell ${movAble}" ${onClick}>　</div>`;
           html += `<td>${cellContent}</td>`;
         }
         html += '</tr>';
@@ -70,35 +124,30 @@
       // 盤面を描画
       update();
     };
-
-    // window.addEventListener('DOMContentLoaded', update);
   </script>
 </head>
 
 <body>
-  <div class="game-board-layout">
-    <div id="board-container">
-      <!-- 盤面がここに表示されます -->
-    </div>
-  </div>
-  <form th:action="@{/deck/make/koma/save}" method="post" onchange="update()">
-    <label for="name">駒の名前:<input type="text" id="name" name="name" required></label><br>
+  <form th:action="@{/deck/make/koma/save}" method="post">
+    <label for="name">駒の名前:<input type="text" id="name" name="name" required onchange="update()"></label><br>
 
     <div>
       <strong>合計コスト：</strong><span id="total-cost-display">0</span>
-      <span>(移動ルール: <span id="rule-cost-display">0</span> + 特殊スキル: <span id="skill-cost-display">0</span>)</span>
     </div>
 
-    <div>
-      <strong>移動ルール:</strong><br>
-      <div th:each="rule : ${availableRules}">
-        <label>
-          <input type="checkbox" class="rule-checkbox" th:id="${rule.name()}" name="rules" th:value="${rule.name()}"
-            th:data-cost="${rule.cost}">
-          <span th:text="${rule.name()}">ルール名</span>
-          <span th:text="'(コスト: ' + ${rule.cost} + ')'">コスト</span>
-        </label>
+    <div class="game-board-layout">
+      <div id="board-container">
+        <!-- 盤面がここに表示されます -->
       </div>
+    </div>
+
+    <div th:each="rule : ${availableRules}" style="display: none;">
+      <label>
+        <input type="checkbox" class="rule-checkbox" th:id="${rule.name()}" name="rules" th:value="${rule.name()}"
+          th:data-cost="${rule.cost}">
+        <span th:text="${rule.name()}">ルール名</span>
+        <span th:text="'(コスト: ' + ${rule.cost} + ')'">コスト</span>
+      </label>
     </div>
 
     <div>
