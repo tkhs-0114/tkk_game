@@ -35,3 +35,13 @@ CREATE TABLE PlayerDeck(
   FOREIGN KEY (deck_id) REFERENCES Deck(id),
   UNIQUE(player_id, deck_id)
 );
+
+CREATE TABLE PlayerKoma(
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  player_id INT NOT NULL,
+  koma_id INT NOT NULL,
+  is_owner BOOLEAN DEFAULT FALSE,
+  FOREIGN KEY (player_id) REFERENCES Player(id),
+  FOREIGN KEY (koma_id) REFERENCES koma(id),
+  UNIQUE(player_id, koma_id)
+);

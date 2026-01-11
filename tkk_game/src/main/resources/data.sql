@@ -128,3 +128,9 @@ INSERT INTO PlayerDeck (player_id, deck_id, is_owner) VALUES (1, 3, TRUE);  -- u
 INSERT INTO PlayerDeck (player_id, deck_id, is_owner) VALUES (2, 4, TRUE);  -- user2 -> user2のデッキ（所有者）
 INSERT INTO PlayerDeck (player_id, deck_id, is_owner) VALUES (3, 5, TRUE);  -- user3 -> user3のデッキ（所有者）
 INSERT INTO PlayerDeck (player_id, deck_id, is_owner) VALUES (4, 6, TRUE);  -- user4 -> user4のデッキ（所有者）
+
+-- 共通駒（ID 0-14）は全プレイヤーが使用可能（所有者なし）
+INSERT INTO PlayerKoma (player_id, koma_id, is_owner) SELECT 1, id, FALSE FROM koma WHERE id <= 14;
+INSERT INTO PlayerKoma (player_id, koma_id, is_owner) SELECT 2, id, FALSE FROM koma WHERE id <= 14;
+INSERT INTO PlayerKoma (player_id, koma_id, is_owner) SELECT 3, id, FALSE FROM koma WHERE id <= 14;
+INSERT INTO PlayerKoma (player_id, koma_id, is_owner) SELECT 4, id, FALSE FROM koma WHERE id <= 14;
