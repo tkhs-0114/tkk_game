@@ -1,0 +1,138 @@
+@charset "UTF-8";
+
+/* 基本スタイル */
+body {
+  background-color: #f3e9d2;
+  font-family: "Yu Mincho", "YuMincho", "Hiragino Mincho ProN", "MS PMincho", serif;
+  color: #333;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  margin: 0;
+  padding: 2rem 0;
+}
+
+.container {
+  width: 90%;
+  max-width: 500px;
+  text-align: center;
+  background-color: rgba(255, 255, 255, 0.5);
+  padding: 40px;
+  border-radius: 10px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+header h1 {
+  font-size: 2.5rem;
+  color: #5a3e2b;
+  margin-bottom: 2rem;
+  font-weight: normal;
+}
+
+/* メッセージスタイル */
+.message {
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-radius: 5px;
+  font-weight: bold;
+}
+
+.message.error {
+  background-color: #ffdddd;
+  color: #d8000c;
+  border: 1px solid #d8000c;
+}
+
+.message.success {
+  background-color: #ddffdd;
+  color: #4f8a10;
+  border: 1px solid #4f8a10;
+}
+
+/* フォームスタイル */
+form {
+  text-align: left;
+  margin-bottom: 2rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  color: #5a3e2b;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 0.8rem;
+  font-size: 1rem;
+  border: 2px solid #5a3e2b;
+  border-radius: 5px;
+  box-sizing: border-box;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #7a5e3b;
+  box-shadow: 0 0 5px rgba(90, 62, 43, 0.3);
+}
+
+/* ボタンスタイル */
+.button-group {
+  text-align: center;
+  margin-top: 2rem;
+}
+
+.btn-primary {
+  padding: 1rem 3rem;
+  font-size: 1.2rem;
+  background-color: #5a3e2b;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.btn-primary:hover {
+  background-color: #7a5e3b;
+}
+
+/* メニュー */
+.menu {
+  margin-top: 1.5rem;
+}
+
+.menu-item {
+  display: inline-block;
+  padding: 0.6rem 1.5rem;
+  background-color: #888;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 5px;
+  margin: 0.3rem;
+  transition: background-color 0.3s;
+}
+
+.menu-item:hover {
+  background-color: #666;
+}
+
+/* 注意書き */
+.note {
+  margin-top: 2rem;
+  padding: 1rem;
+  background-color: rgba(255, 200, 100, 0.3);
+  border-radius: 5px;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.note p {
+  margin: 0.3rem 0;
+}

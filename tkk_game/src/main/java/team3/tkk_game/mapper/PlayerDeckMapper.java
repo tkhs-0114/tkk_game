@@ -4,7 +4,9 @@ import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Options;
+import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
 
 import team3.tkk_game.model.PlayerDeck;
 
@@ -60,4 +62,21 @@ public interface PlayerDeckMapper {
    */
   @Select("SELECT is_owner FROM PlayerDeck WHERE player_id = #{playerId} AND deck_id = #{deckId}")
   Boolean isOwner(int playerId, int deckId);
+
+  /**
+   * 新規プレイヤーを登録
+   * 
+   * @param username ユーザー名
+   */
+  @Insert("INSERT INTO Player(username) VALUES(#{username})")
+  void insertPlayer(String username);
+
+  /**
+   * プレイヤーの選択中デッキを更新
+   * 
+   * @param playerId プレイヤーID
+   * @param deckId デッキID
+   */
+  @Update("UPDATE Player SET selected_deck_id = #{deckId} WHERE id = #{playerId}")
+  void updateSelectedDeckId(@Param("playerId") int playerId, @Param("deckId") int deckId);
 }
