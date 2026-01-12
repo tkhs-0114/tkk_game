@@ -21,7 +21,7 @@
 3. ポート80番で開かれるのであとは接続するだけです
 
 また、ホットリロード用に`/tkk_game`内に`debug.sh`というスクリプトがあります
-`./debug.sh`で起動できます
+`/tkk_game`内にて`./debug.sh`で起動できます
 
 ## 使用技術 / バージョン
 - Java 21 (Gradle Toolchain)
