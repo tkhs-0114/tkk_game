@@ -1,10 +1,10 @@
 # システム仕様書 (最新版)
 
 ## 最終更新日
-2026-01-10
+2026-01-12
 
 ## システム概要
-Spring Boot を用いた Web アプリケーション。将棋風のボードゲームを実装しており、ユーザー認証、マッチング機能、リアルタイムゲーム機能を提供する。SSE (Server-Sent Events) を活用したリアルタイム通信により、プレイヤー間の対戦マッチングとターン制ゲームプレイを実現している。デッキ作成機能とH2データベースによる駒・デッキデータの永続化機能、駒のコストシステム、駒作成・編集機能も実装されている。駒の移動ルール判定は `MoveValidator` サービスに分離されており、各駒の移動ルール（単マス移動・直線移動・ジャンプ移動）を正確に判定する。また、駒にはスキル（STEALTH等）を設定可能で、特殊な動作を実装できる。プレイヤーは自分で作成した駒を一覧表示・編集・削除でき、デッキ作成時には自分が使用可能な駒のみが表示される。
+Spring Boot を用いた Web アプリケーション。将棋風のボードゲームを実装しており、ユーザー認証・登録、マッチング機能、リアルタイムゲーム機能を提供する。SSE (Server-Sent Events) を活用したリアルタイム通信により、プレイヤー間の対戦マッチングとターン制ゲームプレイを実現している。デッキ作成機能とH2データベースによる駒・デッキデータの永続化機能、駒のコストシステム、駒作成・編集・削除・一覧表示機能も実装されている。駒の移動ルール判定は `MoveValidator` サービスに分離されており、各駒の移動ルール（単マス移動・直線移動・ジャンプ移動）を正確に判定する。また、駒にはスキル（STEALTH、COPY等）を設定可能で、特殊な動作を実装できる。プレイヤーは自分で作成した駒を一覧表示・編集・削除でき、デッキ作成時には自分が使用可能な駒のみが表示される。デッキのプレビュー機能も実装され、デッキの盤面配置を視覚的に確認できる。また、効果音機能も実装され、駒の移動や勝敗時に効果音が再生される。
 
 ## 使用技術 / バージョン
 - Java 21 (Gradle Toolchain)
@@ -52,26 +52,41 @@ Spring Boot を用いた Web アプリケーション。将棋風のボードゲ
 | `/deck/select` | GET | 認証必須 | デッキ選択画面 (デッキ名とコスト表示) |
 | `/deck/choose` | POST | 認証必須 | デッキ選択確定 (deckId パラメータ) |
 | `/deck/load/{id}` | GET | 認証必須 | デッキ読み込み (セッションに保存) |
-| `/deck/delete/{id}` | GET | 認証必須 | デッキ削除 |
-| `/deck/make/koma` | GET | 認証必須 | 駒作成画面 |
-| `/deck/make/koma/save` | POST | 認証必須 | 駒作成保存 (name, rules, skill, updateKomaId パラメータ) |
+| `/deck/edit/{id}` | GET | 認証必須 | デッキ編集画面 (所有者のみアクセス可能) |
+| `/deck/update/{id}` | POST | 認証必須 | デッキ更新 (deckName, sfen パラメータ、所有者のみ可能) |
+| `/deck/delete/{id}` | GET | 認証必須 | デッキ削除 (所有者のみ可能) |
+| `/deck/preview/{id}` | GET | 認証必須 | デッキプレビュー画面 (盤面配置の視覚化) |
+| `/auth/register` | GET | 認証不要 | ユーザー登録画面 |
+| `/auth/register` | POST | 認証不要 | ユーザー登録処理 (username, password, confirmPassword パラメータ) |
+| `/koma/list` | GET | 認証必須 | 自作駒一覧画面 (所有駒の表示) |
+| `/koma/make` | GET | 認証必須 | 駒作成・編集画面 (komaId パラメータで編集モード) |
+| `/koma/save` | POST | 認証必須 | 駒作成・更新保存 (komaId, name, rules, skill, updateKomaId パラメータ) |
+| `/koma/edit/{id}` | GET | 認証必須 | 駒編集画面へリダイレクト |
+| `/koma/delete/{id}` | GET | 認証必須 | 駒削除 (所有者のみ可能) |
 
 ## 認証仕様
 - 認証方式: フォームログイン (Spring Security)
 - ログイン成功後: `/home` へリダイレクト
-- ユーザー保管: インメモリ (`InMemoryUserDetailsManager`)
-- ユーザー一覧:
+- ユーザー保管: インメモリ (`InMemoryUserDetailsManager`) + H2データベース (Player テーブル)
+- 初期登録ユーザー:
+  - `admin` / パスワード `p@ss` / ロール `ROLE_USER`
   - `user1` / パスワード `p@ss` / ロール `ROLE_USER`
   - `user2` / パスワード `p@ss` / ロール `ROLE_USER`
-  - `user3` / パスワード `p@ss` / ロール `ROLE_USER`
-  - `user4` / パスワード `p@ss` / ロール `ROLE_USER`
 - パスワードハッシュ: `{bcrypt}$2y$10$ngxCDmuVK1TaGchiYQfJ1OAKkd64IH6skGsNw1sLabrTICOHPxC0e`
+- ユーザー登録機能:
+  - 新規ユーザーは `/auth/register` から登録可能
+  - 登録時に自動的に以下が付与される:
+    - 共通デッキ（ID 1）への使用権限
+    - 共通駒（ID 0-15）への使用権限
+    - 初期選択デッキは共通デッキ（ID 1）に設定
+  - バリデーション: ユーザー名3〜20文字、パスワード4文字以上
 
 ## セキュリティ設定概要 (`tkk_game/src/main/java/team3/tkk_game/security/SecurityConfig.java`)
 - `formLogin()` 有効化、ログイン成功後は `/home` へリダイレクト
 - `logout()` 設定: ログアウト後 `/` へリダイレクト
+- CSRF保護: `/h2-console/**`, `/game/disconnect` を例外設定
 - 認可設定:
-  - `/`, `/index.html` は認証不要 (`permitAll()`)
+  - `/h2-console/**`, `/`, `/index.html`, `/register`, `/auth/**`, `/css/**`, `/js/**` は認証不要 (`permitAll()`)
   - その他すべてのリクエストは認証必須 (`authenticated()`)
 
 ## 画面仕様
@@ -117,7 +132,13 @@ Spring Boot を用いた Web アプリケーション。将棋風のボードゲ
 - 共通駒は「共通駒」ラベルを表示
 - 駒作成画面へのリンク
 
-### 駒作成画面 (`tkk_game/src/main/resources/templates/komamake.html`)
+### ユーザー登録画面 (`tkk_game/src/main/resources/templates/register.html`)
+- Thymeleaf テンプレート
+- ユーザー名・パスワード・パスワード確認の入力フォーム
+- バリデーション機能（ユーザー名3〜20文字、パスワード4文字以上、パスワード一致確認）
+- 和風デザインのCSS適用（`register.css`）
+
+### 駒作成・編集画面 (`tkk_game/src/main/resources/templates/komamake.html`)
 - Thymeleaf テンプレート
 - 駒名の入力フォーム
 - 移動ルールの選択（チェックボックス）
@@ -126,19 +147,21 @@ Spring Boot を用いた Web アプリケーション。将棋風のボードゲ
 - 成り先駒の選択（成らない駒のみ選択可能）
 - 駒をデータベースに保存する機能
 - 作成者に所有権を付与
-
-### 駒編集画面 (`tkk_game/src/main/resources/templates/komaedit.html`)
-- Thymeleaf テンプレート
-- 既存の駒情報を編集するフォーム
-- 駒名、移動ルール、特殊スキル、成り先を編集可能
-- 所有者のみアクセス可能
-- 更新・キャンセルボタン
+- 編集モード対応（komaIdパラメータで既存駒の編集が可能）
+- 所有者のみ編集可能
+- 和風デザインのCSS適用（`komamake.css`）
 
 ### デッキ選択画面 (`tkk_game/src/main/resources/templates/deckselect.html`)
 - Thymeleaf テンプレート
 - プレイヤーが使用可能なデッキ一覧の表示（デッキ名とコストを表示）
-- デッキの読み込み・削除機能（削除は所有者のみ可能）
+- デッキの読み込み・削除・プレビュー機能（削除は所有者のみ可能）
 - 和風デザインのCSS適用（`deckselect.css`）
+
+### デッキプレビュー画面 (`tkk_game/src/main/resources/templates/preview.html`)
+- Thymeleaf テンプレート
+- デッキの盤面配置を視覚的に表示
+- 駒の配置を5×5の盤面で確認可能
+- 和風デザインのCSS適用（`preview.css`）
 
 ### ゲーム画面 (`tkk_game/src/main/resources/templates/game.html`)
 - Thymeleaf テンプレート
@@ -191,6 +214,7 @@ Spring Boot を用いた Web アプリケーション。将棋風のボードゲ
 - 各スキルにコスト値を保持 (`getCost()` メソッド)
 - `NULL`（コスト0）: スキルなし
 - `STEALTH`（コスト5）: ステルススキル（移動後に相手の盤面に駒が表示されない）
+- `COPY`（コスト4）: コピースキル（取った駒の移動ルールをコピーする）
 
 ### デッキ (`Deck` クラス)
 - デッキID、デッキ名、SFEN形式の盤面配置、コストを保持
@@ -274,6 +298,17 @@ Spring Boot を用いた Web アプリケーション。将棋風のボードゲ
   - ルームオーナーの場合はルーム削除
   - リクエスト送信者の場合はリクエストクリア
 
+#### `AuthService` サービス
+- ユーザー登録関連の処理を一元管理するクラス
+- `registerUser(String username, String password)`: ユーザー登録処理
+  - InMemoryUserDetailsManagerにユーザーを追加（パスワードハッシュ化）
+  - DBにPlayerレコードを作成
+  - 共通デッキ（ID 1）の使用権限を付与
+  - 共通駒（ID 0-15）の使用権限を付与
+  - 初期選択デッキを共通デッキ（ID 1）に設定
+- `isUsernameAvailable(String username)`: ユーザー名の重複チェック
+- トランザクション管理: `@Transactional`により登録処理の原子性を保証
+
 ## コントローラー仕様
 
 ### `MainController`
@@ -304,9 +339,21 @@ Spring Boot を用いた Web アプリケーション。将棋風のボードゲ
 - `/deck/select`: デッキ選択画面表示（プレイヤーが使用可能なデッキのみ表示）
 - `/deck/choose`: デッキ選択確定
 - `/deck/load/{id}`: デッキ読み込み (セッション保存)
-- `/deck/delete/{id}`: デッキ削除（所有者のみ削除可能、PlayerDeckの紐づけも削除）
-- `/deck/make/koma`: 駒作成画面表示、成り先候補駒一覧取得、利用可能な移動ルール・スキル一覧取得
-- `/deck/make/koma/save`: 駒作成保存（スキル含む）、トランザクション管理
+- `/deck/edit/{id}`: デッキ編集画面表示（所有者のみアクセス可能、所有者チェック）
+- `/deck/update/{id}`: デッキ更新（所有者のみ可能、コスト上限チェック）
+- `/deck/delete/{id}`: デッキ削除（所有者のみ削除可能、PlayerDeckの紐づけも削除、選択中デッキのクリア）
+- `/deck/preview/{id}`: デッキプレビュー画面表示、SFEN形式から盤面配置を復元して表示
+
+### `AuthController`
+- `/auth/register` (GET): ユーザー登録画面表示
+- `/auth/register` (POST): ユーザー登録処理、バリデーション（ユーザー名3〜20文字、パスワード4文字以上、パスワード一致確認）、`AuthService` によるユーザー登録
+
+### `KomaController`
+- `/koma/list`: 自作駒一覧画面表示、所有する駒のみ取得、駒ごとのコスト計算
+- `/koma/make`: 駒作成・編集画面表示、komaIdパラメータで編集モード対応、所有者チェック、成り先候補駒一覧取得、利用可能な移動ルール・スキル一覧取得
+- `/koma/save`: 駒作成・更新保存（スキル含む）、トランザクション管理、所有者チェック（更新時）、PlayerKomaに所有者として登録（新規作成時）
+- `/koma/edit/{id}`: 駒編集画面へリダイレクト（`/koma/make?komaId={id}` へ）
+- `/koma/delete/{id}`: 駒削除、所有者のみ削除可能、PlayerKomaとKomaRuleの紐づけも削除、トランザクション管理
 
 ## 非同期・スケジューリング設定
 - `@EnableAsync`: 非同期処理を有効化
@@ -361,12 +408,12 @@ Spring Boot を用いた Web アプリケーション。将棋風のボードゲ
 ### 初期データ (駒マスタ)
 | ID | 名前 | スキル | 成り先ID |
 |----|------|--------|---------|
-| 0 | 王将 | NULL | -1 (成りなし) |
+| 0 | 王将 | NULL | 0 (成りなし) |
 | 1 | 歩兵 | NULL | 8 (と金) |
 | 2 | 香車 | NULL | 9 (成香) |
 | 3 | 桂馬 | NULL | 10 (成桂) |
 | 4 | 銀将 | NULL | 11 (成銀) |
-| 5 | 金将 | NULL | -1 (成りなし) |
+| 5 | 金将 | NULL | 5 (成りなし) |
 | 6 | 角行 | NULL | 12 (馬) |
 | 7 | 飛車 | NULL | 13 (龍) |
 | 8 | と金 | NULL | -1 (成りなし) |
@@ -375,37 +422,45 @@ Spring Boot を用いた Web アプリケーション。将棋風のボードゲ
 | 11 | 成銀 | NULL | -1 (成りなし) |
 | 12 | 馬 | NULL | -1 (成りなし) |
 | 13 | 龍 | NULL | -1 (成りなし) |
-| 14 | 忍び | STEALTH | -1 (成りなし) |
+| 14 | 忍び | STEALTH | 14 (成りなし) |
+| 15 | 役者 | COPY | 15 (成りなし) |
+
+※ 共通駒（ID 0-15）は全てのユーザーが登録時に自動的に使用権限を付与される
 
 ### 初期データ (デッキ)
 | ID | 名前 | SFEN | コスト |
 |----|------|------|--------|
-| 1 | 共通デッキ(王のみ) | 5/2[0]2 | 8 |
+| 1 | 共通デッキ | 5/[7][3][0][1][14] | 8 |
 | 2 | 共通デッキ(デバッグ用) | 5/[7][3][0][1][14] | 35 |
-| 3 | user1のデッキ | 5/2[0]2 | 8 |
-| 4 | user2のデッキ | 5/2[0]2 | 8 |
-| 5 | user3のデッキ | 5/2[0]2 | 8 |
-| 6 | user4のデッキ | 5/2[0]2 | 8 |
+| 3 | ADMINのデッキ | 5/2[0]2 | 8 |
+| 4 | user1のデッキ | 5/2[0]2 | 8 |
+| 5 | user2のデッキ | 5/2[0]2 | 8 |
+
+※ 共通デッキ（ID 1）は全てのユーザーが登録時に自動的に使用権限を付与される
+※ 新規ユーザー登録時には共通デッキのみが付与され、初期選択デッキとして設定される
+※ ID 3以降は初期登録ユーザー（admin, user1, user2）専用のデッキ
 
 ### 初期データ (プレイヤー)
 | ユーザー名 | 選択中のデッキID |
 |-----------|----------------|
-| user1 | 3 |
-| user2 | 4 |
-| user3 | 5 |
-| user4 | 6 |
+| admin | 1 (共通デッキ) |
+| user1 | 1 (共通デッキ) |
+| user2 | 1 (共通デッキ) |
+
+※ 新規登録ユーザーは動的に作成され、初期選択デッキは共通デッキ（ID 1）に設定される
 
 ### 初期データ (PlayerDeck - デッキ使用権限)
 | プレイヤー | 使用可能デッキ | 所有者 |
 |-----------|------------------------------|--------|
-| user1 | 共通デッキ(王のみ), 共通デッキ(デバッグ用) | No |
+| admin | 共通デッキ, 共通デッキ(デバッグ用) | No |
+| admin | ADMINのデッキ | Yes |
+| user1 | 共通デッキ | No |
 | user1 | user1のデッキ | Yes |
-| user2 | 共通デッキ(王のみ), 共通デッキ(デバッグ用) | No |
+| user2 | 共通デッキ | No |
 | user2 | user2のデッキ | Yes |
-| user3 | 共通デッキ(王のみ), 共通デッキ(デバッグ用) | No |
-| user3 | user3のデッキ | Yes |
-| user4 | 共通デッキ(王のみ), 共通デッキ(デバッグ用) | No |
-| user4 | user4のデッキ | Yes |
+
+※ 新規登録ユーザーは共通デッキ（ID 1）の使用権限が自動的に付与される（所有者ではない）
+※ AuthServiceにより、ユーザー登録時に自動的にPlayerDeckレコードが作成される
 
 ### 初期データ (駒移動ルール)
 | 駒ID | 駒名 | ルール |
@@ -425,6 +480,7 @@ Spring Boot を用いた Web アプリケーション。将棋風のボードゲ
 | 12 | 馬 | UP, DOWN, LEFT, RIGHT, LINE_UP_LEFT, LINE_UP_RIGHT, LINE_DOWN_LEFT, LINE_DOWN_RIGHT |
 | 13 | 龍 | UP_LEFT, UP_RIGHT, DOWN_LEFT, DOWN_RIGHT, LINE_UP, LINE_DOWN, LINE_LEFT, LINE_RIGHT |
 | 14 | 忍び | UP, UP_LEFT, UP_RIGHT, DOWN_LEFT, DOWN_RIGHT |
+| 15 | 役者 | UP |
 
 ## Mapper インターフェース
 
@@ -432,13 +488,19 @@ Spring Boot を用いた Web アプリケーション。将棋風のボードゲ
 - `selectAllKoma()`: 全駒を取得
 - `selectKomaById(Integer komaId)`: IDで駒を取得
 - `selectKomaRuleById(Integer komaId)`: 駒IDで移動ルールを取得
+- `selectKomasByPlayerUsername(String username)`: プレイヤーが使用可能な駒を取得（PlayerKomaテーブル経由）
+- `selectOwnedKomasByPlayerUsername(String username)`: プレイヤーが所有する駒を取得（PlayerKomaテーブル経由、所有者と共通駒）
 - `insertKoma(KomaDB koma)`: 駒をデータベースに挿入（IDは自動採番）
 - `insertKomaRule(int komaId, KomaRule ruleName)`: 駒の移動ルールを挿入
+- `updateKoma(KomaDB koma)`: 駒情報を更新
+- `deleteKomaById(int komaId)`: 駒を削除
+- `deleteKomaRulesByKomaId(int komaId)`: 駒に紐づく全ての移動ルールを削除
 
 ### `DeckMapper`
 - `insertDeck(Deck deck)`: デッキを挿入
 - `selectAllDecks()`: 全デッキを取得
 - `selectDeckById(int id)`: IDでデッキを取得
+- `updateDeck(Deck deck)`: デッキを更新
 - `deleteDeckById(int id)`: IDでデッキを削除
 - `selectDecksByPlayerUsername(String username)`: プレイヤーが使用可能なデッキを取得（PlayerDeckテーブル経由）
 
@@ -453,6 +515,14 @@ Spring Boot を用いた Web アプリケーション。将棋風のボードゲ
 - `deletePlayerDecksByDeckId(int deckId)`: 特定のデッキに紐づく全てのPlayerDeckを削除
 - `insertPlayerDeckForAllPlayers(int deckId)`: 全てのプレイヤーにデッキの使用権限を一括付与
 - `isOwner(int playerId, int deckId)`: 指定されたプレイヤーが指定されたデッキの所有者かチェック
+- `insertPlayer(String username)`: 新規プレイヤーを登録
+- `updateSelectedDeckId(int playerId, int deckId)`: プレイヤーの選択中デッキを更新
+
+### `PlayerKomaMapper`
+- `insertPlayerKoma(PlayerKoma playerKoma)`: プレイヤーに駒の使用権限を付与
+- `selectPlayerIdByUsername(String username)`: ユーザー名からプレイヤーIDを取得
+- `deletePlayerKomasByKomaId(int komaId)`: 特定の駒に紐づく全てのPlayerKomaを削除
+- `isOwner(int playerId, int komaId)`: 指定されたプレイヤーが指定された駒の所有者かチェック
 
 ## ディレクトリ構成
 | パス | 役割 |
@@ -462,7 +532,9 @@ Spring Boot を用いた Web アプリケーション。将棋風のボードゲ
 | `tkk_game/src/main/java/team3/tkk_game/controller/MainController.java` | メインコントローラー (ホーム) |
 | `tkk_game/src/main/java/team3/tkk_game/controller/MatchController.java` | マッチングコントローラー (マッチング、待機、対戦リクエスト) |
 | `tkk_game/src/main/java/team3/tkk_game/controller/GameController.java` | ゲームコントローラー (ゲーム開始、移動) |
-| `tkk_game/src/main/java/team3/tkk_game/controller/DeckController.java` | デッキコントローラー (デッキ作成、選択、削除) |
+| `tkk_game/src/main/java/team3/tkk_game/controller/DeckController.java` | デッキコントローラー (デッキ作成、選択、削除、プレビュー) |
+| `tkk_game/src/main/java/team3/tkk_game/controller/AuthController.java` | 認証コントローラー (ユーザー登録) |
+| `tkk_game/src/main/java/team3/tkk_game/controller/KomaController.java` | 駒管理コントローラー (駒一覧、作成、編集、削除) |
 | `tkk_game/src/main/java/team3/tkk_game/model/Game.java` | ゲームモデル |
 | `tkk_game/src/main/java/team3/tkk_game/model/Ban.java` | 盤面モデル |
 | `tkk_game/src/main/java/team3/tkk_game/model/Koma/Koma.java` | 駒モデル |
@@ -475,16 +547,19 @@ Spring Boot を用いた Web アプリケーション。将棋風のボードゲ
 | `tkk_game/src/main/java/team3/tkk_game/model/GameRoom.java` | ゲーム管理モデル |
 | `tkk_game/src/main/java/team3/tkk_game/model/WaitRoom.java` | 待機室管理モデル |
 | `tkk_game/src/main/java/team3/tkk_game/model/PlayerDeck.java` | プレイヤーデッキ紐づけモデル |
+| `tkk_game/src/main/java/team3/tkk_game/model/PlayerKoma.java` | プレイヤー駒紐づけモデル |
 | `tkk_game/src/main/java/team3/tkk_game/mapper/KomaMapper.java` | 駒マッパー (MyBatis) |
 | `tkk_game/src/main/java/team3/tkk_game/mapper/DeckMapper.java` | デッキマッパー (MyBatis) |
 | `tkk_game/src/main/java/team3/tkk_game/mapper/PlayerMapper.java` | プレイヤーマッパー (MyBatis) |
 | `tkk_game/src/main/java/team3/tkk_game/mapper/PlayerDeckMapper.java` | プレイヤーデッキ紐づけマッパー (MyBatis) |
+| `tkk_game/src/main/java/team3/tkk_game/mapper/PlayerKomaMapper.java` | プレイヤー駒紐づけマッパー (MyBatis) |
 | `tkk_game/src/main/java/team3/tkk_game/services/TurnChecker.java` | ターンチェックサービス (SSE、従来方式) |
 | `tkk_game/src/main/java/team3/tkk_game/services/MatchChecker.java` | マッチングチェックサービス (SSE) |
 | `tkk_game/src/main/java/team3/tkk_game/services/MoveValidator.java` | 駒移動可否判定サービス |
 | `tkk_game/src/main/java/team3/tkk_game/services/GameEventEmitterManager.java` | ゲームイベントSSE配信管理サービス（イベント駆動型、heartbeat機能、切断通知） |
 | `tkk_game/src/main/java/team3/tkk_game/services/WaitRoomEventEmitterManager.java` | 待機室イベントSSE配信管理サービス |
 | `tkk_game/src/main/java/team3/tkk_game/services/DisconnectionHandler.java` | 切断処理統合サービス |
+| `tkk_game/src/main/java/team3/tkk_game/services/AuthService.java` | 認証サービス（ユーザー登録処理） |
 | `tkk_game/src/main/resources/static/index.html` | トップページ (静的) |
 | `tkk_game/src/main/resources/static/css/game.css` | ゲーム画面用CSS（和風デザイン） |
 | `tkk_game/src/main/resources/static/css/home.css` | ホーム画面用CSS（和風デザイン） |
@@ -492,14 +567,24 @@ Spring Boot を用いた Web アプリケーション。将棋風のボードゲ
 | `tkk_game/src/main/resources/static/css/waiting.css` | 待機画面用CSS（和風デザイン） |
 | `tkk_game/src/main/resources/static/css/deckmake.css` | デッキ作成画面用CSS（和風デザイン） |
 | `tkk_game/src/main/resources/static/css/deckselect.css` | デッキ選択画面用CSS（和風デザイン） |
+| `tkk_game/src/main/resources/static/css/index.css` | トップページ用CSS（和風デザイン） |
+| `tkk_game/src/main/resources/static/css/komalist.css` | 駒一覧画面用CSS（和風デザイン） |
+| `tkk_game/src/main/resources/static/css/komamake.css` | 駒作成・編集画面用CSS（和風デザイン） |
+| `tkk_game/src/main/resources/static/css/preview.css` | デッキプレビュー画面用CSS（和風デザイン） |
+| `tkk_game/src/main/resources/static/css/register.css` | ユーザー登録画面用CSS（和風デザイン） |
 | `tkk_game/src/main/resources/templates/home.html` | ホーム画面テンプレート |
 | `tkk_game/src/main/resources/templates/match.html` | マッチング画面テンプレート |
 | `tkk_game/src/main/resources/templates/waiting.html` | 待機画面テンプレート |
 | `tkk_game/src/main/resources/templates/game.html` | ゲーム画面テンプレート |
 | `tkk_game/src/main/resources/templates/deckmake.html` | デッキ作成画面テンプレート |
 | `tkk_game/src/main/resources/templates/deckselect.html` | デッキ選択画面テンプレート |
-| `tkk_game/src/main/resources/templates/komamake.html` | 駒作成画面テンプレート |
+| `tkk_game/src/main/resources/templates/komalist.html` | 駒一覧画面テンプレート |
+| `tkk_game/src/main/resources/templates/komamake.html` | 駒作成・編集画面テンプレート |
+| `tkk_game/src/main/resources/templates/preview.html` | デッキプレビュー画面テンプレート |
+| `tkk_game/src/main/resources/templates/register.html` | ユーザー登録画面テンプレート |
 | `tkk_game/src/main/resources/templates/debug.html` | デバッグ用画面テンプレート |
+| `tkk_game/src/main/resources/static/js/komaUtils.js` | 駒サイズ調整用JavaScript（文字数に応じた駒サイズの動的調整） |
+| `tkk_game/src/main/resources/static/sound/` | 効果音ファイル格納ディレクトリ（koma.mp3, win.mp3, lose.mp3, credit.txt） |
 | `tkk_game/src/main/resources/schema.sql` | データベーススキーマ定義 |
 | `tkk_game/src/main/resources/data.sql` | 初期データ投入 |
 | `tkk_game/src/main/resources/application.properties` | アプリケーション設定 (ポート: 80, H2設定) |
@@ -508,12 +593,14 @@ Spring Boot を用いた Web アプリケーション。将棋風のボードゲ
 | `docs/reports/done/2025-11-11_ログイン機能最小実装.md` | 完了レポート (ログイン機能) |
 | `docs/reports/done/done_2026-01-05_コストシステム実装.md` | 完了レポート (コストシステム) |
 | `docs/reports/done/done_2026-01-05_切断処理基盤実装.md` | 完了レポート (切断処理基盤) |
+| `docs/reports/done/done_2026-01-10_自作駒管理機能実装.md` | 完了レポート (自作駒管理機能) |
 | `docs/reports/investigate/2025-11-11_ログイン機能実装方法調査.md` | 調査レポート (ログイン機能) |
 | `docs/reports/investigate/2025-12-23_canMoveサービス分離調査.md` | 調査レポート (canMoveサービス分離) |
 | `docs/reports/investigate/2026-01-04_駒作成フォームのDB保存実装方法調査.md` | 調査レポート (駒作成フォームのDB保存) |
 | `docs/reports/investigate/2026-01-05_コストシステム実装方法調査.md` | 調査レポート (コストシステム) |
 | `docs/reports/investigate/2026-01-05_コスト機能拡張実装方法調査.md` | 調査レポート (コスト機能拡張) |
 | `docs/reports/investigate/2026-01-05_切断処理基盤調査.md` | 調査レポート (切断処理基盤) |
+| `docs/reports/investigate/2026-01-10_自作駒管理機能調査.md` | 調査レポート (自作駒管理機能) |
 | `docs/reports/review/2025-11-11_最小ログイン機能.md` | レビューレポート (ログイン機能) |
 | `docs/reports/review/review_2025-12-23_canMoveサービス分離.md` | レビューレポート (canMoveサービス分離) |
 | `docs/reports/review/review_2025-12-23_SSEイベント駆動化.md` | レビューレポート (SSEイベント駆動化) |
@@ -547,18 +634,37 @@ Spring Boot を用いた Web アプリケーション。将棋風のボードゲ
 - ✅ MyBatisによるデータアクセス層
 - ✅ デッキ作成・保存機能（コストシステム対応）
 - ✅ デッキ選択・読み込み・削除機能（コスト表示対応）
+- ✅ デッキ編集機能
+  - ✅ デッキ編集画面（所有者のみアクセス可能）
+  - ✅ デッキ更新機能（コストチェック付き）
+  - ✅ 所有者チェック機能
 - ✅ デッキ所有者管理機能
   - ✅ PlayerDeckテーブルによるデッキ使用権限管理
   - ✅ デッキ作成者が所有者として登録
   - ✅ 所有者のみデッキ削除可能
   - ✅ 共通デッキは全プレイヤーが使用可能
-- ✅ 駒作成機能（駒名、移動ルール、スキル、スキル、成り先の設定が可能）
-  - ✅ 駒名の入力
-  - ✅ 移動ルールの選択（チェックボックス）
-  - ✅ 特殊スキルの選択（ラジオボタン）
-  - ✅ 成り先駒の選択（成らない駒のみ選択可能）
+- ✅ ユーザー登録機能
+  - ✅ ユーザー登録画面（ユーザー名・パスワード入力フォーム）
+  - ✅ バリデーション（ユーザー名3〜20文字、パスワード4文字以上、パスワード一致確認）
+  - ✅ AuthServiceによるユーザー登録処理
+  - ✅ デフォルトデッキの自動割り当て
+- ✅ 駒管理機能（一覧・作成・編集・削除）
+  - ✅ 駒一覧画面（所有する駒の表示、コスト表示、共通駒の表示）
+  - ✅ 駒作成画面（駒名、移動ルール、スキル、成り先の設定が可能）
+  - ✅ 駒編集画面（既存駒の編集、所有者のみ編集可能）
+  - ✅ 駒削除機能（所有者のみ削除可能、PlayerKoma・KomaRuleの紐づけも削除）
   - ✅ 合計コストのリアルタイム表示
   - ✅ データベースへの保存（トランザクション管理）
+- ✅ デッキプレビュー機能
+  - ✅ デッキの盤面配置を視覚的に表示
+  - ✅ SFEN形式から盤面配置を復元
+- ✅ 効果音機能
+  - ✅ 駒移動時の効果音（koma.mp3）
+  - ✅ 勝利時の効果音（win.mp3）
+  - ✅ 敗北時の効果音（lose.mp3）
+- ✅ UI機能改善
+  - ✅ 駒サイズの動的調整（文字数に応じた駒サイズの自動調整、komaUtils.js）
+  - ✅ トップページのCSS適用（index.css）
 - ✅ コストシステム実装
   - ✅ 駒の移動ルールとスキルにコスト値を設定
   - ✅ デッキ作成画面でコストをリアルタイム表示
@@ -587,64 +693,6 @@ Spring Boot を用いた Web アプリケーション。将棋風のボードゲ
 - ✅ デッキ作成画面の機能拡張
   - ✅ リセットボタンで配置した駒をすべてクリア可能
 
-## 未実装タスク一覧
-
-### 必須タスク（優先度: 最高）
-- **駒のスキル関連**
-  - 新たにスキルを追加
-
-- **ゲームルール改善**
-  - 持ち駒から王の再設置ができないようにする
-
-### 優先度: 高（実装検討中）
-
-- **ゲームルール改善**
-  - 成った駒を取得したら成る前の駒で取得したい
-  - 二重に成るのを禁止
-  - 成る用のコスト設定
-
-- **駒管理改善**
-  - 駒の文字数問題への対応
-  - 駒作成画面のUI改善（作成済み駒の一覧表示）
-  - 駒の編集・削除機能
-    - 自作駒の編集機能
-    - 自作駒の削除機能（現在insertのみ実装済み）
-    - Mapper に `updateKoma()`, `deleteKoma()` の追加が必要
-
-- **デッキ選択画面のUI改善**
-  - デッキプレビュー機能（盤面の視覚化）
-  - デッキの編集機能（現在は削除のみ）
-
-
-### 優先度: 中（余裕があれば実装）
-
-- **戦績機能**
-  - ユーザーテーブルの拡張（現在は基本情報のみ）
-  - 勝敗・レーティングの記録
-  - 戦績表示画面の作成
-
-- **ランキング機能**
-  - レーティングシステム
-  - ランキング表示画面
-
-- **ゲーム画面の機能追加**
-  - サウンドエフェクトの追加（駒を動かす音、取る音など）
-
-- **セキュリティ・UX改善**
-  - RequestParamをURLから隠す（POST化など）
-  - ユーザーを自由に追加できる仕組み（現在はインメモリユーザー固定）
-
-- **エラーハンドリング強化**
-  - 異常系のテストとエラー処理
-  - タイムアウト処理
-
-- **観戦機能**
-  - 対局中のゲームを観戦できる機能
-
-- **チャット機能**
-  - 対局中のコミュニケーション機能
-
-
 ## コストシステム仕様
 
 ### コスト計算
@@ -658,6 +706,7 @@ Spring Boot を用いた Web アプリケーション。将棋風のボードゲ
 #### スキルのコスト
 - **NULL**（コスト0）: スキルなし
 - **STEALTH**（コスト5）: ステルススキル
+- **COPY**（コスト4）: コピースキル
 
 ### 駒ごとのコスト例
 | 駒名 | 移動ルール | スキル | コスト計算 | 合計コスト |
@@ -677,6 +726,7 @@ Spring Boot を用いた Web アプリケーション。将棋風のボードゲ
 | 馬 | 4個の直線移動 + 4個の単マス移動 | NULL | 4×3 + 4×1 + 0 | 16 |
 | 龍 | 4個の直線移動 + 4個の単マス移動 | NULL | 4×3 + 4×1 + 0 | 16 |
 | 忍び | 5個の単マス移動 | STEALTH | 5×1 + 5 | 10 |
+| 役者 | 1個の単マス移動 | COPY | 1×1 + 4 | 5 |
 
 ### デッキコスト上限
 - コスト上限: **50**
