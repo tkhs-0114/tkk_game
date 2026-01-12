@@ -2,7 +2,7 @@
 
 ## ユーザーマニュアル
 
-こちらからご覧になれます
+[こちら](https://github.com/tkhs-0114/tkk_game/tree/main/manual/user-manual.md)からご覧になれます
 
 ## セットアップ
 
