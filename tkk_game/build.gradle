@@ -5,8 +5,8 @@ plugins {
 }
 
 group = 'team3'
-version = '0.0.1-SNAPSHOT'
-description = 'Demo project for Spring Boot'
+version = '1.0.0'
+description = 'IS_AppliedExercises_2025_Team3'
 
 java {
 	toolchain {
