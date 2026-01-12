@@ -76,6 +76,23 @@ public class KomaDB {
     if (skill != null) {
       totalCost += KomaSkill.valueOf(skill).getCost();
     }
+
+    if (updateKoma != null) {
+      // 成り先のコストを追加
+      switch (updateKoma) {
+        case 11: // 成金
+          totalCost += 3;
+          break;
+        case 12: // 馬
+          totalCost += 6;
+          break;
+        case 13: // 龍
+          totalCost += 6;
+          break;
+        default:
+          break;
+      }
+    }
     return totalCost;
   }
 }

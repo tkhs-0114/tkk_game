@@ -9,7 +9,7 @@ INSERT INTO koma VALUES (7,'飛車', NULL,  13);
 INSERT INTO koma VALUES (8,'と金', NULL,  -1);
 INSERT INTO koma VALUES (9,'成香', NULL,  -1);
 INSERT INTO koma VALUES (10,'成桂', NULL, -1);
-INSERT INTO koma VALUES (11,'成銀', NULL, -1);
+INSERT INTO koma VALUES (11,'成金', NULL, -1);
 INSERT INTO koma VALUES (12,'馬', NULL, -1);
 INSERT INTO koma VALUES (13,'龍', NULL, -1);
 

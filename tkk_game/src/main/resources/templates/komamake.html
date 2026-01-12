@@ -14,7 +14,7 @@
     // 編集モードフラグと駒データを取得
     const isEditMode = /*[[${isEditMode}]]*/ false;
     const editKoma = /*[[${koma}]]*/ null;
-    const currentRules = /*[[${currentRules}]]*/ [];
+    const currentRules = /*[[${currentRules}]]*/[];
     /*]]>*/
 
     // 選択中のルールとスキルのコストを計算して表示
@@ -32,6 +32,7 @@
       // スキルのコスト計算
       let skillCost = 0;
       const skillSelect = document.getElementById('skill');
+      console.log(skillSelect);
       if (skillSelect) {
         const selectedOption = skillSelect.options[skillSelect.selectedIndex];
         const cost = parseInt(selectedOption.getAttribute('data-cost'));
@@ -41,8 +42,20 @@
       }
       // document.getElementById('skill-cost-display').textContent = skillCost;
 
+      // 成り先コスト計算
+      let updateKomaCost = 0;
+      const updateSelect = document.getElementById('updateKoma');
+      console.log(updateSelect);
+      if (updateSelect) {
+        const selectedOption = updateSelect.options[updateSelect.selectedIndex];
+        const cost = parseInt(selectedOption.getAttribute('data-cost'));
+        if (!isNaN(cost)) {
+          updateKomaCost = cost;
+        }
+      }
+
       // 合計コスト表示
-      const totalCost = ruleCost + skillCost;
+      const totalCost = ruleCost + skillCost + updateKomaCost;
       document.getElementById('total-cost-display').textContent = totalCost;
     }
 
@@ -147,7 +160,8 @@
       <div class="form-section">
         <div class="form-group">
           <label for="name">駒の名前</label>
-          <input type="text" id="name" name="name" th:value="${koma?.name}" required onchange="update()" placeholder="駒の名前を入力してください">
+          <input type="text" id="name" name="name" th:value="${koma?.name}" required onchange="update()"
+            placeholder="駒の名前を入力してください">
         </div>
       </div>
 
@@ -187,10 +201,14 @@
 
         <div class="form-group">
           <label for="updateKoma">成り先</label>
-          <select id="updateKoma" name="updateKomaId">
-            <option value="-1" th:selected="${koma?.updateKoma == null || koma?.updateKoma == -1}">成らない</option>
-            <option th:each="k : ${canUpdateKomas}" th:value="${k.id}" th:text="${k.name}"
-              th:selected="${koma?.updateKoma == k.id}">駒名</option>
+          <select id="updateKoma" name="updateKomaId" onchange="update()">
+            <option value="-1" th:selected="${koma?.updateKoma == null || koma?.updateKoma == -1}" data-cost="0">成らない
+            </option>
+            <!-- <option th:each="k : ${canUpdateKomas}" th:value="${k.id}" th:text="${k.name}"
+              th:selected="${koma?.updateKoma == k.id}">駒名</option> -->
+            <option value="11" th:selected="${koma?.updateKoma == 11}" data-cost="3">成金（コスト：3）</option>
+            <option value="12" th:selected="${koma?.updateKoma == 12}" data-cost="6">馬（コスト：6）</option>
+            <option value="13" th:selected="${koma?.updateKoma == 13}" data-cost="6">龍（コスト：6）</option>
           </select>
         </div>
       </div>
@@ -202,7 +220,8 @@
 
       <!-- 作成/更新ボタン -->
       <div class="button-area">
-        <button type="submit" class="submit-button" th:text="${isEditMode != null and isEditMode} ? '更新' : '作成'">作成</button>
+        <button type="submit" class="submit-button"
+          th:text="${isEditMode != null and isEditMode} ? '更新' : '作成'">作成</button>
         <a href="/koma/list" class="cancel-button" th:if="${isEditMode != null and isEditMode}">キャンセル</a>
       </div>
     </form>
